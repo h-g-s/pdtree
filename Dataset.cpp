@@ -174,10 +174,26 @@ Dataset::Dataset(const char *fileName) :
             }
             else
             {
-                this->cTypes_[idx] = Integer;
-                this->cSizes_[idx] = sizeof(int);
-            }
-        }
+                if (colTypes[i][Integer])
+                {
+                    this->cTypes_[idx] = Integer;
+                    this->cSizes_[idx] = sizeof(int);
+                }
+                else
+                {
+                    if (colTypes[i][Short])
+                    {
+                        this->cTypes_[idx] = Short;
+                        this->cSizes_[idx] = sizeof(short int);
+                    }
+                    else
+                    {
+                        this->cTypes_[idx] = Char;
+                        this->cSizes_[idx] = sizeof(signed char);
+                    }
+                } // smaller than integer
+            } // not float
+        } // all columns
 
         this->headers_[idx] = this->headers_[i];
         this->rowSize += this->cSizes_[idx];
@@ -263,6 +279,18 @@ void Dataset::cell_set(size_t row, size_t col, const std::string &str)
             strncpy(s, str.c_str(), this->cSizes_[col]);
             break;
         }
+        case Char:
+        {
+            signed char *v = (signed char *)p;
+            *v = (signed char) stoi(str);
+            break;
+        }
+        case Short:
+        {
+            short int *v = (short int *)p;
+            *v = (short int) stoi(str);
+            break;
+        }
         case Integer:
         {
             int *v = (int*)p;
@@ -288,10 +316,39 @@ int Dataset::int_cell(size_t row, size_t col) const
 {
     assert(row<this->rows_);
     assert(col<this->headers_.size());
-    assert(this->cTypes_[col]==Integer);
+    assert(this->cTypes_[col]==Integer || this->cTypes_[col]==Short || this->cTypes_[col]==Char);
     char *p = (char *)this->data + this->rowSize*row + this->cShift_[col];
-    int *v = (int *)p;
-    return *v;
+
+    switch (this->cTypes_[col])
+    {
+        case Integer:
+        {
+            int *v = (int *)p;
+            return (*v);
+            break;
+        }
+        case Short:
+        {
+            short int *v = (short int *)p;
+            return (int)(*v);
+            break;
+        }
+        case Char:
+        {
+            signed char *v = (signed char *)p;
+            return (int)(*v);
+            break;
+        }
+        default:
+        {
+            cerr << "unexpected value for data type" << endl;
+            abort();
+            break;
+        }
+
+    }
+
+    return 0;
 }
 
 double
@@ -367,11 +424,32 @@ enum Datatype str_type(const string &str)
         {
             case 0:
             {
+                int v = 0;
+                try
+                {
+                    v = stoi(str);
+                }
+                catch (const std::exception& e)
+                {
+                    return String;
+                }
+                if (v>=-127 && v<=127)
+                    return Char;
+                if (v>=-32767 && v<=32767)
+                    return Short;
                 return Integer;
                 break;
             }
             case 1:
             {
+                try
+                {
+                    stod(str);
+                }
+                catch (const std::exception& e)
+                {
+                    return String;
+                }
                 return Float;
                 break;
             }

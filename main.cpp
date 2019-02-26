@@ -1,7 +1,9 @@
 #include <iostream>
+#include <fstream>
 #include "Dataset.hpp"
 #include <unordered_map>
 #include <map>
+#include <cmath>
 #include <quadmath.h>
 #include <string>
 #include <vector>
@@ -34,6 +36,14 @@ public:
         this->average = (double) av;
     }
 
+    void addResult(const double &value) {
+        if (fabs(value + 1e+8)<1e-6)
+            this->nFeas++;
+
+        this->sumDelta += ((__float128)value);
+        this->count++;
+    }
+
     __float128 sumDelta;
     double average;
     size_t nFeas;
@@ -53,7 +63,7 @@ int main(int argc, char **argv)
 
     Dataset relax(argv[2]);
 
-    map<string, map<string, pair<__float128, long int> > > resInstSt;
+    map<string, map<string, StrategyResults > > resInstSt;
     const size_t colSt = relax.headers().size()-2;
     const size_t colDelta = relax.headers().size()-1;
 
@@ -65,25 +75,26 @@ int main(int argc, char **argv)
 
         string iname = string(relax.str_cell(i, 0));
         string stname = string(relax.str_cell(i, colSt));
-        __float128 delta = relax.float_cell(i, colDelta);
+        double delta = relax.float_cell(i, colDelta);
         auto itI = resInstSt.find(iname);
         if (itI==resInstSt.end())
         {
-            resInstSt[iname][stname] = make_pair( delta, (long int) 1 );
+            StrategyResults stres;
+            stres.addResult(delta);
+            resInstSt[iname][stname] = stres;
         }
         else
         {
             auto itS = itI->second.find(stname);
             if (itS==itI->second.end())
             {
-                itI->second[stname] = make_pair( delta, (long int) 1 );
+                StrategyResults stres;
+                stres.addResult(delta);
+                itI->second[stname] = stres;
             }
             else
             {
-                __float128 cdelta = itS->second.first;
-                long int ccount = itS->second.second;
-
-                itS->second = make_pair(cdelta + delta, ccount+1);
+                itS->second.addResult(delta);
             }
         }
 
@@ -91,14 +102,14 @@ int main(int argc, char **argv)
             auto itS = resSt.find(stname);
             if (itS==resSt.end())
             {
-                resSt[stname] = make_pair(delta, (long int)1);
+                StrategyResults stres;
+                stres.addResult(delta);
+                resSt[stname] = stres;
 
             }
             else
             {
-                __float128 cdelta = itS->second.first;
-                long int ccount = itS->second.second;
-                itS->second = make_pair(cdelta + delta, ccount+1);
+                itS->second.addResult(delta);
             }
         }
     }
@@ -106,14 +117,35 @@ int main(int argc, char **argv)
     // sorted strategy results
     vector< pair< __float128, string > > sstr;
 
-    for ( auto it=resSt.begin() ; (it!=resSt.end()) ; ++it )
-        sstr.push_back( make_pair(it->second.first /  (__float128)it->second.second, it->first) );
+    for ( auto &stRes : resSt )
+    {
+        stRes.second.computeAverage();
+        sstr.push_back( make_pair( stRes.second.average, stRes.first ) );
+    }
 
     std::sort(sstr.begin(), sstr.end());
 
-    cout << "overall strategy results, ranked from the best to the worse: " << endl;
-    for (auto it=sstr.begin() ; (it!=sstr.end()) ; ++it )
-        cout << it->second << "," << (long double)it->first << endl;
+    {
+        ofstream ofs("strAvg.csv");
+        for (auto it=sstr.begin() ; (it!=sstr.end()) ; ++it )
+            ofs << it->second << "," << (long double)it->first << endl;
+        ofs.close();
+    }
+
+    {
+        sstr.clear();
+        for ( auto &stRes : resSt )
+        {
+            stRes.second.computeAverage();
+            sstr.push_back( make_pair( stRes.second.nFeas, stRes.first ) );
+        }
+        std::sort(sstr.begin(), sstr.end());
+
+        ofstream ofs("strFeas.csv");
+        for (auto it=sstr.begin() ; (it!=sstr.end()) ; ++it )
+            ofs << it->second << "," << (long double)it->first << endl;
+        ofs.close();
+    }
 
     return 1;
 }
