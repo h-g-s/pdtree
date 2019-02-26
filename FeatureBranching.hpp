@@ -201,8 +201,8 @@ void FeatureBranching<T>::computeBranchValues()
             continue;
 
         size_t bestDist = numeric_limits<size_t>::max();
-        T bestV;
-        size_t bestP;
+        T bestV = T();
+        size_t bestP = 0;
 
         size_t nEl = 0;
         for (const auto &v : diffValues)

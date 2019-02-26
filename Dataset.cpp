@@ -252,7 +252,7 @@ Dataset::Dataset(const char *fileName) :
 
 void Dataset::cell_set(size_t row, size_t col, const std::string &str)
 {
-    assert(row<rowSize);
+    assert(row<rows_);
     assert(col<this->headers_.size());
     char *p = (char *)this->data + this->rowSize*row + this->cShift_[col];
     switch (this->cTypes_[col])
@@ -286,7 +286,7 @@ void Dataset::cell_set(size_t row, size_t col, const std::string &str)
 
 int Dataset::int_cell(size_t row, size_t col) const
 {
-    assert(row<rowSize);
+    assert(row<this->rows_);
     assert(col<this->headers_.size());
     assert(this->cTypes_[col]==Integer);
     char *p = (char *)this->data + this->rowSize*row + this->cShift_[col];
@@ -297,7 +297,7 @@ int Dataset::int_cell(size_t row, size_t col) const
 double
 Dataset::float_cell (size_t row, size_t col) const
 {
-    assert(row<rowSize);
+    assert(row<this->rows_);
     assert(col<this->headers_.size());
     assert(this->cTypes_[col]==Float);
     char *p = (char *)this->data + this->rowSize*row + this->cShift_[col];
@@ -308,7 +308,7 @@ Dataset::float_cell (size_t row, size_t col) const
 const char*
 Dataset::str_cell (size_t row, size_t col) const
 {
-    assert(row<rowSize);
+    assert(row<this->rows_);
     assert(col<this->headers_.size());
     assert(this->cTypes_[col]==String);
     char *p = (char *)this->data + this->rowSize*row + this->cShift_[col];
@@ -354,7 +354,7 @@ enum Datatype str_type(const string &str)
             ++nPoints;
         else
         {
-            if (isdigit(str[i]))
+            if (isdigit(str[i]) or str[i]=='e' or str[i]=='+' or str[i]=='-')
                 hasNum = true;
             else
                 return String;
