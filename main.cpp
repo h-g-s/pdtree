@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include "Dataset.hpp"
 #include <unordered_map>
 #include <map>
 #include <cmath>
@@ -8,6 +7,10 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <climits>
+#include <unordered_set>
+#include "Dataset.hpp"
+#include "Instance.hpp"
 
 using namespace std;
 
@@ -59,16 +62,22 @@ int main(int argc, char **argv)
         cerr << "usage: ddtre instances.csv relaxations.csv" << endl;
         exit(1);
     }
+
     Dataset inst(argv[1]);
+    Instance::features = vector<string>( inst.headers().begin()++, inst.headers().end() );
+    Instance::inst_dataset = &inst;
+    size_t nInstances = 0;
+    vector< Instance > instances = vector< Instance >(inst.rows(), Instance(nInstances++) );
+    for ( size_t i=0 ; i<instances.size(); ++i ) instances[i].idx_ = i;
 
     Dataset relax(argv[2]);
 
     map<string, map<string, StrategyResults > > resInstSt;
     const size_t colSt = relax.headers().size()-2;
     const size_t colDelta = relax.headers().size()-1;
+    unordered_set< string > algorithms;
 
     map< string , StrategyResults > resSt;
-
 
     for (size_t i=0 ; (i<relax.rows()) ; ++i)
     {
@@ -77,6 +86,7 @@ int main(int argc, char **argv)
         string stname = string(relax.str_cell(i, colSt));
         double delta = relax.float_cell(i, colDelta);
         auto itI = resInstSt.find(iname);
+        algorithms.insert(stname);
         if (itI==resInstSt.end())
         {
             StrategyResults stres;
@@ -114,6 +124,63 @@ int main(int argc, char **argv)
         }
     }
 
+    // checking if all instances and strategies
+    // appear in the result dataset.
+    size_t instWR = 0;
+    size_t instStWR = 0;
+    for ( const auto &inst : instances )
+    {
+        auto iti = resInstSt.find( string(inst.name()) );
+        if (iti==resInstSt.end())
+        {
+            instWR++;
+            continue;
+        }
+        for ( const auto &alg : algorithms )
+        {
+            auto its = iti->second.find(alg);
+            if (its==iti->second.end())
+            {
+                instStWR++;
+            }
+        }
+    }
+
+    if (instWR)
+    {
+        cout << instWR << " instances without any results in the dataset" << endl;
+    }
+    else
+    {
+        cout << "all instances have results" << endl;
+    }
+
+    if (instStWR)
+    {
+        cout << instStWR << " instances x strategies (from a total of " << instances.size()*algorithms.size() << ") without any results in the dataset" << endl;
+    }
+    else
+    {
+        cout << "all instances x strategies have at least one result" << endl;
+    }
+
+    size_t minSt = numeric_limits<size_t>::max(), maxSt = 0;
+    size_t nISt = 0, totSamp = 0;
+    for ( const auto &itI : resInstSt )
+    {
+        for ( const auto &stI : itI.second )
+        {
+            totSamp += stI.second.count;
+            minSt = min(minSt, stI.second.count);
+            maxSt = max(maxSt, stI.second.count);
+            ++nISt;
+        }
+    }
+
+    cout << "average samples per instance and strategy: " <<
+         ((double)totSamp / ((double) instances.size()*algorithms.size()) ) <<
+         " min " << minSt << " max " << maxSt << endl;
+
     // sorted strategy results
     vector< pair< __float128, string > > sstr;
 
@@ -145,6 +212,20 @@ int main(int argc, char **argv)
         for (auto it=sstr.begin() ; (it!=sstr.end()) ; ++it )
             ofs << it->second << "," << (long double)it->first << endl;
         ofs.close();
+    }
+
+    {
+        ofstream of("diving-inst-st.csv");
+        for ( auto &itI : resInstSt )
+        {
+            for ( auto &stI : itI.second )
+            {
+                stI.second.computeAverage();
+
+
+            }
+        }
+        of.close();
     }
 
     return 1;
