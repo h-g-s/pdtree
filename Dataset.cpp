@@ -81,7 +81,7 @@ std::istream& operator>>(std::istream& str, CSVRow& data)
     return str;
 }
 
-Dataset::Dataset(const char *fileName) :
+Dataset::Dataset(const char *fileName, bool deleteFeatures_) :
     data(nullptr)
 {
     chrono::high_resolution_clock::time_point t1 = chrono::high_resolution_clock::now();
@@ -136,20 +136,24 @@ Dataset::Dataset(const char *fileName) :
     // checking columns that can be safely deleted
     std::vector< bool > deleteColumn = vector< bool >(n, false);
     size_t nDel = 0;
-    for ( size_t i=0 ; (i<difValues.size()) ; ++i )
+
+    if (deleteFeatures_)
     {
-        if (difValues[i].size()<=1)
+        for ( size_t i=0 ; (i<difValues.size()) ; ++i )
         {
-            deleteColumn[i] = true;
-            nDel++;
+            if (difValues[i].size()<=1)
+            {
+                deleteColumn[i] = true;
+                nDel++;
+            }
         }
-    }
-    if (nDel)
-    {
-        cout << "the following columns have always the same value and will be deleted:" << endl;
-        for ( size_t i=0 ; (i<n) ; ++i )
-            if (deleteColumn[i])
-                cout << "\t" << this->headers_[i] << endl;
+        if (nDel)
+        {
+            cout << "the following columns have always the same value and will be deleted:" << endl;
+            for ( size_t i=0 ; (i<n) ; ++i )
+                if (deleteColumn[i])
+                    cout << "\t" << this->headers_[i] << endl;
+        }
     }
     
     this->cTypes_ = vector<Datatype>(n, Empty);
@@ -229,7 +233,7 @@ Dataset::Dataset(const char *fileName) :
         hSize /= 1024;
         unity = "Gb";
     }
-    cout << "dataset will ocupy " << setprecision(2) << fixed << hSize << " " << unity << endl;
+    cout << "dataset will occupy " << setprecision(2) << fixed << hSize << " " << unity << endl;
 
     this->data = (char *)malloc(dataSize);
     if (this->data==nullptr)

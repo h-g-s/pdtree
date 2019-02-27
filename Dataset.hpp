@@ -22,7 +22,10 @@ enum Datatype { Char=0,
 
 class Dataset {
 public:
-	Dataset(const char *fileName);
+    /** reads a dataset from "fileName", checks for columns with only one feature if
+     * deleteFeatures = true
+     */
+	Dataset(const char *fileName, bool deleteFeatures_ = true);
 
 	size_t rows() const { return rows_; }
 

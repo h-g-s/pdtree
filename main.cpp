@@ -11,9 +11,11 @@
 #include <unordered_set>
 #include "Dataset.hpp"
 #include "Instance.hpp"
+#include "InstanceSet.hpp"
 
 using namespace std;
 
+/*
 class StrategyResults
 {
 public:
@@ -52,24 +54,33 @@ public:
     size_t nFeas;
     size_t nInfeas;
     size_t count;
-};
+}; */
 
 
 int main(int argc, char **argv)
 {
     if (argc<3)
     {
-        cerr << "usage: ddtre instances.csv relaxations.csv" << endl;
+        cerr << "usage: ddtre instances.csv algresults.csv" << endl;
         exit(1);
     }
 
-    Dataset inst(argv[1]);
-    Instance::features = vector<string>( inst.headers().begin()++, inst.headers().end() );
-    Instance::inst_dataset = &inst;
-    size_t nInstances = 0;
-    vector< Instance > instances = vector< Instance >(inst.rows(), Instance(nInstances++) );
-    for ( size_t i=0 ; i<instances.size(); ++i ) instances[i].idx_ = i;
+    // loading instance data
+    InstanceSet iset( argv[1] );
 
+    // loading results
+    {
+        Dataset algRes(argv[2]);
+
+        // checking different algorithms/parameter settings
+        unordered_set<string> algs;
+        for ( size_t i=0 ; (i<algRes.rows()) ; ++i )
+            algs.insert( algRes.str_cell(i, 0));
+    }
+
+
+
+    /*
     Dataset relax(argv[2]);
 
     map<string, map<string, StrategyResults > > resInstSt;
@@ -227,6 +238,6 @@ int main(int argc, char **argv)
         }
         of.close();
     }
-
+*/
     return 1;
 }
