@@ -18,7 +18,7 @@
 class InstanceSet
 {
 public:
-    InstanceSet (const char *fileName);
+    InstanceSet (const char *fileName, const char *resultsFileName = nullptr);
 
     /* instance by index */
     const Instance &instance( size_t idx ) const;

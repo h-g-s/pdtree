@@ -8,6 +8,7 @@
 #include "Dataset.hpp"
 
 #include <fstream>
+#include <algorithm>
 #include <vector>
 #include <set>
 #include <cstdlib>
@@ -26,6 +27,7 @@ using namespace std;
 #include <string>
 #include <iomanip>
 #include <chrono>
+#include <cmath>
 
 
 // trim from start (in place)
@@ -360,10 +362,40 @@ Dataset::float_cell (size_t row, size_t col) const
 {
     assert(row<this->rows_);
     assert(col<this->headers_.size());
-    assert(this->cTypes_[col]==Float);
+    assert(this->col_is_number(col));
     char *p = (char *)this->data + this->rowSize*row + this->cShift_[col];
-    double *v = (double *)p;
-    return *v;
+
+    switch (this->cTypes_[col])
+    {
+        case Float:
+        {
+            double *v = (double *)p;
+            return *v;
+            break;
+        }
+        case Integer:
+        {
+            int *v = (int *)p;
+            return (double) (*v);
+            break;
+        }
+        case Short:
+        {
+            short int *v = (short int *)p;
+            return (double) (*v);
+            break;
+        }
+        case Char:
+        {
+            signed char *v = (signed char *)p;
+            return (double) (*v);
+            break;
+        }
+        default:
+            return 0.0;
+    }
+
+    return 0.0;
 }
 
 const char*
@@ -403,6 +435,17 @@ static inline void trim(std::string &s) {
     ltrim(s);
     rtrim(s);
 }
+
+bool Dataset::col_is_number( size_t col ) const
+{
+    return (
+            cTypes_[col] == Float
+            or cTypes_[col] == Integer
+            or cTypes_[col] == Short
+            or cTypes_[col] == Char
+            );
+}
+
 
 enum Datatype str_type(const string &str)
 {
@@ -466,4 +509,230 @@ enum Datatype str_type(const string &str)
     }
 
     return Empty;
+}
+
+Dataset::Dataset(const Dataset &other, std::vector<bool> _included ) :
+    rowSize(0),
+    data(nullptr),
+    rows_(0)
+{
+    for (size_t i=0 ; (i<_included.size()) ; ++i )
+        rows_ += (int)_included[i];
+
+    std::vector< std::unordered_set< std::string> > diffStr(other.headers().size(), std::unordered_set< std::string>() );
+    std::vector< std::unordered_set< double> > diffDbl(other.headers().size(), std::unordered_set< double >() );
+    std::vector< std::unordered_set< int > > diffInt(other.headers().size(), std::unordered_set< int >() );
+    std::vector< size_t > largestStr = vector<size_t>(other.headers().size(), 0);
+    std::vector< bool > colIncluded( other.headers().size(), true );
+    /** checking different feature
+     * values in the items included */
+
+    for (size_t i=0 ; (i<_included.size()) ; ++i )
+    {
+        if (not _included[i])
+            continue;
+
+        for (size_t j=0 ; (j<other.headers().size()) ; ++j )
+        {
+            switch (other.types()[j])
+            {
+                case String:
+                {
+                    string s = string(other.str_cell(i, j));
+                    diffStr[j].insert( s );
+                    largestStr[j] = max(largestStr[j], s.size() );
+                    break;
+                }
+                case Float:
+                {
+                    const double v = other.float_cell(i, j);
+                    diffDbl[j].insert( v );
+                    break;
+                }
+                default:
+                {
+                    diffInt[j].insert( other.int_cell(i, j) );
+                    break;
+                }
+            }
+        }
+    }
+
+    rowSize = 0;
+    for ( size_t j=0 ; (j<other.headers().size() ) ; ++j )
+    {
+        size_t nDif = diffStr[j].size() + diffDbl[j].size() + diffInt[j].size();
+        if ((j>0) and (nDif<=1))
+        {
+            colIncluded[j] = false;
+            continue;
+        }
+
+        this->headers_.push_back(other.headers()[j]);
+
+        enum Datatype colt = Datatype::N_DATA_TYPES;
+        size_t colSize = 0;
+
+        switch (other.types()[j])
+        {
+            case String:
+                colt = String;
+                colSize = largestStr[j]+1;
+                break;
+            case Float:
+                colt = Float;
+                colSize = sizeof(double);
+                break;
+            case Integer:
+                colt = Integer;
+                colSize = sizeof(int);
+                break;
+            case Short:
+                colt = Short;
+                colSize = sizeof(short int);
+                break;
+            case Char:
+                colt = Char;
+                colSize = sizeof(signed char);
+                break;
+            default:
+                throw "Type not supported";
+        }
+
+        this->cShift_.push_back(rowSize);
+        this->cTypes_.push_back(colt);
+        this->cSizes_.push_back(colSize);
+        rowSize += colSize;
+    }
+
+    data = (char *)malloc( rowSize*rows_ );
+    if (data == nullptr)
+        throw "no memory available";
+
+    size_t cRow = 0;
+    for ( size_t i=0 ; (i<_included.size()) ; ++i )
+    {
+        if (not _included[i])
+            continue;
+
+        size_t cCol = 0;
+        for ( size_t j=0 ; (j<other.headers().size()) ; ++j )
+        {
+            if (not colIncluded[j])
+                continue;
+
+            switch (other.types()[j])
+            {
+                case String:
+                    this->cell_set(cRow, cCol, other.str_cell(i, j));
+                    break;
+                case Float:
+                    this->cell_set(cRow, cCol, other.float_cell(i, j));
+                    break;
+                case Integer:
+                    this->cell_set(cRow, cCol, other.int_cell(i, j));
+                    break;
+                case Short:
+                    this->cell_set(cRow, cCol, other.int_cell(i, j));
+                    break;
+                case Char:
+                    this->cell_set(cRow, cCol, other.int_cell(i, j));
+                    break;
+                default:
+                    throw "type not supported";
+            }
+            ++cCol;
+        }
+        ++cRow;
+    }
+}
+
+void Dataset::cell_set(size_t row, size_t col, const int val)
+{
+    assert(row<rows_);
+    assert(col<this->headers_.size());
+    char *p = (char *)this->data + this->rowSize*row + this->cShift_[col];
+
+    switch (cTypes_[col])
+    {
+        case String:
+        {
+            cell_set( row, col, to_string(val) );
+            break;
+        }
+        case Char:
+        {
+            signed char *v = (signed char *)p;
+            *v = (signed char) val;
+            break;
+        }
+        case Short:
+        {
+            short int *v = (short int *)p;
+            *v = (short int) val;
+            break;
+        }
+        case Integer:
+        {
+            int *v = (int*)p;
+            *v = val;
+            break;
+        }
+        case Float:
+        {
+            double *v = (double *)p;
+            *v = val;
+            break;
+        }
+        default:
+        {
+            cerr << "type not handled." << endl;
+            abort();
+        }
+    }
+}
+
+void Dataset::cell_set(size_t row, size_t col, const double val)
+{
+    assert(row<rows_);
+    assert(col<this->headers_.size());
+    char *p = (char *)this->data + this->rowSize*row + this->cShift_[col];
+
+    switch (cTypes_[col])
+    {
+        case String:
+        {
+            cell_set( row, col, to_string(val) );
+            break;
+        }
+        case Char:
+        {
+            signed char *v = (signed char *)p;
+            *v = (signed char) val;
+            break;
+        }
+        case Short:
+        {
+            short int *v = (short int *)p;
+            *v = (short int) val;
+            break;
+        }
+        case Integer:
+        {
+            int *v = (int*)p;
+            *v = val;
+            break;
+        }
+        case Float:
+        {
+            double *v = (double *)p;
+            *v = val;
+            break;
+        }
+        default:
+        {
+            cerr << "type not handled." << endl;
+            abort();
+        }
+    }
 }

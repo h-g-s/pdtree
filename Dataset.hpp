@@ -27,6 +27,11 @@ public:
      */
 	Dataset(const char *fileName, bool deleteFeatures_ = true);
 
+	/** generates a copy of the dataset
+	 * including a subset of records
+	 */
+	Dataset(const Dataset &other, std::vector<bool> _included );
+
 	size_t rows() const { return rows_; }
 
 	const std::vector<std::string> &headers() const {
@@ -43,9 +48,15 @@ public:
 
     const char *str_cell(size_t row, size_t col) const;
 
+    bool col_is_number( size_t col ) const;
+
     // sets the cell contents, converting to the
     // column type
     void cell_set(size_t row, size_t col, const std::string &str);
+
+    void cell_set(size_t row, size_t col, const int val);
+
+    void cell_set(size_t row, size_t col, const double val);
 
 	virtual ~Dataset();
 private:

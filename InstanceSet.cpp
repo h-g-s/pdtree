@@ -10,7 +10,7 @@
 
 using namespace std;
 
-InstanceSet::InstanceSet (const char *fileName) :
+InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName) :
     inst_dataset_(fileName),
     features_( vector<string>( inst_dataset_.headers().begin()++, inst_dataset_.headers().end() ) ),
     instances_(vector< Instance >(inst_dataset_.rows(), Instance(0) )),
@@ -39,10 +39,7 @@ const Instance &InstanceSet::inst_by_name( const std::string &name ) const
 {
     auto it = instByName_.find(name);
     if (it == instByName_.end())
-    {
-        cerr << "instance " << name << " not found." << endl;
-        abort();
-    }
+        throw string("instance ") + name + string(" not found");
 
     return instances_[it->second];
 }
@@ -66,6 +63,5 @@ InstanceSet::types () const
 
 InstanceSet::~InstanceSet ()
 {
-    // TODO Auto-generated destructor stub
 }
 
