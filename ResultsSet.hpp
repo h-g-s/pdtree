@@ -26,7 +26,9 @@ enum FMRStrategy {Worse,       // worse result
 class ResultsSet
 {
 public:
-    ResultsSet( const InstanceSet &_iset, const char *fileName, const enum FMRStrategy _fmrs = WorseInstT2 );
+    ResultsSet( const InstanceSet &_iset,
+                const char *fileName,
+                const enum FMRStrategy _fmrs = WorseInstT2 );
 
     // returns an specific result
     float get(size_t iIdx, size_t aIdx) const;

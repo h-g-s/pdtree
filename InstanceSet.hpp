@@ -23,6 +23,9 @@ public:
     /* instance by index */
     const Instance &instance( size_t idx ) const;
 
+    /* queries if a instance is stored */
+    bool has(const std::string &iname) const;
+
     /* instance by name */
     const Instance &inst_by_name( const std::string &name ) const;
 

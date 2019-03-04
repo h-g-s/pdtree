@@ -41,13 +41,13 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     for ( size_t i=0 ; (i<dsres.rows()) ; ++i )
         iIdx[i] = iset_.inst_by_name(dsres.str_cell(i, 0)).idx_;
 
-    // storing algorithm and settings
+    // storing different algorithms and settings
     for ( size_t i=0 ; (i<dsres.rows()) ; ++i )
     {
         string asname="";
-        for ( size_t j=0 ; (j<dsres.headers().size()-2) ; ++j )
+        for ( size_t j=1 ; (j<dsres.headers().size()-2) ; ++j )
         {
-            if (j)
+            if (j>=2)
                 asname += ";";
             switch (dsres.types()[j])
             {
@@ -69,6 +69,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
                 case Empty:
                     break;
                 case N_DATA_TYPES:
+                    throw "Unexpected valued in column type";
                     break;
             }
         }

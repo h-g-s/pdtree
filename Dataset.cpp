@@ -519,14 +519,16 @@ Dataset::Dataset(const Dataset &other, std::vector<bool> _included ) :
     for (size_t i=0 ; (i<_included.size()) ; ++i )
         rows_ += (int)_included[i];
 
+    // different sets for different types
     std::vector< std::unordered_set< std::string> > diffStr(other.headers().size(), std::unordered_set< std::string>() );
     std::vector< std::unordered_set< double> > diffDbl(other.headers().size(), std::unordered_set< double >() );
     std::vector< std::unordered_set< int > > diffInt(other.headers().size(), std::unordered_set< int >() );
+
     std::vector< size_t > largestStr = vector<size_t>(other.headers().size(), 0);
     std::vector< bool > colIncluded( other.headers().size(), true );
+
     /** checking different feature
      * values in the items included */
-
     for (size_t i=0 ; (i<_included.size()) ; ++i )
     {
         if (not _included[i])
@@ -539,19 +541,22 @@ Dataset::Dataset(const Dataset &other, std::vector<bool> _included ) :
                 case String:
                 {
                     string s = string(other.str_cell(i, j));
-                    diffStr[j].insert( s );
+                    if (diffStr[j].size()<2)
+                        diffStr[j].insert( s );
                     largestStr[j] = max(largestStr[j], s.size() );
                     break;
                 }
                 case Float:
                 {
                     const double v = other.float_cell(i, j);
-                    diffDbl[j].insert( v );
+                    if (diffDbl[j].size()<2)
+                        diffDbl[j].insert( v );
                     break;
                 }
                 default:
                 {
-                    diffInt[j].insert( other.int_cell(i, j) );
+                    if (diffInt[j].size()<2)
+                        diffInt[j].insert( other.int_cell(i, j) );
                     break;
                 }
             }
