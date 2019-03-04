@@ -16,11 +16,23 @@
 #include <unordered_map>
 
 /** strategy to fill missing results, if any */
-enum FMRStrategy {Worse,       // worse result
+enum FMRStrategy {Worse = 0,       // worse result
                   WorseT2,     // abs worse result times 2
                   WorseInst,   // worse result from instance
                   WorseInstT2, // worse result from instance times 2
                   AverageInst
+};
+
+enum Evaluation 
+{
+    Average = 0, // when results of executions in 
+             // different instances are comparable,
+             // such as execution time
+             
+    Rank     // if results for different instances
+             // are not comparable, such as
+             // objective functions with different
+             // scales
 };
 
 class ResultsSet
@@ -38,6 +50,15 @@ public:
     }
 
     virtual ~ResultsSet ();
+
+    static void configure_parameters(int argc, const char **argv);
+
+    static void help();
+
+    static void print_config();
+
+    static enum FMRStrategy fmrStrategy;
+    static enum Evaluation eval;
 private:
     const InstanceSet &iset_;
 

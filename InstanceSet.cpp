@@ -21,37 +21,34 @@ static std::unordered_set< std::string > check_instances_with_results( const cha
 InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName) :
     inst_dataset_(fileName),
     features_( vector<string>( inst_dataset_.headers().begin()++, inst_dataset_.headers().end() ) ),
-    instances_(vector< Instance >(inst_dataset_.rows(), Instance(0) )),
     types_(vector<Datatype>(inst_dataset_.types().begin()++, inst_dataset_.types().end()))
 {
     clock_t start = clock();
     auto ires = check_instances_with_results(resultsFileName);
 
+    instances_.reserve(ires.size());
+
     size_t discarded = 0;
-    for ( size_t i=0 ; (i<instances_.size()) ; ++i )
+    size_t idxInst = 0;
+    for ( size_t i=0 ; (i<inst_dataset_.rows()) ; ++i )
     {
-        instances_[i].idx_ = i;
-        const auto iname = string(instances_[i].name());
+        string iname = string(inst_dataset_.str_cell(i, 0));
         if (ires.find(iname)==ires.end())
         {
             ++discarded;
             continue;
         }
+        instances_.push_back( Instance(idxInst) );
         auto it = instByName_.find(iname);
         if (it!=instByName_.end())
             throw string("instance " + iname + " appears twice in the instance list");
-        instByName_[iname] = i;
+        instByName_[iname] = idxInst;
+        ++idxInst;
     }
     double secs = (double(clock()-start)) / ((double)CLOCKS_PER_SEC);
+    cout << instances_.size() << " instances loaded in " << setprecision(3) << secs << endl;
     if (discarded)
-    {
-        cout << instances_.size() << " instances loaded in " << setprecision(3) << secs
-             << discarded << " were discarded because no experiments were performed with them" << endl;
-    }
-    else
-    {
-        cout << instances_.size() << " instances loaded in " << setprecision(3) << secs << endl;
-    }
+        cout << discarded << " instances were discarded because no experiments were performed with them" << endl;
 }
 
 size_t InstanceSet::size() const
