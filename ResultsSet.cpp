@@ -13,6 +13,7 @@
 #include <iomanip>
 #include <cstring>
 #include <cassert>
+#include <algorithm>
 #include "ResultsSet.hpp"
 
 using namespace std;
@@ -20,6 +21,8 @@ using namespace std;
 // default values
 enum FMRStrategy ResultsSet::fmrStrategy = WorseInstT2;
 enum Evaluation ResultsSet::eval = Average;
+double ResultsSet::rankEps = 1e-8;
+double ResultsSet::rankPerc = 0.01;
 
 static char FMRStrategyStr[5][16] = {
     "Worse",
@@ -82,12 +85,23 @@ void ResultsSet::configure_parameters(int argc, const char **argv)
             ResultsSet::eval = to_eval(pValue);
             continue;
         }
+        if (strcmp(pName, "-rankEps")==0)
+        {
+            ResultsSet::rankEps = stod(string(pValue));
+            continue;
+        }
+        if (strcmp(pName, "-rankPerc")==0)
+        {
+            ResultsSet::rankEps = stod(string(pValue));
+            continue;
+        }
     }
 }
 
 ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const enum FMRStrategy _fmrs ) :
     iset_(_iset),
     res_(nullptr),
+    ranks_(nullptr),
     fmrs_(_fmrs)
 {
     clock_t start = clock();
@@ -169,8 +183,13 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     res_[0] = new float[iset_.size()*algsettings_.size()];
     for ( size_t i=1 ; (i<iset_.size()) ; ++i )
         res_[i] = res_[i-1] + algsettings_.size();
-
     std::fill( res_[0], res_[0]+(iset_.size()*algsettings_.size()), std::numeric_limits<float>::max() );
+
+    ranks_ = new int*[iset_.size()];
+    ranks_[0] = new int[iset_.size()*algsettings_.size()];
+    for ( size_t i=1 ; (i<iset_.size()) ; ++i )
+        ranks_[i] = ranks_[i-1] + algsettings_.size();
+    std::fill( ranks_[0], ranks_[0]+(iset_.size()*algsettings_.size()), std::numeric_limits<int>::max() );
 
     // first pass on all results, checking worse values and
     // missing ones
@@ -323,7 +342,51 @@ void ResultsSet::help()
 
 void ResultsSet::print_config()
 {
-    cout << "    fmrs=" << FMRStrategyStr[ResultsSet::fmrStrategy] << endl;
-    cout << "    eval=" << EvaluationStr[ResultsSet::eval] << endl;
+    cout << "      fmrs=" << FMRStrategyStr[ResultsSet::fmrStrategy] << endl;
+    cout << "      eval=" << EvaluationStr[ResultsSet::eval] << endl;
+    cout << "   rankEps=" << scientific << rankEps << endl;
+    cout << "  rankPerc=" << fixed << setprecision(5) << rankPerc << endl;
 }
 
+void ResultsSet::compute_rankings()
+{
+    size_t nAlgs = algsettings_.size();
+    vector< pair< float, size_t> > resInst = vector< pair< float, size_t> >(nAlgs);
+
+    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    {
+        for ( size_t j=0 ; (j<nAlgs) ; ++j )
+            resInst[j] = make_pair( res_[i][j], j );
+
+        std::sort(resInst.begin(), resInst.end() );
+
+        float startValRank = resInst.begin()->first;
+
+        int currRank = 0;
+        for ( size_t j=0 ; (j<nAlgs) ; ++j )
+        {
+            size_t iAlg = resInst[i].second;
+            const float res = resInst[i].first;
+            const double pr = fabsf(res)*rankPerc;
+
+            if ((res>=startValRank+rankEps) and (res>=startValRank+pr))
+            {
+                ++currRank;
+                ranks_[i][iAlg] = currRank;
+                startValRank = res;
+            }
+            else
+                ranks_[i][iAlg] = currRank;
+        } // all algorithms
+    } // all instances
+}
+
+int ResultsSet::rank(size_t iIdx, size_t iAlg) const
+{
+    assert(iIdx<iset_.size());
+    assert(iAlg<algsettings_.size());
+
+    int r = ranks_[iIdx][iAlg];
+    assert( r>=0 and r<((int)algsettings_.size()) );
+    return r;
+}

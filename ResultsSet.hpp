@@ -42,8 +42,12 @@ public:
                 const char *fileName,
                 const enum FMRStrategy _fmrs = WorseInstT2 );
 
-    // returns an specific result
+    // returns a specific result
     float get(size_t iIdx, size_t aIdx) const;
+
+    // returns the ranking of instance
+    // iIdx, for algorithm/parameter setting iAlg
+    int rank(size_t iIdx, size_t iAlg) const;
 
     const std::vector<std::string> &algsettings() const {
         return this->algsettings_;
@@ -59,6 +63,14 @@ public:
 
     static enum FMRStrategy fmrStrategy;
     static enum Evaluation eval;
+
+    // minimum absolute difference
+    // between two results to change ranking
+    static double rankEps;
+
+    // minimum percentage difference between
+    // two values to increase ranking
+    static double rankPerc;
 private:
     const InstanceSet &iset_;
 
@@ -66,7 +78,10 @@ private:
     std::vector< std::string > algsettings_;
     std::unordered_map< std::string, size_t > algsByName_;
     float **res_;
+    int **ranks_;
     const enum FMRStrategy fmrs_;
+
+    void compute_rankings();
 };
 
 #endif /* RESULTSSET_HPP_ */
