@@ -53,6 +53,8 @@ public:
         return this->algsettings_;
     }
 
+    void print_summarized_results();
+
     virtual ~ResultsSet ();
 
     static void configure_parameters(int argc, const char **argv);
@@ -64,6 +66,8 @@ public:
     static enum FMRStrategy fmrStrategy;
     static enum Evaluation eval;
 
+    void compute_summarized_results();
+
     // minimum absolute difference
     // between two results to change ranking
     static double rankEps;
@@ -71,6 +75,10 @@ public:
     // minimum percentage difference between
     // two values to increase ranking
     static double rankPerc;
+    
+    // compute top "storeTop" configurations, just to
+    // display summary
+    static size_t storeTop;
 private:
     const InstanceSet &iset_;
 
@@ -81,7 +89,16 @@ private:
     int **ranks_;
     const enum FMRStrategy fmrs_;
 
+    // average result per algorithm
+    float *avAlg;
+    float *avRnkAlg;
+    float *avInst;
+
+    std::vector< size_t > topAlgByAv;
+    std::vector< size_t > topAlgByAvRnk;
+
     void compute_rankings();
 };
 
 #endif /* RESULTSSET_HPP_ */
+

@@ -24,6 +24,7 @@ int main(int argc, const char **argv)
     ResultsSet::print_config();
     cout << "Loading results set ... "  << endl;
     ResultsSet rset( iset, argv[2] );
+    rset.print_summarized_results();
 
     return 0;
 }
