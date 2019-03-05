@@ -26,6 +26,11 @@ public:
     /* queries if a instance is stored */
     bool has(const std::string &iname) const;
 
+    /* vector of instances */
+    const std::vector< Instance > &instances() const {
+        return instances_;
+    }
+
     /* instance by name */
     const Instance &inst_by_name( const std::string &name ) const;
 
@@ -38,8 +43,10 @@ public:
     size_t size() const;
 
     virtual ~InstanceSet ();
-private:
+
+    // values from stored in an efficient way
     Dataset *inst_dataset_;
+private:
     std::vector<std::string> features_;
     std::vector<Instance> instances_;
     std::vector<Datatype> types_;

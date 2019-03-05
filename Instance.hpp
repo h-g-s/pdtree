@@ -28,6 +28,7 @@ public:
 
     double float_feature( size_t idxFeature ) const;
 
+    const char *str_feature( size_t idxFeature ) const;
 
     virtual ~Instance();
 

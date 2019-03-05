@@ -9,21 +9,21 @@
 #define FEATUREBRANCHING_HPP_
 
 #include <unordered_map>
-#include "Dataset.hpp"
+#include "InstanceSet.hpp"
 #include <utility>
+#include <map>
+#include <cstring>
 #include <algorithm>
 #include <vector>
-#include <unordered_set>
 #include <cmath>
 
 using namespace std;
 
 template<typename T> class FeatureBranching {
 public:
-    FeatureBranching(const Dataset& _ds,
-                     size_t _idxF,
-                     FeatureBranching<T> *_parent = nullptr,
-                     size_t _parBranch = 0,
+    FeatureBranching(const InstanceSet& _iset, // complete instance set
+                     size_t _idxF, // feature where branching will be evaluated
+                     std::vector< size_t > *_elements=nullptr, // subset of instances (nullptr if all)
                      size_t _minInstancesChild = 10,
                      size_t _maxEvBranches = 11
                      );
@@ -34,21 +34,16 @@ private:
     std::vector<std::pair<T, size_t>> sortedValues;
 
     void fillAndSortValues();
-    void computeOcurrency();
-    void computeBranchValues();
+    void computeOcurrency(std::vector< pair<T, size_t> > &diffValues);
+    void computeBranchValues(std::vector< pair<T, size_t> > &diffValues);
 
-
-    const Dataset &ds_;
+    const InstanceSet &iset_;
     const size_t idxF_;
-    FeatureBranching<T> *parent_;
-    size_t parBranch_;
+    std::vector< size_t > *elements_;
 
-    // elements in each branch (usually two)
-    std::vector< std::unordered_set< size_t > > branchElements;
+    // elements in each branch (usually two branches)
+    std::vector< std::vector< size_t > > branchElements;
 
-    // different values that can be used for branching
-    // value, occurrences
-    std::vector< std::pair<T, size_t> > diffValues;
 
     size_t minInstancesChild_;
     size_t maxEvBranches_;
@@ -63,46 +58,50 @@ template class FeatureBranching<double>;
 template class FeatureBranching<const char*>;
 
 template <typename T>
-FeatureBranching<T>::FeatureBranching(const Dataset& _ds,
-                                      size_t _idxF,
-                                      FeatureBranching<T> *_parent,
-                                      size_t _parBranch,
+FeatureBranching<T>::FeatureBranching(const InstanceSet& _iset, // complete instance set
+                                      size_t _idxF, // feature where branching will be evaluated
+                                      std::vector< size_t > *_elements, // subset of instances (nullptr if all)
                                       size_t _minInstancesChild,
-                                      size_t _maxEvBranches) :
-    ds_(_ds),
+                                      size_t _maxEvBranches
+                                      ) :
+    iset_(_iset),
     idxF_(_idxF),
-    parent_(_parent),
-    parBranch_(_parBranch),
-    branchElements( std::vector<std::unordered_set<size_t>>(2, unordered_set<size_t>()) ),
+    elements_(_elements),
+    branchElements( std::vector<std::vector<size_t>>(2, vector<size_t>()) ),
     minInstancesChild_(_minInstancesChild),
     maxEvBranches_(_maxEvBranches)
 {
-    this->fillAndSortValues();
-}
+    {
+        // different values that can be used for branching
+        // value, occurrences
+        fillAndSortValues();
+
+        // vector in the form: value, number of occurrences
+        std::vector< std::pair<T, size_t> > diffValues;
+        computeOcurrency(diffValues);
+        computeBranchValues(diffValues);
+    }
 
 
-template <typename T>
-FeatureBranching<T>::~FeatureBranching ()
-{
 }
 
 template <>
 void FeatureBranching<int>::fillAndSortValues()
 {
-    if (this->parent_==nullptr)
+    this->sortedValues.clear();
+    if (this->elements_==nullptr)
     {
-        const auto &ds = this->ds_;
-        this->sortedValues.clear();
-        for (size_t i=0 ; (i<ds.rows()) ; ++i)
-            sortedValues.push_back(make_pair(ds.int_cell(i, idxF_), i));
+        for ( const auto &inst : iset_.instances())
+            sortedValues.push_back( make_pair( inst.int_feature(idxF_), inst.idx() ));
     }
+    else
     {
-        const auto &parElements = this->parent_->branchElements[this->parBranch_];
-        const auto &ds = this->ds_;
-
-        this->sortedValues.clear();
+        const auto parElements = (*this->elements_);
         for ( const auto &el : parElements)
-            sortedValues.push_back(make_pair(ds.int_cell(el, idxF_), el));
+        {
+            const Instance &inst = iset_.instances()[el];
+            sortedValues.push_back(make_pair( inst.int_feature(idxF_), inst.idx() ));
+        }
     }
 
     std::sort(sortedValues.begin(), sortedValues.end());
@@ -111,51 +110,58 @@ void FeatureBranching<int>::fillAndSortValues()
 template <>
 void FeatureBranching<double>::fillAndSortValues()
 {
-    if (this->parent_==nullptr)
+    this->sortedValues.clear();
+    if (this->elements_==nullptr)
     {
-        const auto &ds = this->ds_;
-        this->sortedValues.clear();
-        for (size_t i=0 ; (i<ds.rows()) ; ++i)
-            sortedValues.push_back(make_pair(ds.float_cell(i, idxF_), i));
+        for ( const auto &inst : iset_.instances())
+            sortedValues.push_back( make_pair( inst.float_feature(idxF_), inst.idx() ));
     }
+    else
     {
-        const auto &parElements = this->parent_->branchElements[this->parBranch_];
-        const auto &ds = this->ds_;
-
-        this->sortedValues.clear();
+        const auto parElements = (*this->elements_);
         for ( const auto &el : parElements)
-            sortedValues.push_back(make_pair(ds.float_cell(el, idxF_), el));
+        {
+            const Instance &inst = iset_.instances()[el];
+            sortedValues.push_back(make_pair( inst.float_feature(idxF_), inst.idx() ));
+        }
     }
 
     std::sort(sortedValues.begin(), sortedValues.end());
+}
+
+bool compare_str( const pair<const char *, size_t > &v1, const pair<const char *, size_t > &v2  )
+{
+    int r = strcmp(v1.first, v2.first);
+    return (r<0);
 }
 
 template <>
 void FeatureBranching<const char *>::fillAndSortValues()
 {
-    if (this->parent_==nullptr)
+    this->sortedValues.clear();
+    if (this->elements_==nullptr)
     {
-        const auto &ds = this->ds_;
-        this->sortedValues.clear();
-        for (size_t i=0 ; (i<ds.rows()) ; ++i)
-            sortedValues.push_back(make_pair(ds.str_cell(i, idxF_), i));
+        for ( const auto &inst : iset_.instances())
+            sortedValues.push_back( make_pair( inst.str_feature(idxF_), inst.idx() ));
     }
+    else
     {
-        const auto &parElements = this->parent_->branchElements[this->parBranch_];
-        const auto &ds = this->ds_;
-
-        this->sortedValues.clear();
+        const auto parElements = (*this->elements_);
         for ( const auto &el : parElements)
-            sortedValues.push_back(make_pair(ds.str_cell(el, idxF_), el));
+        {
+            const Instance &inst = iset_.instances()[el];
+            sortedValues.push_back(make_pair( inst.str_feature(idxF_), inst.idx() ));
+        }
     }
 
-    std::sort(sortedValues.begin(), sortedValues.end());
-
+    std::sort(sortedValues.begin(), sortedValues.end(), compare_str);
 }
 
 template <typename T>
-void FeatureBranching<T>::computeOcurrency()
+void FeatureBranching<T>::computeOcurrency( std::vector< pair<T, size_t> > &diffValues )
 {
+
+
     std::unordered_map<T, size_t> occurrences;
 
     auto p = sortedValues.begin();
@@ -176,13 +182,44 @@ void FeatureBranching<T>::computeOcurrency()
     std::sort(diffValues.begin(), diffValues.end());
 }
 
-template <typename T>
-void FeatureBranching<T>::computeBranchValues()
+struct StrComparator : public std::binary_function<const char *, const char *, bool>
 {
-    if (this->diffValues.size()<=this->maxEvBranches_)
+    bool operator()(const char *s1, const char *s2) const
+    {
+        return (strcmp(s1,s2) < 0);
+    }
+};
+
+template <>
+void FeatureBranching<const char *>::computeOcurrency(std::vector< pair<const char*, size_t> > &diffValues)
+{
+    map<const char *, size_t, StrComparator> occurrences;
+
+    auto p = sortedValues.begin();
+    while (p!=sortedValues.end())
+    {
+        const char *v = p->first;
+        size_t n = 0;
+        for ( ; (p!=sortedValues.end()&&(strcmp(v,p->first)==0)) ; ++p )
+            ++n;
+        if (n)
+            occurrences[v] = n;
+
+    }
+    diffValues.clear();
+    for (const auto &it : occurrences )
+        diffValues.push_back(make_pair(it.first, it.second));
+
+    std::sort(diffValues.begin(), diffValues.end(), compare_str);
+}
+
+template <typename T>
+void FeatureBranching<T>::computeBranchValues( std::vector< pair<T, size_t> > &diffValues )
+{
+    if (diffValues.size()<=this->maxEvBranches_)
     {
         size_t p = 0;
-        for ( const auto v : diffValues)
+        for ( const auto &v : diffValues)
         {
             size_t cEl = p + v.second;
             if (cEl>=this->minInstancesChild_ and ((int)this->sortedValues.size())-((int)cEl)>=((int)this->minInstancesChild_))
@@ -219,6 +256,11 @@ void FeatureBranching<T>::computeBranchValues()
         }
         this->branchingV.push_back(make_pair(bestV, bestP));
     }
+}
+
+template <typename T>
+FeatureBranching<T>::~FeatureBranching ()
+{
 }
 
 #endif /* FEATUREBRANCHING_HPP_ */

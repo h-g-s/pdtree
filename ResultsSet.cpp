@@ -473,7 +473,7 @@ void ResultsSet::print_summarized_results()
 {
     cout << endl;
     cout << "Top algorithms/parameter settings considering the whole instance set: " << endl << endl;
-    cout << "Average execution times" << endl;
+    cout << "Average results" << endl;
     cout << " # algorithm/p. setting                                     res         " << endl;
     cout << "== ======================================================== ===========" << endl;
     for ( size_t i=0 ; (i<topAlgByAv.size()) ; ++i )

@@ -14,19 +14,25 @@ int main(int argc, const char **argv)
         exit(1);
     }
 
+    try
+    {
+        cout << "Loading instances set ... "  << endl;
+        InstanceSet iset(argv[1], argv[2]);
+        Instance::inst_dataset = iset.inst_dataset_;
+        cout << endl;
 
-    cout << "Loading instances set ... "  << endl;
-    InstanceSet iset(argv[1], argv[2]);
-    cout << endl;
-    
-    cout << "ResultsSet settings: " << endl;
-    ResultsSet::configure_parameters(argc, (const char **)argv);
-    ResultsSet::print_config();
-    cout << "Loading results set ... "  << endl;
-    ResultsSet rset( iset, argv[2] );
-    rset.print_summarized_results();
+        cout << "ResultsSet settings: " << endl;
+        ResultsSet::configure_parameters(argc, (const char **)argv);
+        ResultsSet::print_config();
+        cout << "Loading results set ... "  << endl;
+        ResultsSet rset( iset, argv[2] );
+        rset.print_summarized_results();
+    } catch (std::string &str)
+    {
+        cout << endl; cerr << endl;
+        cerr << "ERROR: " << str << endl;
+        return 1;
+    }
 
     return 0;
 }
-
-
