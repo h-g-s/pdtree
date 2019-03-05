@@ -39,7 +39,7 @@ public:
 
     virtual ~InstanceSet ();
 private:
-    Dataset inst_dataset_;
+    Dataset *inst_dataset_;
     std::vector<std::string> features_;
     std::vector<Instance> instances_;
     std::vector<Datatype> types_;

@@ -19,20 +19,34 @@ using namespace std;
 static std::unordered_set< std::string > check_instances_with_results( const char *resFN );
 
 InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName) :
-    inst_dataset_(fileName),
-    features_( vector<string>( inst_dataset_.headers().begin()++, inst_dataset_.headers().end() ) ),
-    types_(vector<Datatype>(inst_dataset_.types().begin()++, inst_dataset_.types().end()))
+    inst_dataset_(new Dataset(fileName))
 {
     clock_t start = clock();
     auto ires = check_instances_with_results(resultsFileName);
+
+    {
+        vector< bool > included;
+        included.reserve(inst_dataset_->rows());
+        for ( size_t i=0 ; (i<inst_dataset_->rows()) ; ++i )
+        {
+            string iname = string(inst_dataset_->str_cell(i, 0));
+            included.push_back( ires.find(iname)!=ires.end() );
+        }
+        Dataset *ds = new Dataset(*inst_dataset_, included);
+        delete inst_dataset_;
+        inst_dataset_ = ds;
+    }
+
+    features_ = vector<string>( inst_dataset_->headers().begin()++, inst_dataset_->headers().end() );
+    types_ = vector<Datatype>(inst_dataset_->types().begin()++, inst_dataset_->types().end());
 
     instances_.reserve(ires.size());
 
     size_t discarded = 0;
     size_t idxInst = 0;
-    for ( size_t i=0 ; (i<inst_dataset_.rows()) ; ++i )
+    for ( size_t i=0 ; (i<inst_dataset_->rows()) ; ++i )
     {
-        string iname = string(inst_dataset_.str_cell(i, 0));
+        string iname = string(inst_dataset_->str_cell(i, 0));
         if (ires.find(iname)==ires.end())
         {
             ++discarded;
@@ -53,7 +67,7 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName) :
 
 size_t InstanceSet::size() const
 {
-    return inst_dataset_.rows();
+    return inst_dataset_->rows();
 }
 
 const Instance &InstanceSet::inst_by_name( const std::string &name ) const
@@ -84,6 +98,8 @@ InstanceSet::types () const
 
 InstanceSet::~InstanceSet ()
 {
+    if (inst_dataset_)
+        delete inst_dataset_;
 }
 
 static string trim(const std::string &s)
