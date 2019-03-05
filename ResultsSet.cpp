@@ -278,9 +278,13 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     double secs = ((double)(clock()-start)) / ((double)CLOCKS_PER_SEC);
     cout << ir << " results loaded in " << setprecision(3) << secs << " seconds" << endl;
 
+    clock_t startr = clock();
     cout << "Computing ranking and summarized results ... ";
 
     compute_rankings();
+
+    cout << "done in " << fixed << setprecision(2) <<
+            (((double)clock()-startr) / ((double)CLOCKS_PER_SEC)) << endl;
 
     avAlg = new float[algsettings_.size()];
     avRnkAlg  = new float[algsettings_.size()];
@@ -321,6 +325,26 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
             sum += res_[i][j];
         avInst[i] = sum / ((long double)algsettings_.size());
     }
+
+    nRankOne = new int[algsettings_.size()];
+    fill(nRankOne, nRankOne+algsettings_.size(), 0);
+    for ( size_t i=0 ; i<iset_.size(); ++i )
+    {
+        for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+        {
+            if (ranks_[i][j]==0)
+                nRankOne[j]++;
+        }
+    }
+
+    vector< pair<int, size_t > > algsByNro;
+    for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+        algsByNro.push_back( make_pair(nRankOne[j]*-1, j) );
+
+    sort( algsByNro.begin(), algsByNro.end() );
+
+    for (size_t i=0 ; (i<storeTop and i<algsByNro.size()) ; ++i )
+        topAlgByRnkOne.push_back(algsByNro[i].second);
 }
 
 float ResultsSet::get(size_t iIdx, size_t aIdx) const
@@ -332,6 +356,9 @@ float ResultsSet::get(size_t iIdx, size_t aIdx) const
 
 ResultsSet::~ResultsSet ()
 {
+    delete[] nRankOne;
+    delete[] ranks_[0];
+    delete[] ranks_;
     delete[] res_[0];
     delete[] res_;
     delete[] avAlg;
@@ -445,18 +472,36 @@ int ResultsSet::rank(size_t iIdx, size_t iAlg) const
 void ResultsSet::print_summarized_results() 
 {
     cout << endl;
-    cout << "Top algorithms/parameter settings considering the whole instance set: " << endl;
-    cout << "Average results                              Rank based results" << endl;
-    cout << " # algorithm/p. setting                      res          algorithm/p. setting                      res" << endl;
-    cout << "== ========================================= ============ ========================================= ============" << endl;
+    cout << "Top algorithms/parameter settings considering the whole instance set: " << endl << endl;
+    cout << "Average execution times" << endl;
+    cout << " # algorithm/p. setting                                     res         " << endl;
+    cout << "== ======================================================== ===========" << endl;
     for ( size_t i=0 ; (i<topAlgByAv.size()) ; ++i )
     {
         cout << setw(2) << right << i+1 << " " <<
-                setw(41) << left << algsettings_[topAlgByAv[i]] << " " <<
-                setw(12) << defaultfloat << right << avAlg[topAlgByAv[i]] << " " <<
-                setw(41) << left << algsettings_[topAlgByAvRnk[i]] << " " <<
-                setw(12) << setprecision(3) << fixed << right << avRnkAlg[topAlgByAvRnk[i]] << endl;
+                setw(55) << left << algsettings_[topAlgByAv[i]] << " " <<
+                setw(12) << setprecision(6) << defaultfloat << right << avAlg[topAlgByAv[i]] << " " << endl;
     }
     cout << endl;
+    cout << "Average rank" << endl;
+    cout << " # algorithm/p. setting                                     res      " << endl;
+    cout << "== ======================================================== ========" << endl;
+    for ( size_t i=0 ; (i<topAlgByAv.size()) ; ++i )
+    {
+        cout << setw(2) << right << i+1 << " " <<
+                setw(55) << left << algsettings_[topAlgByAvRnk[i]] << " " <<
+                setw(9) << setprecision(3) << fixed << right << avRnkAlg[topAlgByAvRnk[i]] << " " << endl;
+    }
+
+    cout << endl;
+    cout << "Algorithms per number of first ranked results" << endl;
+    cout << " # algorithm/p. setting                                     res      " << endl;
+    cout << "== ======================================================== ========" << endl;
+    for ( size_t i=0 ; (i<topAlgByRnkOne.size()) ; ++i )
+    {
+        cout << setw(2) << right << i+1 << " " <<
+                setw(55) << left << algsettings_[topAlgByRnkOne[i]] << " " <<
+                setw(9) << setprecision(3) << fixed << right << nRankOne[topAlgByRnkOne[i]] << " " << endl;
+    }
 }
 

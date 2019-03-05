@@ -93,9 +93,11 @@ private:
     float *avAlg;
     float *avRnkAlg;
     float *avInst;
+    int *nRankOne;
 
     std::vector< size_t > topAlgByAv;
     std::vector< size_t > topAlgByAvRnk;
+    std::vector< size_t > topAlgByRnkOne;
 
     void compute_rankings();
 };
