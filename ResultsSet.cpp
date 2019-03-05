@@ -143,7 +143,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         if (not _iset.has(iname))
             continue;
         string asname="";
-        for ( size_t j=1 ; (j<dsres.headers().size()-2) ; ++j )
+        for ( size_t j=1 ; (j<dsres.headers().size()-1) ; ++j )
         {
             if (j>=2)
                 asname += ";";
