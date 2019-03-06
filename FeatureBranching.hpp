@@ -44,7 +44,8 @@ public:
     // and do this branching
     bool next();
 
-    const std::vector< std::unordered_set<size_t> > branch_elements() const {
+    // instances at each side of the branching
+    const std::vector< std::unordered_set<size_t> > &branch_elements() const {
         return branchElements;
     }
 
