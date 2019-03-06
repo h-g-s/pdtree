@@ -24,8 +24,8 @@ public:
     FeatureBranching(const InstanceSet& _iset, // complete instance set
                      size_t _idxF, // feature where branching will be evaluated
                      std::vector< size_t > *_elements=nullptr, // subset of instances (nullptr if all)
-                     size_t _minInstancesChild = 10,
-                     size_t _maxEvBranches = 11
+                     size_t _minInstancesChild = 10, // splittings leaving few instances in a not will be forbiden
+                     size_t _maxEvBranches = 11 // maximum number of values to branch
                      );
 
     virtual ~FeatureBranching ();

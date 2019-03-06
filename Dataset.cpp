@@ -215,7 +215,7 @@ Dataset::Dataset(const char *fileName, bool deleteFeatures_) :
         this->cShift_[i] = this->cShift_[i-1] + this->cSizes_[i-1];
 
 
-    this->rows_ = line;
+    this->rows_ = line-1;
     size_t dataSize = this->rowSize*line;
 
     string unity = "bytes";
