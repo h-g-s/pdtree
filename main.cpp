@@ -1,6 +1,8 @@
 #include <iostream>
+#include <limits>
 #include "InstanceSet.hpp"
 #include "ResultsSet.hpp"
+#include "FeatureBranching.hpp"
 
 using namespace std;
 
@@ -27,6 +29,8 @@ int main(int argc, const char **argv)
         cout << "Loading results set ... "  << endl;
         ResultsSet rset( iset, argv[2] );
         rset.print_summarized_results();
+
+        FeatureBranching<int> fb(iset, rset, 8, nullptr, 2, numeric_limits<int>::max() );
     } catch (std::string &str)
     {
         cout << endl; cerr << endl;

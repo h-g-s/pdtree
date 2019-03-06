@@ -6,5 +6,3 @@
  */
 
 #include "FeatureBranching.hpp"
-
-

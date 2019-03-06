@@ -41,6 +41,8 @@ static inline void trim(std::string &s);
 
 enum Datatype str_type(const string &str);
 
+
+
 class CSVRow
 {
     public:

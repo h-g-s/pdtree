@@ -9,27 +9,51 @@
 #define FEATUREBRANCHING_HPP_
 
 #include <unordered_map>
-#include "InstanceSet.hpp"
+#include <unordered_set>
 #include <utility>
+#include <cassert>
 #include <map>
 #include <cstring>
 #include <algorithm>
 #include <vector>
 #include <cmath>
+#include "InstanceSet.hpp"
+#include "ResultsSet.hpp"
 
 using namespace std;
 
 template<typename T> class FeatureBranching {
 public:
     FeatureBranching(const InstanceSet& _iset, // complete instance set
+                     const ResultsSet& _rset, // complete results set
                      size_t _idxF, // feature where branching will be evaluated
-                     std::vector< size_t > *_elements=nullptr, // subset of instances (nullptr if all)
+                     std::unordered_set< size_t > *_elements=nullptr, // subset of instances (nullptr if all)
                      size_t _minInstancesChild = 10, // splittings leaving few instances in a not will be forbiden
                      size_t _maxEvBranches = 11 // maximum number of values to branch
                      );
 
+    // current branching value
+    T branch_value() const {
+        return branchValue;
+    }
+
+    // evaluation for this branching
+    long double evaluation() const;
+
+    // go to the best value for branching
+    // and do this branching
+    bool next();
+
+    const std::vector< std::unordered_set<size_t> > branch_elements() const {
+        return branchElements;
+    }
+
     virtual ~FeatureBranching ();
 private:
+    // evaluates the current splitting
+    // checks everything if in debug mode
+    void evaluate();
+
     // sorted values and their positions in the dataset
     std::vector<std::pair<T, size_t>> sortedValues;
 
@@ -37,13 +61,20 @@ private:
     void computeOcurrency(std::vector< pair<T, size_t> > &diffValues);
     void computeBranchValues(std::vector< pair<T, size_t> > &diffValues);
 
+    void addElementsBranch( size_t iBranch, size_t start, size_t end );
+    void removeElementsBranch( size_t iBranch, size_t start, size_t end );
+
     const InstanceSet &iset_;
+    const ResultsSet &rset_;
     const size_t idxF_;
-    std::vector< size_t > *elements_;
+    std::unordered_set< size_t > *elements_;
 
     // elements in each branch (usually two branches)
-    std::vector< std::vector< size_t > > branchElements;
+    std::vector< std::unordered_set< size_t > > branchElements;
 
+    std::vector< std::vector< long double > > branchSum;
+
+    std::vector< std::vector< long double > > branchSumRnk;
 
     size_t minInstancesChild_;
     size_t maxEvBranches_;
@@ -51,6 +82,17 @@ private:
     // branching values and starting
     // positions in sortedValues vector
     std::vector< std::pair<T, size_t> > branchingV;
+
+    // index of current branch value
+    size_t idxBv;
+
+    // best algorithm for branch
+    std::vector< size_t > branchBestAlg;
+
+    long double splittingEval;
+
+    // current branching value
+    T branchValue;
 };
 
 template class FeatureBranching<int>;
@@ -59,17 +101,24 @@ template class FeatureBranching<const char*>;
 
 template <typename T>
 FeatureBranching<T>::FeatureBranching(const InstanceSet& _iset, // complete instance set
+                                      const ResultsSet& _rset, // complete results set
                                       size_t _idxF, // feature where branching will be evaluated
-                                      std::vector< size_t > *_elements, // subset of instances (nullptr if all)
+                                      std::unordered_set< size_t > *_elements, // subset of instances (nullptr if all)
                                       size_t _minInstancesChild,
                                       size_t _maxEvBranches
                                       ) :
     iset_(_iset),
+    rset_(_rset),
     idxF_(_idxF),
     elements_(_elements),
-    branchElements( std::vector<std::vector<size_t>>(2, vector<size_t>()) ),
+    branchElements( std::vector<std::unordered_set<size_t>>(2, unordered_set<size_t>()) ),
+    branchSum( vector< vector<long double> >(2, vector< long double >( rset_.algsettings().size(), 0.0 ) ) ),
+    branchSumRnk( vector< vector<long double> >(2, vector< long double >( rset_.algsettings().size(), 0.0 ) ) ),
     minInstancesChild_(_minInstancesChild),
-    maxEvBranches_(_maxEvBranches)
+    maxEvBranches_(_maxEvBranches),
+    idxBv(0),
+    branchBestAlg( std::vector<size_t>(2, std::numeric_limits<size_t>::max()) ),
+    branchValue(numeric_limits<T>::max())
 {
     {
         // different values that can be used for branching
@@ -82,7 +131,15 @@ FeatureBranching<T>::FeatureBranching(const InstanceSet& _iset, // complete inst
         computeBranchValues(diffValues);
     }
 
+    if (branchingV.size()==0)
+        return;
 
+
+    // arranging data for first branch
+    branchValue = branchingV[0].first;
+    size_t pCut = branchingV[0].second;
+    addElementsBranch(0, 0, pCut+1);
+    addElementsBranch(1, pCut+1, sortedValues.size());
 }
 
 template <>
@@ -129,7 +186,7 @@ void FeatureBranching<double>::fillAndSortValues()
     std::sort(sortedValues.begin(), sortedValues.end());
 }
 
-bool compare_str( const pair<const char *, size_t > &v1, const pair<const char *, size_t > &v2  )
+static bool compare_str( const pair<const char *, size_t > &v1, const pair<const char *, size_t > &v2  )
 {
     int r = strcmp(v1.first, v2.first);
     return (r<0);
@@ -160,8 +217,6 @@ void FeatureBranching<const char *>::fillAndSortValues()
 template <typename T>
 void FeatureBranching<T>::computeOcurrency( std::vector< pair<T, size_t> > &diffValues )
 {
-
-
     std::unordered_map<T, size_t> occurrences;
 
     auto p = sortedValues.begin();
@@ -223,7 +278,7 @@ void FeatureBranching<T>::computeBranchValues( std::vector< pair<T, size_t> > &d
         {
             size_t cEl = p + v.second;
             if (cEl>=this->minInstancesChild_ and ((int)this->sortedValues.size())-((int)cEl)>=((int)this->minInstancesChild_))
-                this->branchingV.push_back(make_pair(v.first, p));
+                this->branchingV.push_back(make_pair(v.first, cEl-1));
 
             p += v.second;
         }
@@ -249,13 +304,133 @@ void FeatureBranching<T>::computeBranchValues( std::vector< pair<T, size_t> > &d
             {
                 bestDist = abs(((int)nEl)-((int)idealNEl));
                 bestV = v.first;
-                bestP = nEl-v.second;
+                bestP = nEl-1;
             }
             else
                 break;
         }
         this->branchingV.push_back(make_pair(bestV, bestP));
     }
+}
+
+template <typename T>
+void FeatureBranching<T>::addElementsBranch( size_t iBranch, size_t start, size_t end )
+{
+    assert( iBranch < 2);
+    assert( start < end ); // at least one
+    assert( start < sortedValues.size() );
+    assert( end <= sortedValues.size() );
+    for ( size_t p=start ; p<end ; ++p )
+    {
+        size_t instIdx = sortedValues[p].second;
+        assert( instIdx < iset_.size() );
+
+        // adding instance results
+        for ( size_t iAlg=0 ; (iAlg<rset_.algsettings().size()) ; ++iAlg )
+            branchSum[iBranch][iAlg] += rset_.get( instIdx, iAlg);
+
+        for ( size_t iAlg=0 ; (iAlg<rset_.algsettings().size()) ; ++iAlg )
+            branchSumRnk[iBranch][iAlg] += rset_.rank( instIdx, iAlg);
+
+#ifdef DEBUG
+        assert( branchElements[iBranch].find(instIdx) == branchElements[iBranch].end() );
+        assert( branchElements[1-iBranch].find(instIdx) != branchElements[1-iBranch].end() );
+#endif
+        branchElements[iBranch].insert(instIdx);
+    }
+}
+
+template <typename T>
+void FeatureBranching<T>::removeElementsBranch( size_t iBranch, size_t start, size_t end )
+{
+    assert( iBranch < 2);
+    assert( start < end ); // at least one
+    assert( start < sortedValues.size() );
+    assert( end <= sortedValues.size() );
+    for ( size_t p=start ; p<end ; ++p )
+    {
+        size_t instIdx = sortedValues[p].second;
+        assert( instIdx < iset_.size() );
+
+        // adding instance results
+        for ( size_t iAlg=0 ; (iAlg<rset_.algsettings().size()) ; ++iAlg )
+            branchSum[iBranch][iAlg] -= rset_.get( instIdx, iAlg);
+
+        for ( size_t iAlg=0 ; (iAlg<rset_.algsettings().size()) ; ++iAlg )
+            branchSumRnk[iBranch][iAlg] -= rset_.rank( instIdx, iAlg);
+
+#ifdef DEBUG
+        assert( branchElements[iBranch].find(instIdx) == branchElements[iBranch].end() );
+        assert( branchElements[1-iBranch].find(instIdx) != branchElements[1-iBranch].end() );
+#endif
+        branchElements[iBranch].erase(instIdx);
+    }
+}
+
+template <typename T>
+void FeatureBranching<T>::evaluate()
+{
+    long double totalElements = (long double)(branchElements[0].size()+branchElements[1].size());
+
+    splittingEval = 0.0;
+    switch (ResultsSet::eval)
+    {
+        case Evaluation::Average:
+            for ( size_t iBranch=0 ; (iBranch<2) ; ++iBranch )
+            {
+                const long double weight = ((long double)branchElements[iBranch].size()) / totalElements;
+                branchBestAlg[iBranch] = numeric_limits<size_t>::max();
+                long double bestRBranch = numeric_limits<long double>::max();
+                for ( size_t iAlg=0 ; (iAlg<rset_.algsettings().size()) ; ++iAlg )
+                {
+                    if (branchSum[iBranch][iAlg]<bestRBranch)
+                    {
+                        bestRBranch = branchSum[iBranch][iAlg];
+                        branchBestAlg[iBranch] = iAlg;
+                    }
+                }
+                splittingEval += weight*bestRBranch;
+            }
+            break;
+        case Evaluation::Rank:
+            for ( size_t iBranch=0 ; (iBranch<2) ; ++iBranch )
+            {
+                const long double weight = ((long double)branchElements[iBranch].size()) / totalElements;
+                branchBestAlg[iBranch] = numeric_limits<size_t>::max();
+                long double bestRBranch = numeric_limits<long double>::max();
+                for ( size_t iAlg=0 ; (iAlg<rset_.algsettings().size()) ; ++iAlg )
+                {
+                    if (branchSum[iBranch][iAlg]<bestRBranch)
+                    {
+                        bestRBranch = branchSumRnk[iBranch][iAlg];
+                        branchBestAlg[iBranch] = iAlg;
+                    }
+                }
+                splittingEval += weight*bestRBranch;
+            }
+            break;
+    }
+}
+
+template <typename T>
+long double FeatureBranching<T>::evaluation() const
+{
+    return splittingEval;
+}
+
+template <typename T>
+bool FeatureBranching<T>::next()
+{
+    ++idxBv;
+    if (idxBv>=branchingV.size())
+        return false;
+
+    // doing branch
+    addElementsBranch(0, branchingV[idxBv-1].second, branchingV[idxBv].second+1 );
+    removeElementsBranch(1, branchingV[idxBv-1].second, branchingV[idxBv].second+1);
+    evaluate();
+
+    return true;
 }
 
 template <typename T>

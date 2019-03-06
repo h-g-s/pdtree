@@ -490,7 +490,7 @@ void ResultsSet::print_summarized_results()
     {
         cout << setw(2) << right << i+1 << " " <<
                 setw(55) << left << algsettings_[topAlgByAvRnk[i]] << " " <<
-                setw(9) << setprecision(3) << fixed << right << avRnkAlg[topAlgByAvRnk[i]] << " " << endl;
+                setw(9) << setprecision(3) << fixed << right << avRnkAlg[topAlgByAvRnk[i]]+1 << " " << endl;
     }
 
     cout << endl;

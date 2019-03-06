@@ -7,6 +7,7 @@
 
 #include "InstanceSet.hpp"
 #include <fstream>
+#include <cassert>
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -37,8 +38,11 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName) :
         inst_dataset_ = ds;
     }
 
-    features_ = vector<string>( inst_dataset_->headers().begin()++, inst_dataset_->headers().end() );
-    types_ = vector<Datatype>(inst_dataset_->types().begin()++, inst_dataset_->types().end());
+    auto itf = inst_dataset_->headers().begin(); ++itf;
+    features_ = vector<string>(itf, inst_dataset_->headers().end() );
+    auto itt = inst_dataset_->types().begin(); ++itt;
+    types_ = vector<Datatype>(itt, inst_dataset_->types().end());
+    assert(features_.size()==types_.size());
 
     instances_.reserve(ires.size());
 
