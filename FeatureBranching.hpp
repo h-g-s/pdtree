@@ -411,6 +411,8 @@ bool FeatureBranching<T>::next()
     if (idxBv>=branchingV.size())
         return false;
 
+    this->branchValue = branchingV[idxBv].first;
+
     // doing branch
     addElementsBranch(0, branchingV[idxBv-1].second+1, branchingV[idxBv].second+1 );
     removeElementsBranch(1, branchingV[idxBv-1].second+1, branchingV[idxBv].second+1);
