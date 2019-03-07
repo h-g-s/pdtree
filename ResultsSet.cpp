@@ -10,6 +10,7 @@
 #include <ctime>
 #include <cctype>
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <cstring>
 #include <cassert>
@@ -504,4 +505,24 @@ void ResultsSet::print_summarized_results()
                 setw(9) << setprecision(3) << fixed << right << nRankOne[topAlgByRnkOne[i]] << " " << endl;
     }
 }
+
+void ResultsSet::save_csv(const char *fileName) const
+{
+    ofstream of(fileName);
+
+    for ( const auto &alg : algsettings_ )
+        of << "," << alg;
+    of << endl;
+
+    for ( const auto &inst : iset_.instances( ))
+    {
+        of << inst.name();
+        for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+            of << "," << this->get(inst.idx_, j);
+        of << endl;
+    }
+
+    of.close();
+}
+
 

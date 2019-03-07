@@ -30,7 +30,12 @@ int main(int argc, const char **argv)
         ResultsSet rset( iset, argv[2] );
         rset.print_summarized_results();
 
-        FeatureBranching<int> fb(iset, rset, 8, nullptr, 2, numeric_limits<int>::max() );
+        rset.save_csv("res.csv");
+
+        vector< size_t > initialEl = vector<size_t>(iset.size());
+        for ( size_t i=0 ; (i<iset.size()) ; ++i ) initialEl[i] = i;
+        FeatureBranching<int> fb(iset, rset, 8, &initialEl[0], iset.size(), 2, 3 );
+        fb.next();
     } catch (std::string &str)
     {
         cout << endl; cerr << endl;

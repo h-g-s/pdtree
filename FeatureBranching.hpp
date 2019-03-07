@@ -9,7 +9,7 @@
 #define FEATUREBRANCHING_HPP_
 
 #include <unordered_map>
-#include <unordered_set>
+#include <set>
 #include <utility>
 #include <cassert>
 #include <map>
@@ -51,6 +51,11 @@ public:
 
     // number of instances at each side of the branching (0 left, 1 right)
     const size_t n_branch_elements( size_t iBranch ) const;
+
+    // returns branch values and positions in the sorted vector
+    const std::vector< pair<T, size_t> > &branch_values() const {
+        return this->branchingV;
+    }
 
     virtual ~FeatureBranching ();
 private:
@@ -120,10 +125,13 @@ FeatureBranching<T>::FeatureBranching(const InstanceSet& _iset, // complete inst
     branchBestAlg( std::vector<size_t>(2, std::numeric_limits<size_t>::max()) ),
     branchValue(numeric_limits<T>::max())
 {
+    assert( _nElements<=iset_.size( ));
     assert( elements_ != nullptr and _nElements>=2 );
     assert( idxF_ < iset_.features().size() );
     assert( maxEvBranches_ > 0);
+    memcpy( elements_, _elements, sizeof(size_t)*n_elements_ );
     {
+
         // sorted values and their positions in the dataset
         std::vector<std::pair<T, size_t>> sortedValues;
 
@@ -149,6 +157,7 @@ FeatureBranching<T>::FeatureBranching(const InstanceSet& _iset, // complete inst
     size_t pCut = branchingV[0].second;
     addElementsBranch(0, 0, pCut+1);
     addElementsBranch(1, pCut+1, n_elements_);
+    nElLeft = pCut+1;
 }
 
 template <>
@@ -270,14 +279,16 @@ void FeatureBranching<T>::computeBranchValues( std::vector< pair<T, size_t> > &s
         return;
     }
 
+    std::set< std::pair<T, size_t> > difbv;
+
     for (size_t ib=0 ; (ib<this->maxEvBranches_); ++ib)
     {
-        size_t idealNEl =  floor((((double)ib)/((double)this->maxEvBranches_+1.0))*((double)sortedValues.size())+0.5);
+        size_t idealNEl =  floor((((double)ib+1.0)/((double)this->maxEvBranches_+1.0))*((double)sortedValues.size())+0.5);
 
         if (idealNEl<this->minInstancesChild_ or ((int)sortedValues.size())-((int)idealNEl)<((int)this->minInstancesChild_))
             continue;
 
-        size_t bestDist = numeric_limits<size_t>::max();
+        int bestDist = numeric_limits<int>::max();
         T bestV = T();
         size_t bestP = 0;
 
@@ -294,8 +305,11 @@ void FeatureBranching<T>::computeBranchValues( std::vector< pair<T, size_t> > &s
             else
                 break;
         }
-        this->branchingV.push_back(make_pair(bestV, bestP));
+        difbv.insert(make_pair(bestV, bestP));
     }
+
+    branchingV.insert( branchingV.end(), difbv.begin(), difbv.end() );
+
 }
 
 template <typename T>
@@ -378,6 +392,10 @@ void FeatureBranching<T>::evaluate()
         }
         splittingEval += weight*bestRBranch;
     }
+
+    splittingEval /= totalElements;
+    if (ResultsSet::eval==Rank)
+        splittingEval += 1.0;
 }
 
 template <typename T>
@@ -394,8 +412,9 @@ bool FeatureBranching<T>::next()
         return false;
 
     // doing branch
-    addElementsBranch(0, branchingV[idxBv-1].second, branchingV[idxBv].second+1 );
-    removeElementsBranch(1, branchingV[idxBv-1].second, branchingV[idxBv].second+1);
+    addElementsBranch(0, branchingV[idxBv-1].second+1, branchingV[idxBv].second+1 );
+    removeElementsBranch(1, branchingV[idxBv-1].second+1, branchingV[idxBv].second+1);
+    this->nElLeft = branchingV[idxBv].second+1;
     evaluate();
 
     return true;

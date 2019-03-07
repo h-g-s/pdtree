@@ -59,6 +59,8 @@ public:
 
     static void configure_parameters(int argc, const char **argv);
 
+    void save_csv(const char *fileName) const;
+
     static void help();
 
     static void print_config();
