@@ -40,6 +40,9 @@ public:
     /* type of each feature */
     const std::vector< Datatype > &types() const;
 
+    // if feature is of some integral type
+    bool feature_is_integer( size_t idxF ) const;
+
     size_t size() const;
 
     virtual ~InstanceSet ();

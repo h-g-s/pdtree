@@ -52,6 +52,10 @@ public:
     // number of instances at each side of the branching (0 left, 1 right)
     const size_t n_branch_elements( size_t iBranch ) const;
 
+    size_t idxF() const {
+        return this->idxF_;
+    }
+
     // returns branch values and positions in the sorted vector
     const std::vector< pair<T, size_t> > &branch_values() const {
         return this->branchingV;

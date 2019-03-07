@@ -29,6 +29,7 @@ class Branching
 {
 public:
     Branching( ) :
+        idxF_(std::numeric_limits<size_t>::max()),
         eval_(std::numeric_limits<double>::max()),
         type_(Empty) {
     }
@@ -42,12 +43,14 @@ public:
     }
 
     // constructor for integers
-    Branching( int _branchValue,
+    Branching( size_t _idxF,
+               int _branchValue,
                double _eval,
                size_t _nElLeft,
                const size_t _elLeft,
                size_t _nElRight,
                const size_t _elRight ) :
+                   idxF_(_idxF),
                    eval_(_eval),
                    type_(Integer)
 
@@ -59,14 +62,16 @@ public:
     }
 
     // constructor for double
-    Branching( double _branchValue,
+    Branching( size_t _idxF,
+               double _branchValue,
                double _eval,
                size_t _nElLeft,
                const size_t _elLeft,
                size_t _nElRight,
                const size_t _elRight ) :
+                   idxF_(_idxF),
                    eval_(_eval),
-                   type_(Integer)
+                   type_(Float)
 
     {
         this->value_.vfloat = _branchValue;
@@ -76,12 +81,14 @@ public:
     }
 
     // constructor for string
-    Branching( const std::string &_branchValue,
+    Branching( size_t _idxF,
+               const std::string &_branchValue,
                double _eval,
                size_t _nElLeft,
                const size_t _elLeft,
                size_t _nElRight,
                const size_t _elRight ) :
+                   idxF_(_idxF),
                    eval_(_eval),
                    type_(String)
     {
@@ -120,12 +127,17 @@ public:
     }
 
     Branching &operator=(const Branching &other) {
+        this->idxF_ = other.idxF_;
         memcpy( (&this->value_), &(other.value_), sizeof(BranchValue) );
         this->eval_ = other.eval_;
         this->type_ = other.type_;
         this->elements_ = other.elements_;
 
         return *this;
+    }
+
+    bool found() const {
+        return type_ != Empty;
     }
 
     // updates best branching with the current
@@ -137,6 +149,7 @@ public:
 
         if ( ((double)fb.evaluation())<this->eval_)
         {
+            this->idxF_ = fb.idxF();
             this->eval_ = (double)fb.evaluation();
             this->type_ = Integer;
             this->value_.vint = fb.branch_value();
@@ -162,6 +175,7 @@ public:
 
         if ( ((double)fb.evaluation())<this->eval_)
         {
+            this->idxF_ = fb.idxF();
             this->eval_ = (double)fb.evaluation();
             this->type_ = Float;
             this->value_.vfloat = fb.branch_value();
@@ -184,6 +198,9 @@ public:
 
     virtual ~Branching ();
 private:
+    // feature
+    size_t idxF_;
+
     BranchValue value_;
 
     // cost of this branching

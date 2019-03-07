@@ -142,6 +142,13 @@ static std::unordered_set< std::string > check_instances_with_results( const cha
     return res;
 }
 
+bool InstanceSet::feature_is_integer( size_t idxF ) const
+{
+    assert( idxF<features().size() );
+
+    return (types_[idxF] <= Integer);
+}
+
 bool InstanceSet::has(const std::string &iname) const
 {
     auto it = instByName_.find(iname);
