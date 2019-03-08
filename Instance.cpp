@@ -6,6 +6,7 @@
  */
 
 #include "Instance.hpp"
+
 #include "Dataset.hpp"
 
 using namespace std;

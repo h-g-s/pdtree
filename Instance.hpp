@@ -9,8 +9,8 @@
 #define INSTANCE_HPP_
 
 #include <cstddef>
-#include <vector>
 #include <string>
+#include <vector>
 
 class Dataset;
 

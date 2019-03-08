@@ -5,8 +5,12 @@
  *      Author: haroldo
  */
 
-#include <iostream>
 #include "Node.hpp"
+
+#include <cstdlib>
+#include <iostream>
+
+#include "FeatureBranching.hpp"
 
 using namespace std;
 
@@ -55,13 +59,21 @@ std::vector<Node> &Node::perform_branch()
         }
         else
         {
-            FeatureBranching<double> fbf(iset_, rset_, idxF, el_, nEl_, 5, 11);
-            if (fbf.branch_values().size())
+            if (iset_.types()[idxF]==Float)
             {
-                do
+                FeatureBranching<double> fbf(iset_, rset_, idxF, el_, nEl_, 5, 11);
+                if (fbf.branch_values().size())
                 {
-                    bestBranch_.update_best_branching(fbf);
-                } while (fbf.next());
+                    do
+                    {
+                        bestBranch_.update_best_branching(fbf);
+                    } while (fbf.next());
+                }
+            }
+            else
+            {
+                cerr << "type not handled yet." << endl;
+                abort();
             }
         }
     }

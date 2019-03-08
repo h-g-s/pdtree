@@ -5,17 +5,24 @@
  *      Author: haroldo
  */
 
-#include <limits>
-#include <cmath>
-#include <ctime>
+#include "ResultsSet.hpp"
+
+#include <bits/types/clock_t.h>
+#include <sys/time.h>
+#include <algorithm>
+#include <cassert>
 #include <cctype>
-#include <iostream>
+#include <cmath>
+#include <cstring>
+#include <ctime>
 #include <fstream>
 #include <iomanip>
-#include <cstring>
-#include <cassert>
-#include <algorithm>
-#include "ResultsSet.hpp"
+#include <iostream>
+#include <limits>
+#include <utility>
+
+#include "Dataset.hpp"
+#include "Instance.hpp"
 
 using namespace std;
 

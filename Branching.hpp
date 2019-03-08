@@ -10,12 +10,13 @@
 #ifndef BRANCHING_HPP_
 #define BRANCHING_HPP_
 
-#include <string>
+#include <stddef.h>
 #include <cassert>
-#include <limits>
 #include <cstring>
-#include <cassert>
+#include <limits>
+#include <string>
 #include <vector>
+
 #include "Dataset.hpp"
 #include "FeatureBranching.hpp"
 

@@ -5,10 +5,16 @@
  *      Author: haroldo
  */
 
-#include <iostream>
-#include <algorithm>
-#include <unordered_set>
 #include "Results.hpp"
+
+#include <stddef.h>
+#include <algorithm>
+#include <cstdlib>
+#include <iostream>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+
 #include "Dataset.hpp"
 
 using namespace std;

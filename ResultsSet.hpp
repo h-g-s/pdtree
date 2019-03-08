@@ -8,12 +8,12 @@
 #ifndef RESULTSSET_HPP_
 #define RESULTSSET_HPP_
 
-#include "Dataset.hpp"
-#include "InstanceSet.hpp"
-#include <string>
-#include <vector>
 #include <cstddef>
+#include <string>
 #include <unordered_map>
+#include <vector>
+
+#include "InstanceSet.hpp"
 
 /** strategy to fill missing results, if any */
 enum FMRStrategy {Worse = 0,       // worse result

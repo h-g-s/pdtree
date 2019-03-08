@@ -5,10 +5,11 @@
  *      Author: haroldo
  */
 
-#include <vector>
+#include <cstddef>
 #include <string>
 #include <unordered_map>
-#include <cstddef>
+#include <vector>
+
 #include "Dataset.hpp"
 #include "Instance.hpp"
 

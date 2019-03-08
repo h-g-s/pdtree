@@ -8,9 +8,9 @@
 #ifndef DATASET_HPP_
 #define DATASET_HPP_
 
+#include <stddef.h>
 #include <string>
 #include <vector>
-#include <map>
 
 enum Datatype { Char=0, 
                 Short, 

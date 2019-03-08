@@ -8,10 +8,11 @@
 #ifndef NODE_HPP_
 #define NODE_HPP_
 
+#include <stddef.h>
 #include <vector>
-#include "Instance.hpp"
-#include "ResultsSet.hpp"
+
 #include "Branching.hpp"
+#include "InstanceSet.hpp"
 
 class Node
 {

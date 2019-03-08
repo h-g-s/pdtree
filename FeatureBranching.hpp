@@ -8,15 +8,22 @@
 #ifndef FEATUREBRANCHING_HPP_
 #define FEATUREBRANCHING_HPP_
 
-#include <unordered_map>
-#include <set>
-#include <utility>
-#include <cassert>
-#include <map>
-#include <cstring>
-#include <algorithm>
-#include <vector>
+#include <stddef.h>
 #include <cmath>
+#include <algorithm>
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <functional>
+#include <iterator>
+#include <limits>
+#include <map>
+#include <set>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+#include "Instance.hpp"
 #include "InstanceSet.hpp"
 #include "ResultsSet.hpp"
 
