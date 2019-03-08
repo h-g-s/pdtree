@@ -91,4 +91,3 @@ Node::~Node ()
 {
     delete[] el_;
 }
-
