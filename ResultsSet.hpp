@@ -14,26 +14,9 @@
 #include <vector>
 
 #include "InstanceSet.hpp"
+#include "Parameters.hpp"
 
-/** strategy to fill missing results, if any */
-enum FMRStrategy {Worse = 0,       // worse result
-                  WorseT2,     // abs worse result times 2
-                  WorseInst,   // worse result from instance
-                  WorseInstT2, // worse result from instance times 2
-                  AverageInst
-};
-
-enum Evaluation 
-{
-    Average = 0, // when results of executions in 
-             // different instances are comparable,
-             // such as execution time
-             
-    Rank     // if results for different instances
-             // are not comparable, such as
-             // objective functions with different
-             // scales
-};
+class SubSetResults;
 
 class ResultsSet
 {
@@ -74,15 +57,15 @@ private:
     int **ranks_;
     const enum FMRStrategy fmrs_;
 
-    // average result per algorithm
-    float *avAlg;
-    float *avRnkAlg;
     float *avInst;
     int *nRankOne;
 
-    std::vector< size_t > topAlgByAv;
-    std::vector< size_t > topAlgByAvRnk;
     std::vector< size_t > topAlgByRnkOne;
+
+    // algorithms results
+    SubSetResults *avRes_;
+    SubSetResults *rnkRes_;
+    SubSetResults *defRes_;
 
     void compute_rankings();
 };

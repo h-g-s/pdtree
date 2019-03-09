@@ -23,7 +23,8 @@
 
 #include "Dataset.hpp"
 #include "Instance.hpp"
-#include "Parameters.hpp"
+#include "SubSetResults.hpp"
+
 
 using namespace std;
 
@@ -32,9 +33,10 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     res_(nullptr),
     ranks_(nullptr),
     fmrs_(_fmrs),
-    avAlg(nullptr),
-    avRnkAlg(nullptr),
-    avInst(nullptr)
+    avInst(nullptr),
+    avRes_(nullptr),
+    rnkRes_(nullptr),
+    defRes_(nullptr)
 {
     clock_t start = clock();
     Dataset dsres(fileName, false);
@@ -214,37 +216,22 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     cout << "done in " << fixed << setprecision(2) <<
             (((double)clock()-startr) / ((double)CLOCKS_PER_SEC)) << endl;
 
-    avAlg = new float[algsettings_.size()];
-    avRnkAlg  = new float[algsettings_.size()];
     avInst = new float[iset_.size()];
 
     vector< pair< float, size_t > > algsByAv;
     vector< pair< float, size_t > > algsByAvRnk;
 
-    for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+    avRes_ = new SubSetResults( this, Average );
+    rnkRes_ = new SubSetResults( this, Rank );
+    switch (Parameters::eval)
     {
-        long double sum = 0.0;
-        long double sumRk = 0.0;
-
-        for ( size_t i=0 ; (i<iset_.size()) ; ++i )
-        {
-            sum += res_[i][j];
-            sumRk += ranks_[i][j];
-        }
-
-        avAlg[j] = ((long double)sum) / ((long double)iset_.size());
-        algsByAv.push_back( make_pair(avAlg[j], j) );
-        avRnkAlg[j] = ((long double)sumRk) / ((long double)iset_.size());
-        algsByAvRnk.push_back( make_pair(avRnkAlg[j], j) );
+        case Average:
+            defRes_ = avRes_;
+            break;
+        case Rank:
+            defRes_ = rnkRes_;
+            break;
     }
-
-    sort( algsByAv.begin(), algsByAv.end() );
-    for ( size_t i=0 ; (i<algsByAv.size() and i<Parameters::storeTop) ; ++i )
-        topAlgByAv.push_back(algsByAv[i].second);
-
-    sort( algsByAvRnk.begin(), algsByAvRnk.end() );
-    for ( size_t i=0 ; (i<algsByAvRnk.size() and i<Parameters::storeTop) ; ++i )
-        topAlgByAvRnk.push_back(algsByAvRnk[i].second);
  
     for ( size_t i=0 ; (i<iset_.size()) ; ++i )
     {
@@ -284,13 +271,14 @@ float ResultsSet::get(size_t iIdx, size_t aIdx) const
 
 ResultsSet::~ResultsSet ()
 {
+    delete avRes_;
+    delete rnkRes_;
+
     delete[] nRankOne;
     delete[] ranks_[0];
     delete[] ranks_;
     delete[] res_[0];
     delete[] res_;
-    delete[] avAlg;
-    delete[] avRnkAlg;
     delete[] avInst;
 }
 
@@ -345,23 +333,25 @@ void ResultsSet::print_summarized_results()
     cout << endl;
     cout << "Top algorithms/parameter settings considering the whole instance set: " << endl << endl;
     cout << "Average results" << endl;
-    cout << " # algorithm/p. setting                                     res         " << endl;
+    cout << " # algorithm/p. setting                                     res        " << endl;
     cout << "== ======================================================== ===========" << endl;
-    for ( size_t i=0 ; (i<topAlgByAv.size()) ; ++i )
+    auto bestAlgsAv = avRes_->computeBestAlgorithms();
+    for ( size_t i=0 ; (i<min(bestAlgsAv.size(), Parameters::storeTop)) ; ++i )
     {
         cout << setw(2) << right << i+1 << " " <<
-                setw(55) << left << algsettings_[topAlgByAv[i]] << " " <<
-                setw(12) << setprecision(6) << defaultfloat << right << avAlg[topAlgByAv[i]] << " " << endl;
+                setw(55) << left << algsettings_[bestAlgsAv[i]] << " " <<
+                setw(12) << setprecision(6) << defaultfloat << right << avRes_->resAlg(bestAlgsAv[i]) << " " << endl;
     }
     cout << endl;
     cout << "Average rank" << endl;
-    cout << " # algorithm/p. setting                                     res      " << endl;
+    cout << " # algorithm/p. setting                                     res     " << endl;
     cout << "== ======================================================== ========" << endl;
-    for ( size_t i=0 ; (i<topAlgByAv.size()) ; ++i )
+    auto bestAlgsRnk = rnkRes_->computeBestAlgorithms();
+    for ( size_t i=0 ; (i<min(bestAlgsRnk.size(), Parameters::storeTop)) ; ++i )
     {
         cout << setw(2) << right << i+1 << " " <<
-                setw(55) << left << algsettings_[topAlgByAvRnk[i]] << " " <<
-                setw(9) << setprecision(3) << fixed << right << avRnkAlg[topAlgByAvRnk[i]]+1 << " " << endl;
+                setw(55) << left << algsettings_[bestAlgsRnk[i]] << " " <<
+                setw(9) << setprecision(3) << fixed << right << rnkRes_->resAlg(bestAlgsRnk[i]) << " " << endl;
     }
 
     cout << endl;

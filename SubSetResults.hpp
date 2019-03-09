@@ -10,16 +10,19 @@
 #define SUBSETRESULTS_HPP_
 
 #include "ResultsSet.hpp"
-#include "Parameters.hpp"
+
+class ResultsSet;
 
 typedef long double SumType;
 
 class SubSetResults
 {
 public:
-    SubSetResults ( const ResultsSet &_rset,
+    SubSetResults ( const ResultsSet *_rset,
                     const Evaluation _eval = Parameters::eval
                     );
+
+    SubSetResults( const SubSetResults &other );
 
     void add( size_t n, const size_t *el );
 
@@ -33,16 +36,23 @@ public:
         return this->resBestAlg_;
     }
 
+    double resAlg( size_t idxAlg ) const;
+
+    // algorithms/settings sorted from
+    // best to worse
+        std::vector< size_t > computeBestAlgorithms() const;
+
     virtual ~SubSetResults ();
 private:
     void updateBest();
 
+    // number of instances in this subset
     size_t nElSS;
 
     size_t idxBestAlg_;
     double resBestAlg_;
 
-    const ResultsSet &rset_;
+    const ResultsSet *rset_;
     Evaluation eval_;
     SumType *sum_;
 };
