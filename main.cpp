@@ -7,6 +7,7 @@
 #include "FeatureBranching.hpp"
 #include "Instance.hpp"
 #include "InstanceSet.hpp"
+#include "Parameters.hpp"
 #include "ResultsSet.hpp"
 
 using namespace std;
@@ -17,20 +18,21 @@ int main(int argc, const char **argv)
     {
         cerr << "usage: ddtre instances.csv algresults.csv -param1=value1 -param2=value2 ..." << endl;
         cout << "options:" << endl;
-        ResultsSet::help();
+        Parameters::help();
         exit(1);
     }
 
     try
     {
+        Parameters::parse(argc, (const char **)argv);
+        Parameters::print();
+
         cout << "Loading instances set ... "  << endl;
         InstanceSet iset(argv[1], argv[2]);
         Instance::inst_dataset = iset.inst_dataset_;
         cout << endl;
 
         cout << "ResultsSet settings: " << endl;
-        ResultsSet::configure_parameters(argc, (const char **)argv);
-        ResultsSet::print_config();
         cout << "Loading results set ... "  << endl;
         ResultsSet rset( iset, argv[2] );
         rset.print_summarized_results();

@@ -53,34 +53,17 @@ public:
         return this->algsettings_;
     }
 
+    const std::vector< Instance > &instances() const {
+        return iset_.instances();
+    }
+
     void print_summarized_results();
 
     virtual ~ResultsSet ();
 
-    static void configure_parameters(int argc, const char **argv);
-
     void save_csv(const char *fileName) const;
 
-    static void help();
-
-    static void print_config();
-
-    static enum FMRStrategy fmrStrategy;
-    static enum Evaluation eval;
-
     void compute_summarized_results();
-
-    // minimum absolute difference
-    // between two results to change ranking
-    static double rankEps;
-
-    // minimum percentage difference between
-    // two values to increase ranking
-    static double rankPerc;
-    
-    // compute top "storeTop" configurations, just to
-    // display summary
-    static size_t storeTop;
 private:
     const InstanceSet &iset_;
 

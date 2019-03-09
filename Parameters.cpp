@@ -9,6 +9,8 @@
 
 #include <cctype>
 #include <cstring>
+#include <iomanip>
+#include <iostream>
 #include <string>
 
 using namespace std;
@@ -40,7 +42,7 @@ static enum FMRStrategy to_fmrs( const char *s);
 
 static enum Evaluation to_eval( const char *s);
 
-static void Parameters::parse( int argc, const char **argv )
+void Parameters::parse( int argc, const char **argv )
 {
     for ( int i=3 ; (i<argc) ; ++i )
     {
@@ -76,22 +78,22 @@ static void Parameters::parse( int argc, const char **argv )
 
         if (strcmp(pName, "-fmrs")==0)
         {
-            ResultsSet::fmrStrategy = to_fmrs(pValue);
+            Parameters::fmrStrategy = to_fmrs(pValue);
             continue;
         }
         if (strcmp(pName, "-eval")==0)
         {
-            ResultsSet::eval = to_eval(pValue);
+            Parameters::eval = to_eval(pValue);
             continue;
         }
         if (strcmp(pName, "-rankEps")==0)
         {
-            ResultsSet::rankEps = stod(string(pValue));
+            Parameters::rankEps = stod(string(pValue));
             continue;
         }
         if (strcmp(pName, "-rankPerc")==0)
         {
-            ResultsSet::rankEps = stod(string(pValue));
+            Parameters::rankEps = stod(string(pValue));
             continue;
         }
     }
@@ -142,3 +144,22 @@ static enum Evaluation to_eval( const char *s)
 
     return Evaluation::Rank;
 }
+
+void Parameters::help()
+{
+    cout << "\t-fmrs=[Worse, WorseT2, WorseInst, WorseInstT2, AverageInst]" << endl;
+    cout << "\t-eval=[Average, Rank]" << endl;
+    cout << "\t-rankEps=float" << endl;
+    cout << "\t-rankPerc=float" << endl;
+
+}
+
+void Parameters::print()
+{
+    cout << "Results evaluation settings: " << endl;
+    cout << "      fmrs=" << FMRStrategyStr[Parameters::fmrStrategy] << endl;
+    cout << "      eval=" << EvaluationStr[Parameters::eval] << endl;
+    cout << "   rankEps=" << scientific << rankEps << endl;
+    cout << "  rankPerc=" << fixed << setprecision(4) << rankPerc << endl;
+}
+

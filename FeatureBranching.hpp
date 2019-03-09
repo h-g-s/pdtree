@@ -9,7 +9,6 @@
 #define FEATUREBRANCHING_HPP_
 
 #include <stddef.h>
-#include <cmath>
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
@@ -18,6 +17,7 @@
 #include <iterator>
 #include <limits>
 #include <map>
+#include <cmath>
 #include <set>
 #include <unordered_map>
 #include <utility>
@@ -25,6 +25,7 @@
 
 #include "Instance.hpp"
 #include "InstanceSet.hpp"
+#include "Parameters.hpp"
 #include "ResultsSet.hpp"
 
 using namespace std;
@@ -337,7 +338,7 @@ void FeatureBranching<T>::addElementsBranch( size_t iBranch, size_t start, size_
         assert( *el < iset_.size() );
 
         // adding instance results
-        switch (ResultsSet::eval)
+        switch (Parameters::eval)
         {
             case Evaluation::Average:
                 for ( size_t iAlg=0 ; (iAlg<rset_.algsettings().size()) ; ++iAlg )
@@ -365,7 +366,7 @@ void FeatureBranching<T>::removeElementsBranch( size_t iBranch, size_t start, si
         assert( *el < iset_.size() );
 
 
-        switch (ResultsSet::eval)
+        switch (Parameters::eval)
         {
             case Evaluation::Average:
                 // removing instance results
@@ -405,7 +406,7 @@ void FeatureBranching<T>::evaluate()
     }
 
     splittingEval /= totalElements;
-    if (ResultsSet::eval==Rank)
+    if (Parameters::eval==Rank)
         splittingEval += 1.0;
 }
 

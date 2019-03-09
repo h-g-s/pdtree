@@ -17,6 +17,10 @@ class Parameters
 public:
     static void parse( int argc, const char **argv );
 
+    static void print();
+
+    static void help();
+
     // how missing results in the results set
     // will be filled
     static enum FMRStrategy fmrStrategy;
