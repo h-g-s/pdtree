@@ -27,6 +27,7 @@
 #include "InstanceSet.hpp"
 #include "Parameters.hpp"
 #include "ResultsSet.hpp"
+#include "SubSetResults.hpp"
 
 using namespace std;
 
@@ -56,7 +57,6 @@ public:
     // instances at each side of the branching (0 left, 1 right)
     const size_t *branch_elements( size_t iBranch ) const;
 
-
     // number of instances at each side of the branching (0 left, 1 right)
     const size_t n_branch_elements( size_t iBranch ) const;
 
@@ -79,17 +79,11 @@ private:
     void computeOcurrency( std::vector< pair<T, size_t> > &sortedValues, std::vector< pair<T, size_t> > &diffValues);
     void computeBranchValues( std::vector< pair<T, size_t> > &sortedValues, std::vector< pair<T, size_t> > &diffValues);
 
-    void addElementsBranch( size_t iBranch, size_t start, size_t end );
-    void removeElementsBranch( size_t iBranch, size_t start, size_t end );
-
     const InstanceSet &iset_;
     const ResultsSet &rset_;
     const size_t idxF_;
     size_t *elements_;
     size_t n_elements_;
-
-    // of average or ranking, depending on the evaluation
-    std::vector< std::vector< long double > > branchSum;
 
     size_t minInstancesChild_;
     size_t maxEvBranches_;
@@ -101,15 +95,15 @@ private:
     // index of current branch value
     size_t idxBv;
 
-    // best algorithm for branch
-    std::vector< size_t > branchBestAlg;
-
-    long double splittingEval;
-
     // current branching value
     T branchValue;
 
     size_t nElLeft;
+
+    SubSetResults ssrLeft;
+    SubSetResults ssrRight;
+
+    long double splittingEval;
 };
 
 template class FeatureBranching<int>;
@@ -130,12 +124,13 @@ FeatureBranching<T>::FeatureBranching(const InstanceSet& _iset, // complete inst
     idxF_(_idxF),
     elements_(new size_t[_nElements]),
     n_elements_(_nElements),
-    branchSum( vector< vector<long double> >(2, vector< long double >( rset_.algsettings().size(), 0.0 ) ) ),
     minInstancesChild_(_minInstancesChild),
     maxEvBranches_(_maxEvBranches),
     idxBv(0),
-    branchBestAlg( std::vector<size_t>(2, std::numeric_limits<size_t>::max()) ),
-    branchValue(numeric_limits<T>::max())
+    branchValue(numeric_limits<T>::max()),
+    ssrLeft( &rset_, Parameters::eval ),
+    ssrRight( rset_.results() ),
+    splittingEval(0.0)
 {
     assert( _nElements<=iset_.size( ));
     assert( elements_ != nullptr and _nElements>=2 );
@@ -163,12 +158,11 @@ FeatureBranching<T>::FeatureBranching(const InstanceSet& _iset, // complete inst
     if (branchingV.size()==0)
         return;
 
-
     // arranging data for first branch
     branchValue = branchingV[0].first;
     size_t pCut = branchingV[0].second;
-    addElementsBranch(0, 0, pCut+1);
-    addElementsBranch(1, pCut+1, n_elements_);
+    ssrLeft.add( pCut+1, elements_ );
+    ssrRight.remove( pCut+1, elements_ );
     nElLeft = pCut+1;
 }
 
@@ -325,89 +319,15 @@ void FeatureBranching<T>::computeBranchValues( std::vector< pair<T, size_t> > &s
 }
 
 template <typename T>
-void FeatureBranching<T>::addElementsBranch( size_t iBranch, size_t start, size_t end )
-{
-    assert( iBranch < 2);
-    assert( start < end ); // at least one
-    assert( start < n_elements_ );
-    assert( end <= n_elements_ );
-
-    const size_t *endEl = elements_+end;
-    for ( const size_t *el = elements_+start ; el<endEl ; ++el )
-    {
-        assert( *el < iset_.size() );
-
-        // adding instance results
-        switch (Parameters::eval)
-        {
-            case Evaluation::Average:
-                for ( size_t iAlg=0 ; (iAlg<rset_.algsettings().size()) ; ++iAlg )
-                    branchSum[iBranch][iAlg] += rset_.get( *el, iAlg);
-                break;
-            case Evaluation::Rank:
-                for ( size_t iAlg=0 ; (iAlg<rset_.algsettings().size()) ; ++iAlg )
-                    branchSum[iBranch][iAlg] += rset_.rank( *el, iAlg);
-                break;
-        }
-    }
-}
-
-template <typename T>
-void FeatureBranching<T>::removeElementsBranch( size_t iBranch, size_t start, size_t end )
-{
-    assert( iBranch < 2);
-    assert( start < end ); // at least one
-    assert( start < n_elements_ );
-    assert( end <= n_elements_ );
-
-    const size_t *endEl = elements_+end;
-    for ( const size_t *el = elements_+start ; el<endEl ; ++el )
-    {
-        assert( *el < iset_.size() );
-
-
-        switch (Parameters::eval)
-        {
-            case Evaluation::Average:
-                // removing instance results
-                for ( size_t iAlg=0 ; (iAlg<rset_.algsettings().size()) ; ++iAlg )
-                    branchSum[iBranch][iAlg] -= rset_.get( *el, iAlg);
-                break;
-            case Evaluation::Rank:
-                // removing instance results
-                for ( size_t iAlg=0 ; (iAlg<rset_.algsettings().size()) ; ++iAlg )
-                    branchSum[iBranch][iAlg] -= rset_.rank( *el, iAlg);
-                break;
-        }
-    }
-}
-
-template <typename T>
 void FeatureBranching<T>::evaluate()
 {
-    long double totalElements = n_elements_;
-
     splittingEval = 0.0;
 
-    for ( size_t iBranch=0 ; (iBranch<2) ; ++iBranch )
-    {
-        const long double weight = ((long double)n_branch_elements(iBranch)) / totalElements;
-        branchBestAlg[iBranch] = numeric_limits<size_t>::max();
-        long double bestRBranch = numeric_limits<long double>::max();
-        for ( size_t iAlg=0 ; (iAlg<rset_.algsettings().size()) ; ++iAlg )
-        {
-            if (branchSum[iBranch][iAlg]<bestRBranch)
-            {
-                bestRBranch = branchSum[iBranch][iAlg];
-                branchBestAlg[iBranch] = iAlg;
-            }
-        }
-        splittingEval += weight*bestRBranch;
-    }
+    const long double percLeft = ((long double)nElLeft) / ((long double)n_elements_);
+    const long double percRight =  ((long double)(n_elements_-nElLeft)) / ((long double)n_elements_);
 
-    splittingEval /= totalElements;
-    if (Parameters::eval==Rank)
-        splittingEval += 1.0;
+    splittingEval += ( percLeft  * (long double)ssrLeft.bestAlgRes() +
+                       percRight * (long double)ssrRight.bestAlgRes() );
 }
 
 template <typename T>
@@ -417,7 +337,8 @@ long double FeatureBranching<T>::evaluation() const
 }
 
 template <typename T>
-bool FeatureBranching<T>::next()
+    bool
+    FeatureBranching<T>::next()
 {
     ++idxBv;
     if (idxBv>=branchingV.size())
@@ -425,9 +346,14 @@ bool FeatureBranching<T>::next()
 
     this->branchValue = branchingV[idxBv].first;
 
-    // doing branch
-    addElementsBranch(0, branchingV[idxBv-1].second+1, branchingV[idxBv].second+1 );
-    removeElementsBranch(1, branchingV[idxBv-1].second+1, branchingV[idxBv].second+1);
+    {
+        // elements at left
+        const size_t *el = elements_ + branchingV[idxBv-1].second+1;
+        size_t nEl = (branchingV[idxBv].second+1) - (branchingV[idxBv-1].second+1);
+        ssrLeft.add( nEl, el );
+        ssrRight.remove( nEl, el );
+    }
+
     this->nElLeft = branchingV[idxBv].second+1;
     evaluate();
 
@@ -442,7 +368,6 @@ const size_t *FeatureBranching<T>::branch_elements( size_t iBranch ) const
     return elements_+ (iBranch*nElLeft);
 }
 
-
 // number of instances at each side of the branching (0 left, 1 right)
 template <typename T>
 const size_t FeatureBranching<T>::n_branch_elements( size_t iBranch ) const
@@ -452,8 +377,6 @@ const size_t FeatureBranching<T>::n_branch_elements( size_t iBranch ) const
     return (1-iBranch)*nElLeft + iBranch*(n_elements_-nElLeft);
 }
 
-
-
 template <typename T>
 FeatureBranching<T>::~FeatureBranching ()
 {
@@ -461,4 +384,3 @@ FeatureBranching<T>::~FeatureBranching ()
 }
 
 #endif /* FEATUREBRANCHING_HPP_ */
-

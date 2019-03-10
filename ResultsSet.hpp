@@ -47,6 +47,10 @@ public:
     void save_csv(const char *fileName) const;
 
     void compute_summarized_results();
+
+    const SubSetResults &results() const {
+        return *this->defRes_;
+    }
 private:
     const InstanceSet &iset_;
 
