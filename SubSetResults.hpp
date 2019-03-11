@@ -19,7 +19,8 @@ class SubSetResults
 {
 public:
     SubSetResults ( const ResultsSet *_rset,
-                    const Evaluation _eval = Parameters::eval
+                    const Evaluation _eval = Parameters::eval,
+                    bool addElements = true
                     );
 
     SubSetResults( const SubSetResults &other );

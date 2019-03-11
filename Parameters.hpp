@@ -10,6 +10,8 @@
 
 #include <stddef.h>
 
+#define MAX_DEPTH 10
+
 /** strategy to fill missing results, if any */
 enum FMRStrategy {Worse = 0,       // worse result
                   WorseT2,     // abs worse result times 2
@@ -57,6 +59,10 @@ public:
     // compute top "storeTop" configurations, just to
     // display summary
     static size_t storeTop;
+
+    static size_t minElementsBranch;
+
+    static size_t maxEvalBranches[MAX_DEPTH];
 
 };
 

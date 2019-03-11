@@ -35,7 +35,7 @@ SubSetResults::SubSetResults( const SubSetResults &other ) :
 }
 
 
-SubSetResults::SubSetResults ( const ResultsSet *_rset, const Evaluation _eval ) :
+SubSetResults::SubSetResults ( const ResultsSet *_rset, const Evaluation _eval, bool addElements ) :
     nElSS(0),
     idxBestAlg_(numeric_limits<size_t>::max()),
     resBestAlg_(numeric_limits<double>::max()),
@@ -49,6 +49,15 @@ SubSetResults::SubSetResults ( const ResultsSet *_rset, const Evaluation _eval )
     assert( sum_ );
     for ( size_t i=0 ; (i<nAlgs) ; ++i )
         sum_[i] = 0.0;
+
+    if (addElements)
+    {
+        vector< size_t > el( rset_->instances().size() );
+        for ( size_t i=0 ; (i<rset_->instances().size()) ; ++i )
+            el[i] = i;
+
+        this->add( el.size(), &el[0] );
+    }
 }
 
 void SubSetResults::add( size_t n, const size_t *el )
@@ -139,6 +148,7 @@ double SubSetResults::resAlg( size_t idxAlg ) const
 std::vector< size_t > SubSetResults::computeBestAlgorithms() const
 {
     std::vector< size_t > res;
+    res.reserve(rset_->algsettings().size());
 
     std::vector< pair< double, size_t > > sres;
     sres.reserve(rset_->algsettings().size());
@@ -146,6 +156,8 @@ std::vector< size_t > SubSetResults::computeBestAlgorithms() const
         sres.push_back( make_pair( resAlg(i) , i ) );
 
     sort( sres.begin(), sres.end() );
+    for ( const auto &it : sres )
+        res.push_back(it.second);
 
     return res;
 }

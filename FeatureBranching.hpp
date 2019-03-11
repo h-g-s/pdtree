@@ -128,7 +128,7 @@ FeatureBranching<T>::FeatureBranching(const InstanceSet& _iset, // complete inst
     maxEvBranches_(_maxEvBranches),
     idxBv(0),
     branchValue(numeric_limits<T>::max()),
-    ssrLeft( &rset_, Parameters::eval ),
+    ssrLeft( &rset_, Parameters::eval, false ),
     ssrRight( rset_.results() ),
     splittingEval(0.0)
 {

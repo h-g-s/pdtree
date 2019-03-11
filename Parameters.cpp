@@ -7,7 +7,9 @@
 
 #include "Parameters.hpp"
 
+#include <strings.h>
 #include <cctype>
+#include <cassert>
 #include <cstring>
 #include <iomanip>
 #include <iostream>
@@ -24,6 +26,14 @@ double Parameters::rankEps = 1e-8;
 double Parameters::rankPerc = 0.01;
 
 size_t Parameters::storeTop = 5;
+
+// minimum number of instances in a split
+// for the branching to be valid
+size_t Parameters::minElementsBranch = 3;
+
+// maximum number of branches evaluated for a feature
+// at a given depth
+size_t Parameters::maxEvalBranches[MAX_DEPTH] = { 10, 15, 20, 25, 30, 35, 40, 45, 50, 55 };
 
 static char FMRStrategyStr[5][16] = {
     "Worse",
@@ -76,28 +86,56 @@ void Parameters::parse( int argc, const char **argv )
         }
 
 
-        if (strcmp(pName, "-fmrs")==0)
+        if (strcasecmp(pName, "-fmrs")==0)
         {
             Parameters::fmrStrategy = to_fmrs(pValue);
             continue;
         }
-        if (strcmp(pName, "-eval")==0)
+        if (strcasecmp(pName, "-eval")==0)
         {
             Parameters::eval = to_eval(pValue);
             continue;
         }
-        if (strcmp(pName, "-rankEps")==0)
+        if (strcasecmp(pName, "-rankEps")==0)
         {
             Parameters::rankEps = stod(string(pValue));
             continue;
         }
-        if (strcmp(pName, "-rankPerc")==0)
+        if (strcasecmp(pName, "-rankPerc")==0)
         {
             Parameters::rankEps = stod(string(pValue));
+            continue;
+        }
+        if (strcasecmp(pName, "-minElementsBranch")==0)
+        {
+            Parameters::minElementsBranch = stoi(string(pValue));
+            continue;
+        }
+        if (strcasestr(pName, "-maxEvalBranches")==0)
+        {
+            char *s = strcasestr(pName, "s");
+            assert(s);
+            ++s;
+            if (not isdigit(s[0]))
+            {
+                cerr << "enter the maximum number of branches per level as -maxEvalBranchesLEVEL=int" << endl;
+                abort();
+            }
+            char sn[256];
+            strcpy(sn, s);
+            s = strstr(sn, "=");
+            *s = '\0';
+            size_t level = (size_t)atoi(sn);
+            if (level>=MAX_DEPTH)
+            {
+                cerr << "level should be 0, ..., " << MAX_DEPTH << endl;
+                abort();
+            }
+            assert(level<MAX_DEPTH);
+            Parameters::maxEvalBranches[level] = stoi(string(pValue));
             continue;
         }
     }
-
 }
 
 static enum FMRStrategy to_fmrs( const char *s )
@@ -151,15 +189,26 @@ void Parameters::help()
     cout << "\t-eval=[Average, Rank]" << endl;
     cout << "\t-rankEps=float" << endl;
     cout << "\t-rankPerc=float" << endl;
+    cout << "\t-minElementsBranch=int" << endl;
+    cout << "\t-maxEvalBranchesLEVEL=int" << endl;
 
 }
 
 void Parameters::print()
 {
     cout << "Results evaluation settings: " << endl;
-    cout << "      fmrs=" << FMRStrategyStr[Parameters::fmrStrategy] << endl;
-    cout << "      eval=" << EvaluationStr[Parameters::eval] << endl;
-    cout << "   rankEps=" << scientific << rankEps << endl;
-    cout << "  rankPerc=" << fixed << setprecision(4) << rankPerc << endl;
+    cout << "             fmrs=" << FMRStrategyStr[Parameters::fmrStrategy] << endl;
+    cout << "             eval=" << EvaluationStr[Parameters::eval] << endl;
+    cout << "          rankEps=" << scientific << rankEps << endl;
+    cout << "         rankPerc=" << fixed << setprecision(4) << rankPerc << endl;
+    cout << "minElementsBranch=" << fixed << setprecision(0) << minElementsBranch << endl;
+    cout << "  maxEvalBranches=[";
+    for ( size_t i=0 ; i<MAX_DEPTH; ++i )
+    {
+        if (i)
+            cout << ", ";
+        cout << maxEvalBranches[i];
+    }
+    cout << "]" << endl;
 }
 
