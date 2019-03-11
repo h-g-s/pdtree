@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <limits>
 #include <utility>
 #include <vector>
@@ -162,7 +163,36 @@ std::vector< size_t > SubSetResults::computeBestAlgorithms() const
     return res;
 }
 
+SubSetResults::SubSetResults() :
+    nElSS(0),
+    idxBestAlg_(numeric_limits<size_t>::max()),
+    resBestAlg_(0.0),
+    rset_(nullptr),
+    eval_(Parameters::eval),
+    sum_(nullptr)
+{
+
+}
+
+SubSetResults &SubSetResults::operator=(const SubSetResults &other)
+{
+    this->nElSS = other.nElSS;
+    this->idxBestAlg_ = other.idxBestAlg_;
+    this->resBestAlg_ = other.resBestAlg_;
+    this->rset_ = other.rset_;
+    this->eval_ = other.eval_;
+
+    if (this->sum_ == nullptr)
+        this->sum_ = (SumType *)malloc(sizeof(SumType)*rset_->algsettings().size());
+
+    memcpy( this->sum_, other.sum_, sizeof(SumType)*rset_->algsettings().size() );
+
+    return *this;
+}
+
+
 SubSetResults::~SubSetResults ()
 {
-    free( sum_ );
+    if (sum_)
+        free( sum_ );
 }

@@ -48,7 +48,7 @@ public:
     }
 
     // evaluation for this branching
-    long double evaluation() const;
+    double evaluation() const;
 
     // go to the best value for branching
     // and do this branching
@@ -103,7 +103,9 @@ private:
     SubSetResults ssrLeft;
     SubSetResults ssrRight;
 
-    long double splittingEval;
+    double splittingEval;
+
+    friend class Branching;
 };
 
 template class FeatureBranching<int>;
@@ -164,6 +166,8 @@ FeatureBranching<T>::FeatureBranching(const InstanceSet& _iset, // complete inst
     ssrLeft.add( pCut+1, elements_ );
     ssrRight.remove( pCut+1, elements_ );
     nElLeft = pCut+1;
+
+    evaluate();
 }
 
 template <>
@@ -321,17 +325,15 @@ void FeatureBranching<T>::computeBranchValues( std::vector< pair<T, size_t> > &s
 template <typename T>
 void FeatureBranching<T>::evaluate()
 {
-    splittingEval = 0.0;
-
     const long double percLeft = ((long double)nElLeft) / ((long double)n_elements_);
     const long double percRight =  ((long double)(n_elements_-nElLeft)) / ((long double)n_elements_);
 
-    splittingEval += ( percLeft  * (long double)ssrLeft.bestAlgRes() +
-                       percRight * (long double)ssrRight.bestAlgRes() );
+    splittingEval = (double) ( percLeft  * (long double)ssrLeft.bestAlgRes() +
+                               percRight * (long double)ssrRight.bestAlgRes() );
 }
 
 template <typename T>
-long double FeatureBranching<T>::evaluation() const
+double FeatureBranching<T>::evaluation() const
 {
     return splittingEval;
 }

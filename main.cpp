@@ -9,6 +9,7 @@
 #include "InstanceSet.hpp"
 #include "Parameters.hpp"
 #include "ResultsSet.hpp"
+#include "Tree.hpp"
 
 using namespace std;
 
@@ -39,10 +40,9 @@ int main(int argc, const char **argv)
 
         rset.save_csv("res.csv");
 
-        vector< size_t > initialEl = vector<size_t>(iset.size());
-        for ( size_t i=0 ; (i<iset.size()) ; ++i ) initialEl[i] = i;
-        FeatureBranching<int> fb(iset, rset, 8, &initialEl[0], iset.size(), Parameters::minElementsBranch, Parameters::maxEvalBranches[0] );
-        fb.next();
+        Tree tree(iset, rset);
+        tree.build();
+
     } catch (std::string &str)
     {
         cout << endl; cerr << endl;

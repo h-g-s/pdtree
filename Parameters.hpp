@@ -64,6 +64,8 @@ public:
 
     static size_t maxEvalBranches[MAX_DEPTH];
 
+    static size_t maxDepth;
+
 };
 
 #endif /* PARAMETERS_HPP_ */

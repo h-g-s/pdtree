@@ -72,6 +72,7 @@ private:
     SubSetResults *defRes_;
 
     void compute_rankings();
+    friend class Tree;
 };
 
 #endif /* RESULTSSET_HPP_ */

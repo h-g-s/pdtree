@@ -35,6 +35,8 @@ size_t Parameters::minElementsBranch = 3;
 // at a given depth
 size_t Parameters::maxEvalBranches[MAX_DEPTH] = { 10, 15, 20, 25, 30, 35, 40, 45, 50, 55 };
 
+size_t Parameters::maxDepth = 3;
+
 static char FMRStrategyStr[5][16] = {
     "Worse",
     "WorseT2",
@@ -109,6 +111,16 @@ void Parameters::parse( int argc, const char **argv )
         if (strcasecmp(pName, "-minElementsBranch")==0)
         {
             Parameters::minElementsBranch = stoi(string(pValue));
+            continue;
+        }
+        if (strcasecmp(pName, "-maxDepth")==0)
+        {
+            Parameters::maxDepth = stoi(string(pValue));
+            if (maxDepth>MAX_DEPTH)
+            {
+                cerr << "Max depth should be at most " << MAX_DEPTH << endl;
+                abort();
+            }
             continue;
         }
         if (strcasestr(pName, "-maxEvalBranches")==0)
@@ -191,6 +203,7 @@ void Parameters::help()
     cout << "\t-rankPerc=float" << endl;
     cout << "\t-minElementsBranch=int" << endl;
     cout << "\t-maxEvalBranchesLEVEL=int" << endl;
+    cout << "\t-maxDepth=int" << endl;
 
 }
 
@@ -199,6 +212,7 @@ void Parameters::print()
     cout << "Results evaluation settings: " << endl;
     cout << "             fmrs=" << FMRStrategyStr[Parameters::fmrStrategy] << endl;
     cout << "             eval=" << EvaluationStr[Parameters::eval] << endl;
+    cout << "         maxDepth=" << Parameters::maxDepth << endl;
     cout << "          rankEps=" << scientific << rankEps << endl;
     cout << "         rankPerc=" << fixed << setprecision(4) << rankPerc << endl;
     cout << "minElementsBranch=" << fixed << setprecision(0) << minElementsBranch << endl;

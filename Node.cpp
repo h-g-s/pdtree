@@ -8,47 +8,67 @@
 #include "Node.hpp"
 
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <sstream>
+#include <string>
 
+#include "Dataset.hpp"
 #include "FeatureBranching.hpp"
+#include "Parameters.hpp"
+#include "ResultsSet.hpp"
 
 using namespace std;
 
 Node::Node( const InstanceSet &_iset, const ResultsSet &_rset ) :
     iset_(_iset),
     rset_(_rset),
+    ssres_(_rset.results()),
     nEl_(iset_.size()),
     el_(new size_t[iset_.size()]),
-    parent_(nullptr)
+    parent_(nullptr),
+    depth(0),
+    idx(0)
 {
     for (size_t i=0 ; (i<nEl_) ; ++i )
         el_[i] = i;
+
+    id = "root";
 }
 
-Node::Node( const Node *_parent, size_t _nEl, const size_t *_el ) :
+Node::Node( const Node *_parent, size_t _nEl, const size_t *_el, const SubSetResults &_ssres, size_t _idx ) :
     iset_(_parent->iset_),
     rset_(_parent->rset_),
+    ssres_(_ssres),
     nEl_(_nEl),
     el_(new size_t[_nEl]),
-    parent_(_parent)
+    parent_(_parent),
+    depth(_parent->depth+1),
+    idx(_idx)
 {
-
+    memcpy(el_, _el, sizeof(size_t)*nEl_ );
+    stringstream ss;
+    ss << "nL" << depth << "I" << idx;
+    id = ss.str();
 }
 
-std::vector<Node> &Node::perform_branch()
+std::vector<Node *> &Node::perform_branch()
 {
-    if (children_.size())
+    if (child_.size())
     {
         cerr << "branch was already done" << endl;
         abort();
     }
+
+    if (this->depth >= Parameters::maxDepth)
+        return child_;
 
     const size_t nFeatures = iset_.size();
     for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )
     {
         if (iset_.feature_is_integer(idxF))
         {
-            FeatureBranching<int> fbi(iset_, rset_, idxF, el_, nEl_, 5, 11);
+            FeatureBranching<int> fbi(iset_, rset_, idxF, el_, nEl_, Parameters::minElementsBranch, Parameters::maxEvalBranches[this->depth]);
             if (fbi.branch_values().size())
             {
                 do
@@ -61,7 +81,7 @@ std::vector<Node> &Node::perform_branch()
         {
             if (iset_.types()[idxF]==Float)
             {
-                FeatureBranching<double> fbf(iset_, rset_, idxF, el_, nEl_, 5, 11);
+                FeatureBranching<double> fbf(iset_, rset_, idxF, el_, nEl_, Parameters::minElementsBranch, Parameters::maxEvalBranches[this->depth]);
                 if (fbf.branch_values().size())
                 {
                     do
@@ -80,14 +100,23 @@ std::vector<Node> &Node::perform_branch()
 
     if (bestBranch_.found())
     {
-        children_.push_back( Node(this, bestBranch_.branches()[0].size(), &(bestBranch_.branches()[0][0])) );
-        children_.push_back( Node(this, bestBranch_.branches()[1].size(), &(bestBranch_.branches()[1][0])) );
+        size_t nElLeft = bestBranch_.branches()[0].size();
+        const size_t *elLeft = &(bestBranch_.branches()[0][0]);
+        size_t nElRight = bestBranch_.branches()[1].size();
+        const size_t *elRight = &(bestBranch_.branches()[1][0]);
+        Node *nodeLeft = new Node(this, nElLeft, elLeft, bestBranch_.ssrLeft, parent_->idx*2  );
+        Node *nodeRight = new Node(this, nElRight, elRight, bestBranch_.ssrRight, parent_->idx*2 + 1);
+        child_.push_back( nodeLeft );
+        child_.push_back( nodeRight );
     }
 
-    return children_;
+    return child_;
 }
+
 
 Node::~Node ()
 {
     delete[] el_;
+    for ( auto ch : child_ )
+        delete ch;
 }

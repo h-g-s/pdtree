@@ -164,6 +164,9 @@ public:
             const size_t nElRight = fb.n_branch_elements(1);
             this->elements_[0] = std::vector<size_t>( elLeft, elLeft+nElLeft );
             this->elements_[1] = std::vector<size_t>( elRight, elRight+nElRight );
+
+            this->ssrLeft = SubSetResults(fb.ssrLeft);
+            this->ssrRight = SubSetResults(fb.ssrRight);
         }
     }
 
@@ -210,6 +213,11 @@ private:
     Datatype type_;
 
     std::vector< std::vector< size_t > > elements_;
+
+    SubSetResults ssrLeft;
+    SubSetResults ssrRight;
+
+    friend class Node;
 };
 
 #endif /* BRANCHING_HPP_ */

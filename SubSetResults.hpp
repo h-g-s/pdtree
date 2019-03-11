@@ -25,6 +25,10 @@ public:
 
     SubSetResults( const SubSetResults &other );
 
+    SubSetResults();
+
+    SubSetResults &operator=(const SubSetResults &other);
+
     void add( size_t n, const size_t *el );
 
     void remove( size_t n, const size_t *el );
@@ -41,7 +45,7 @@ public:
 
     // algorithms/settings sorted from
     // best to worse
-        std::vector< size_t > computeBestAlgorithms() const;
+    std::vector< size_t > computeBestAlgorithms() const;
 
     virtual ~SubSetResults ();
 private:
