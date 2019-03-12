@@ -14,6 +14,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <map>
 
 #include "Node.hpp"
 #include "SubSetResults.hpp"
@@ -34,14 +35,14 @@ std::string Tree::node_label( const Node *node ) const
     string algsetting = rset_.algsettings()[node->ssres_.bestAlg()];
     double res = node->ssres_.bestAlgRes();
 
-    ss << "     <table border=\"1\" cellspacing=\"1\" cellborder=\"1\">" << endl;
+    ss << "     <table border=\"1\" cellspacing=\"1\" cellborder=\"1\" bgcolor=\"LightYellow\">" << endl;
     ss << "     <tr>" << endl;
     ss << "      <td align=\"center\"><font color=\"Indigo\"><b>" << node->nEl_ << " instances:</b></font></td>" << endl;
     ss << "     </tr>" << endl;
     for ( int i=0 ; (i<(int)min(((int)5), ((int)node->nEl_))) ; ++i )
     {
         ss << "     <tr>" << endl;
-        ss << "      <td align=\"left\"><font color=\"Indigo\">" << iset_.instance(node->el_[i]).name() << "</font></td>" << endl;
+        ss << "      <td align=\"left\"><font color=\"Indigo\"><i>" << iset_.instance(node->el_[i]).name() << "</i></font></td>" << endl;
         ss << "     </tr>" << endl;
     }
     if (node->nEl_>5)
@@ -52,10 +53,10 @@ std::string Tree::node_label( const Node *node ) const
     }
 
     ss << "     <tr>" << endl;
-    ss << "      <td align=\"center\"><font color=\"DarkGreen\">Best setting:</font></td>" << endl;
+    ss << "      <td align=\"center\"><font color=\"DarkGreen\"><b>Best algorithm setting:</b></font></td>" << endl;
     ss << "     </tr>" << endl;
     ss << "     <tr>" << endl;
-    ss << "      <td align=\"center\"><font color=\"DarkGreen\">" << algsetting <<  "</font></td>" << endl;
+    ss << "      <td align=\"center\"><font color=\"Black\">" << algsetting <<  "</font></td>" << endl;
     ss << "     </tr>" << endl;
     ss << "     <tr>" << endl;
     ss << "      <td align=\"center\"><font color=\"DarkGreen\">" << res <<  "</font></td>" << endl;
@@ -69,14 +70,39 @@ void Tree::draw( const char *fileName )
 {
     ofstream of(fileName);
     of << "digraph G {" << endl;
+    of << " graph [fontname = \"helvetica\"];" << endl;
+    of << " node [fontname = \"helvetica\"];" << endl;
+    of << " edge [fontname = \"helvetica\"];" << endl;
+
+    map< size_t, vector< Node * > > levelNodes;
+    map< size_t, double > perfLevel;
     for ( auto n : nodes_ )
     {
-        of << "  \"" << n->id.c_str() << "\" [";
-        of << "    label = <" << endl;
-        of << node_label(n);
-        of << "> shape=\"box\" ];" << endl;
+        levelNodes[n->depth].push_back(n);
+        double topInstances = n->parent_ ? n->parent_->nEl_ : iset_.instances().size();
+        perfLevel[n->depth] += n->ssres_.bestAlgRes() * (((double)n->nEl_) / topInstances);
     }
-    of << endl;
+
+    for ( auto nl : levelNodes )
+    {
+        size_t level = nl.first;
+        const auto &nodes = nl.second;
+        of << "  subgraph clusterdepth" << level << " {" << endl;
+        of << "    style=filled;" << endl;
+        of << "    color=\"PaleGreen\";" << endl;
+        of << "    label=< <b>Depth " << level << " cost: " << perfLevel[level] << "</b> >;" << endl;
+        for ( auto n : nodes )
+        {
+            of << "  \"" << n->id.c_str() << "\" [";
+            of << "    label = <" << endl;
+            of << node_label(n);
+            of << "> shape=\"box\" fillcolor=\"LightYellow\" ];" << endl;
+        }
+ 
+        of << "  }" << endl;
+    }
+
+   of << endl;
 
     for ( auto n : nodes_ )
     {
