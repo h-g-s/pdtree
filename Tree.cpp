@@ -11,11 +11,15 @@
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
-#include <sstream>
-#include <vector>
 #include <map>
+#include <sstream>
+#include <utility>
+#include <vector>
 
+#include "Branching.hpp"
+#include "Instance.hpp"
 #include "Node.hpp"
 #include "SubSetResults.hpp"
 
@@ -59,7 +63,7 @@ std::string Tree::node_label( const Node *node ) const
     ss << "      <td align=\"center\"><font color=\"Black\">" << algsetting <<  "</font></td>" << endl;
     ss << "     </tr>" << endl;
     ss << "     <tr>" << endl;
-    ss << "      <td align=\"center\"><font color=\"DarkGreen\">" << res <<  "</font></td>" << endl;
+    ss << "      <td align=\"center\"><font color=\"DarkGreen\">" << setprecision(14) << res <<  "</font></td>" << endl;
     ss << "     </tr>" << endl;
     ss << "    </table>" << endl;;
 
@@ -76,11 +80,14 @@ void Tree::draw( const char *fileName )
 
     map< size_t, vector< Node * > > levelNodes;
     map< size_t, double > perfLevel;
+    map< size_t, int > nInstLevel;
+    for ( auto n : nodes_ )
+        nInstLevel[n->depth] += n->nEl_;
+
     for ( auto n : nodes_ )
     {
         levelNodes[n->depth].push_back(n);
-        double topInstances = n->parent_ ? n->parent_->nEl_ : iset_.instances().size();
-        perfLevel[n->depth] += n->ssres_.bestAlgRes() * (((double)n->nEl_) / topInstances);
+        perfLevel[n->depth] += (n->ssres_.bestAlgRes()) * (((double)n->nEl_) / ((double)nInstLevel[n->depth]));
     }
 
     for ( auto nl : levelNodes )
