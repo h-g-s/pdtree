@@ -12,13 +12,17 @@
 
 #include <stddef.h>
 #include <cassert>
+#include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include <limits>
+#include <sstream>
 #include <string>
 #include <vector>
 
 #include "Dataset.hpp"
 #include "FeatureBranching.hpp"
+#include "SubSetResults.hpp"
 
 typedef union  {
     int vint;
@@ -127,6 +131,33 @@ public:
         return &(value_.vstr[0]);
     }
 
+    std::string as_str() const {
+        switch (type_)
+        {
+            case Datatype::String:
+                return string(value_.vstr);
+            case Datatype::Float:
+            {
+                stringstream ss;
+                ss << value_.vfloat;
+                return ss.str();
+            }
+            case Datatype::Integer:
+            {
+                stringstream ss;
+                ss << value_.vint;
+                return ss.str();
+            }
+            default:
+            {
+                cerr << "type not suported" << endl;
+                abort();
+            }
+        }
+
+        return string();
+    }
+
     Branching &operator=(const Branching &other) {
         this->idxF_ = other.idxF_;
         memcpy( (&this->value_), &(other.value_), sizeof(BranchValue) );
@@ -218,6 +249,7 @@ private:
     SubSetResults ssrRight;
 
     friend class Node;
+    friend class Tree;
 };
 
 #endif /* BRANCHING_HPP_ */

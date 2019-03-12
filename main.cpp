@@ -43,6 +43,8 @@ int main(int argc, const char **argv)
         Tree tree(iset, rset);
         tree.build();
 
+        tree.draw("graph.gv");
+
     } catch (std::string &str)
     {
         cout << endl; cerr << endl;

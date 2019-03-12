@@ -5,5 +5,10 @@ ddtree_SOURCES = main.cpp \
 		 InstanceSet.cpp \
 		 ResultsSet.cpp \
 		 Instance.cpp \
-		 FeatureBranching.cpp
+		 FeatureBranching.cpp \
+		 Node.cpp \
+		 Tree.cpp \
+		 Parameters.cpp \
+		 SubSetResults.cpp \
+		 Branching.cpp
 
