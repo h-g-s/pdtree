@@ -366,7 +366,20 @@ void ResultsSet::print_summarized_results()
     }
 }
 
-void ResultsSet::save_csv(const char *fileName) const
+SubSetResults &ResultsSet::results_eval( const Evaluation _eval ) const
+{
+    switch (_eval)
+    {
+        case Average:
+            return *(this->avRes_);
+        case Rank:
+            return *(this->rnkRes_);
+    }
+
+    return *(this->defRes_);
+}
+
+void ResultsSet::save_csv( const char *fileName, Evaluation _eval ) const
 {
     ofstream of(fileName);
 
@@ -377,8 +390,18 @@ void ResultsSet::save_csv(const char *fileName) const
     for ( const auto &inst : iset_.instances( ))
     {
         of << inst.name();
-        for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
-            of << "," << this->get(inst.idx_, j);
+
+        switch (_eval)
+        {
+            case Average:
+                for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+                    of << "," << this->get(inst.idx_, j);
+                break;
+            case Rank:
+                for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+                    of << "," << this->rank(inst.idx_, j);
+                break;
+        }
         of << endl;
     }
 

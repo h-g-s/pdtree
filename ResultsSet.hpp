@@ -44,9 +44,11 @@ public:
 
     virtual ~ResultsSet ();
 
-    void save_csv(const char *fileName) const;
+    void save_csv(const char *fileName, Evaluation _eval = Evaluation::Average ) const;
 
     void compute_summarized_results();
+
+    SubSetResults &results_eval( const Evaluation _eval ) const;
 
     const SubSetResults &results() const {
         return *this->defRes_;

@@ -57,7 +57,6 @@ private:
     const ResultsSet &rset_;
     const SubSetResults ssres_;
 
-
     size_t nEl_;
     size_t *el_;
 

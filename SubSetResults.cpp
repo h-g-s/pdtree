@@ -31,8 +31,7 @@ SubSetResults::SubSetResults( const SubSetResults &other ) :
 
     sum_ = (SumType *) malloc( sizeof(SumType)*nAlgs );
     assert( sum_ );
-    for ( size_t i=0 ; (i<nAlgs) ; ++i )
-        sum_[i] = other.sum_[i];
+    memcpy( this->sum_, other.sum_, sizeof(SumType)*nAlgs );
 }
 
 
@@ -182,10 +181,12 @@ SubSetResults &SubSetResults::operator=(const SubSetResults &other)
     this->rset_ = other.rset_;
     this->eval_ = other.eval_;
 
-    if (this->sum_ == nullptr)
-        this->sum_ = (SumType *)malloc(sizeof(SumType)*rset_->algsettings().size());
+    const size_t nAlgs = rset_->algsettings().size();
 
-    memcpy( this->sum_, other.sum_, sizeof(SumType)*rset_->algsettings().size() );
+    if (this->sum_ == nullptr)
+        this->sum_ = (SumType *)malloc(sizeof(SumType)*nAlgs);
+
+    memcpy( this->sum_, other.sum_, sizeof(SumType)*nAlgs );
 
     return *this;
 }

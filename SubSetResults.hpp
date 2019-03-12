@@ -47,12 +47,13 @@ public:
     // best to worse
     std::vector< size_t > computeBestAlgorithms() const;
 
+    // number of instances in this subset
+    size_t nElSS;
+
     virtual ~SubSetResults ();
 private:
     void updateBest();
 
-    // number of instances in this subset
-    size_t nElSS;
 
     size_t idxBestAlg_;
     double resBestAlg_;
@@ -60,6 +61,8 @@ private:
     const ResultsSet *rset_;
     Evaluation eval_;
     SumType *sum_;
+    friend class Node;
+    friend class Branching;
 };
 
 #endif /* SUBSETRESULTS_HPP_ */

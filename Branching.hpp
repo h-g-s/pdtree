@@ -196,8 +196,11 @@ public:
             this->elements_[0] = std::vector<size_t>( elLeft, elLeft+nElLeft );
             this->elements_[1] = std::vector<size_t>( elRight, elRight+nElRight );
 
-            this->ssrLeft = SubSetResults(fb.ssrLeft);
-            this->ssrRight = SubSetResults(fb.ssrRight);
+            this->ssrLeft = fb.ssrLeft;
+            this->ssrRight = fb.ssrRight;
+
+            assert(this->elements_[0].size() == this->ssrLeft.nElSS );
+            assert(this->elements_[1].size() == this->ssrRight.nElSS );
         }
     }
 

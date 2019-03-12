@@ -38,7 +38,8 @@ public:
                      size_t _idxF, // feature where branching will be evaluated
                      const size_t *_elements, // subset of instances (nullptr if all),
                      size_t _nElements, // number of elements
-                     size_t _minInstancesChild = 10, // splittings leaving few instances in a not will be forbiden
+                     const SubSetResults &_ssr,
+                     size_t _minInstancesChild = Parameters::minElementsBranch, // splittings leaving few instances in a not will be forbiden
                      size_t _maxEvBranches = 11 // maximum number of values to branch
                      );
 
@@ -104,8 +105,8 @@ private:
     SubSetResults ssrRight;
 
     double splittingEval;
-
     friend class Branching;
+    friend class SubSetResults;
 };
 
 template class FeatureBranching<int>;
@@ -118,6 +119,7 @@ FeatureBranching<T>::FeatureBranching(const InstanceSet& _iset, // complete inst
                                       size_t _idxF, // feature where branching will be evaluated
                                       const size_t *_elements, // subset of instances (nullptr if all),
                                       size_t _nElements, // number of elements
+                                      const SubSetResults &_ssr,
                                       size_t _minInstancesChild,
                                       size_t _maxEvBranches
                                       ) :
@@ -131,9 +133,10 @@ FeatureBranching<T>::FeatureBranching(const InstanceSet& _iset, // complete inst
     idxBv(0),
     branchValue(numeric_limits<T>::max()),
     ssrLeft( &rset_, Parameters::eval, false ),
-    ssrRight( rset_.results() ),
+    ssrRight( _ssr  ),
     splittingEval(0.0)
 {
+    assert( ssrRight.nElSS == n_elements_ );
     assert( _nElements<=iset_.size( ));
     assert( elements_ != nullptr and _nElements>=2 );
     assert( idxF_ < iset_.features().size() );
@@ -168,6 +171,11 @@ FeatureBranching<T>::FeatureBranching(const InstanceSet& _iset, // complete inst
     nElLeft = pCut+1;
 
     evaluate();
+
+    assert(nElLeft == n_branch_elements(0));
+    assert(n_elements_-nElLeft == n_branch_elements(1));
+    assert( n_branch_elements(0) == ssrLeft.nElSS );
+    assert( n_branch_elements(1) == ssrRight.nElSS );
 }
 
 template <>
@@ -358,6 +366,11 @@ template <typename T>
 
     this->nElLeft = branchingV[idxBv].second+1;
     evaluate();
+    assert(nElLeft == n_branch_elements(0));
+    assert(n_elements_-nElLeft == n_branch_elements(1));
+
+    assert( n_branch_elements(0) == ssrLeft.nElSS );
+    assert( n_branch_elements(1) == ssrRight.nElSS );
 
     return true;
 }
