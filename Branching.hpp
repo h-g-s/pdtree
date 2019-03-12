@@ -165,6 +165,9 @@ public:
         this->type_ = other.type_;
         this->elements_ = other.elements_;
 
+        this->ssrLeft = other.ssrLeft;
+        this->ssrRight = other.ssrRight;
+
         return *this;
     }
 
@@ -227,6 +230,12 @@ public:
             const size_t nElRight = fb.n_branch_elements(1);
             this->elements_[0] = std::vector<size_t>( elLeft, elLeft+nElLeft );
             this->elements_[1] = std::vector<size_t>( elRight, elRight+nElRight );
+
+            this->ssrLeft = fb.ssrLeft;
+            this->ssrRight = fb.ssrRight;
+
+            assert(this->elements_[0].size() == this->ssrLeft.nElSS );
+            assert(this->elements_[1].size() == this->ssrRight.nElSS );
         }
     }
 
