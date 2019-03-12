@@ -461,7 +461,7 @@ enum Datatype str_type(const string &str)
             ++nPoints;
         else
         {
-            if (isdigit(str[i]) or str[i]=='e' or str[i]=='+' or str[i]=='-')
+            if (isdigit(str[i]) or str[i]=='e' or str[i]=='E' or str[i]=='+' or str[i]=='-')
                 hasNum = true;
             else
                 return String;

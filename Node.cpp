@@ -63,7 +63,7 @@ std::vector<Node *> &Node::perform_branch()
     if (this->depth >= Parameters::maxDepth)
         return child_;
 
-    const size_t nFeatures = iset_.size();
+    const size_t nFeatures = iset_.features().size();
     for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )
     {
         if (iset_.feature_is_integer(idxF))
