@@ -25,4 +25,16 @@ at least C++11.
 
 ### Building
 
-Just run ./configure ; make and the executable pdtree should build.
+Just run 
+
+``` 
+./configure
+make
+```
+
+and the pdtree executable should build.
+
+## Contact
+
+Haroldo G. Santos - [haroldo@ufop.edu.br](haroldo@ufop.edu.br)
+
