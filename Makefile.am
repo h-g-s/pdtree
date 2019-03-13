@@ -1,6 +1,6 @@
-bin_PROGRAMS = ddtree
+bin_PROGRAMS = pdtree
 
-ddtree_SOURCES = main.cpp \
+ddtree_SOURCES = pdtree.cpp \
 		 Dataset.cpp \
 		 InstanceSet.cpp \
 		 ResultsSet.cpp \
