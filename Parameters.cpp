@@ -33,7 +33,7 @@ size_t Parameters::minElementsBranch = 3;
 
 // maximum number of branches evaluated for a feature
 // at a given depth
-size_t Parameters::maxEvalBranches[MAX_DEPTH] = { 10, 15, 20, 25, 30, 35, 40, 45, 50, 55 };
+size_t Parameters::maxEvalBranches[MAX_DEPTH] = { 20, 30, 40, 50, 50, 50, 50, 50, 50, 50 };
 
 size_t Parameters::maxDepth = 3;
 
@@ -94,6 +94,7 @@ void Parameters::parse( int argc, const char **argv )
             ++s;
         }
 
+        size_t pNameLen = strlen(pName);
 
         if (strcasecmp(pName, "-fmrs")==0)
         {
@@ -130,39 +131,41 @@ void Parameters::parse( int argc, const char **argv )
             }
             continue;
         }
-        if (strcasestr(pName, "-minPerfImprov")==0)
+        if (strcmp(pName, "-minperfimprov")==0)
         {
             Parameters::minPerfImprov = stod(string(pValue));
             continue;
         }
-        if (strcasestr(pName, "-minAbsPerfImprov")==0)
+        if (strcmp(pName, "-minabsperfimprov")==0)
         {
             Parameters::minAbsPerfImprov = stod(string(pValue));
             continue;
         }
-        if (strcasestr(pName, "-maxEvalBranches")==0)
+        if (pNameLen>15)
         {
-            char *s = strcasestr(pName, "s");
-            assert(s);
-            ++s;
-            if (not isdigit(s[0]))
+            char pns[256];
+            strcpy(pns, pName);
+            pns[pNameLen-1] = '\0';
+            if (strcmp(pns, "-maxevalbranches")==0)
             {
-                cerr << "enter the maximum number of branches per level as -maxEvalBranchesLEVEL=int" << endl;
-                abort();
+                char *s = strcasestr(pName, "s");
+                assert(s);
+                ++s;
+                if (not isdigit(s[0]))
+                {
+                    cerr << "enter the maximum number of branches per level as -maxEvalBranchesLEVEL=int" << endl;
+                    abort();
+                }
+                size_t level = (size_t)atoi(s);
+                if (level>=MAX_DEPTH)
+                {
+                    cerr << "level should be 0, ..., " << MAX_DEPTH << endl;
+                    abort();
+                }
+                assert(level<MAX_DEPTH);
+                Parameters::maxEvalBranches[level] = stoi(string(pValue));
+                continue;
             }
-            char sn[256];
-            strcpy(sn, s);
-            s = strstr(sn, "=");
-            *s = '\0';
-            size_t level = (size_t)atoi(sn);
-            if (level>=MAX_DEPTH)
-            {
-                cerr << "level should be 0, ..., " << MAX_DEPTH << endl;
-                abort();
-            }
-            assert(level<MAX_DEPTH);
-            Parameters::maxEvalBranches[level] = stoi(string(pValue));
-            continue;
         }
     }
 }
@@ -228,7 +231,7 @@ void Parameters::help()
 
 void Parameters::print()
 {
-    cout << "Results evaluation settings: " << endl;
+    cout << "Parameter settings: " << endl;
     cout << "             fmrs=" << FMRStrategyStr[Parameters::fmrStrategy] << endl;
     cout << "             eval=" << EvaluationStr[Parameters::eval] << endl;
     cout << "         maxDepth=" << Parameters::maxDepth << endl;
@@ -243,7 +246,7 @@ void Parameters::print()
         cout << maxEvalBranches[i];
     }
     cout << "]" << endl;
-    cout << "    minPerfImprov=" << defaultfloat << minPerfImprov << endl;
+    cout << "    minPerfImprov=" << fixed << setprecision(4) << minPerfImprov << endl;
     cout << " minAbsPerfImprov=" << defaultfloat << minAbsPerfImprov << endl;
 }
 
