@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.50)
-AC_INIT(ddtree, 0.1, haroldo@ufop.edu.br)
-AC_CONFIG_SRCDIR(main.cpp)
+AC_INIT(pdtree, 0.1, haroldo@ufop.edu.br)
+AC_CONFIG_SRCDIR(pdtree.cpp)
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
 

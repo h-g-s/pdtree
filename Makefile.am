@@ -1,6 +1,6 @@
 bin_PROGRAMS = pdtree
 
-ddtree_SOURCES = pdtree.cpp \
+pdtree_SOURCES = pdtree.cpp \
 		 Dataset.cpp \
 		 InstanceSet.cpp \
 		 ResultsSet.cpp \
