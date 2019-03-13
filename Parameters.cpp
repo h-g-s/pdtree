@@ -19,7 +19,7 @@ using namespace std;
 
 enum FMRStrategy Parameters::fmrStrategy = WorseInst;
 
-enum Evaluation Parameters::eval = Average;
+enum Evaluation Parameters::eval = Rank;
 
 double Parameters::rankEps = 1e-8;
 
@@ -36,6 +36,13 @@ size_t Parameters::minElementsBranch = 3;
 size_t Parameters::maxEvalBranches[MAX_DEPTH] = { 10, 15, 20, 25, 30, 35, 40, 45, 50, 55 };
 
 size_t Parameters::maxDepth = 3;
+
+// minimum percentage performance improvement
+double Parameters::minPerfImprov = 0.01;
+
+// minimum absolute performance improvement
+double Parameters::minAbsPerfImprov = 1e-5;
+
 
 static char FMRStrategyStr[5][16] = {
     "Worse",
@@ -123,6 +130,16 @@ void Parameters::parse( int argc, const char **argv )
             }
             continue;
         }
+        if (strcasestr(pName, "-minPerfImprov")==0)
+        {
+            Parameters::minPerfImprov = stod(string(pValue));
+            continue;
+        }
+        if (strcasestr(pName, "-minAbsPerfImprov")==0)
+        {
+            Parameters::minAbsPerfImprov = stod(string(pValue));
+            continue;
+        }
         if (strcasestr(pName, "-maxEvalBranches")==0)
         {
             char *s = strcasestr(pName, "s");
@@ -204,6 +221,8 @@ void Parameters::help()
     cout << "\t-minElementsBranch=int" << endl;
     cout << "\t-maxEvalBranchesLEVEL=int" << endl;
     cout << "\t-maxDepth=int" << endl;
+    cout << "\t-minPerfImprov=double" << endl;
+    cout << "\t-minAbsPerfImprov=double" << endl;
 
 }
 
@@ -224,5 +243,7 @@ void Parameters::print()
         cout << maxEvalBranches[i];
     }
     cout << "]" << endl;
+    cout << "    minPerfImprov=" << defaultfloat << minPerfImprov << endl;
+    cout << " minAbsPerfImprov=" << defaultfloat << minAbsPerfImprov << endl;
 }
 

@@ -36,7 +36,9 @@ public:
     Branching( ) :
         idxF_(std::numeric_limits<size_t>::max()),
         eval_(std::numeric_limits<double>::max()),
-        type_(Empty) {
+        type_(Empty),
+        parentCost_(numeric_limits<double>::max())
+        {
     }
 
     double eval() const {
@@ -54,10 +56,12 @@ public:
                size_t _nElLeft,
                const size_t _elLeft,
                size_t _nElRight,
-               const size_t _elRight ) :
+               const size_t _elRight,
+               double _parentCost ) :
                    idxF_(_idxF),
-                   eval_(_eval),
-                   type_(Integer)
+                   eval_(_parentCost),
+                   type_(Integer),
+                   parentCost_(_parentCost)
 
     {
         this->value_.vint = _branchValue;
@@ -73,10 +77,12 @@ public:
                size_t _nElLeft,
                const size_t _elLeft,
                size_t _nElRight,
-               const size_t _elRight ) :
+               const size_t _elRight,
+               double _parentCost ) :
                    idxF_(_idxF),
-                   eval_(_eval),
-                   type_(Float)
+                   eval_(_parentCost),
+                   type_(Float),
+                   parentCost_(_parentCost)
 
     {
         this->value_.vfloat = _branchValue;
@@ -92,10 +98,12 @@ public:
                size_t _nElLeft,
                const size_t _elLeft,
                size_t _nElRight,
-               const size_t _elRight ) :
+               const size_t _elRight,
+               double _parentCost ) :
                    idxF_(_idxF),
-                   eval_(_eval),
-                   type_(String)
+                   eval_(_parentCost),
+                   type_(String),
+                   parentCost_(_parentCost)
     {
         this->set(_branchValue);
         this->elements_.resize(2);
@@ -168,6 +176,8 @@ public:
         this->ssrLeft = other.ssrLeft;
         this->ssrRight = other.ssrRight;
 
+        this->parentCost_ = other.parentCost_;
+
         return *this;
     }
 
@@ -181,6 +191,9 @@ public:
         // feature did not produced any branch
         if (fb.branch_values().size() == 0)
             return;
+
+        // min value to be considered improvement
+        this->eval_ = min( parentCost_-(fabs(parentCost_)*Parameters::minPerfImprov), parentCost_-Parameters::minAbsPerfImprov )+1e-10;
 
         if ( ((double)fb.evaluation())<this->eval_)
         {
@@ -213,6 +226,9 @@ public:
         // feature did not produced any branch
         if (fb.branch_values().size() == 0)
             return;
+
+        // min value to be considered improvement
+        this->eval_ = min( parentCost_-fabs(parentCost_)*0.01, parentCost_-1e-4 )+1e-10;
 
         if ( ((double)fb.evaluation())<this->eval_)
         {
@@ -247,7 +263,7 @@ public:
 private:
     // feature
     size_t idxF_;
-
+    // value
     BranchValue value_;
 
     // cost of this branching
@@ -259,6 +275,9 @@ private:
 
     SubSetResults ssrLeft;
     SubSetResults ssrRight;
+
+    // to check if branching is worth
+    double parentCost_;
 
     friend class Node;
     friend class Tree;

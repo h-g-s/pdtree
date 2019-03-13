@@ -64,8 +64,9 @@ std::vector<Node *> &Node::perform_branch()
     if (this->depth >= Parameters::maxDepth)
         return child_;
 
-    if (ssres_.eval_ == Rank and ssres_.bestAlgRes() <= 1.00001)
+//    if (ssres_.eval_ == Rank and ssres_.bestAlgRes() <= 1.00001)
 
+    bestBranch_.parentCost_ = this->ssres_.bestAlgRes();
 
     const size_t nFeatures = iset_.features().size();
     for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )

@@ -66,6 +66,11 @@ public:
 
     static size_t maxDepth;
 
+    // minimum percentage performance improvement
+    static double minPerfImprov;
+
+    // minimum absolute performance improvement
+    static double minAbsPerfImprov;
 };
 
 #endif /* PARAMETERS_HPP_ */
