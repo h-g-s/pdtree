@@ -59,7 +59,7 @@ public:
     const size_t *branch_elements( size_t iBranch ) const;
 
     // number of instances at each side of the branching (0 left, 1 right)
-    const size_t n_branch_elements( size_t iBranch ) const;
+    size_t n_branch_elements( size_t iBranch ) const;
 
     size_t idxF() const {
         return this->idxF_;
@@ -385,7 +385,7 @@ const size_t *FeatureBranching<T>::branch_elements( size_t iBranch ) const
 
 // number of instances at each side of the branching (0 left, 1 right)
 template <typename T>
-const size_t FeatureBranching<T>::n_branch_elements( size_t iBranch ) const
+size_t FeatureBranching<T>::n_branch_elements( size_t iBranch ) const
 {
     assert( iBranch<2 );
     // left or right

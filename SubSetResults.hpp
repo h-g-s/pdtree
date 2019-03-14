@@ -54,7 +54,6 @@ public:
 private:
     void updateBest();
 
-
     size_t idxBestAlg_;
     double resBestAlg_;
 

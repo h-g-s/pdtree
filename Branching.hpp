@@ -192,31 +192,32 @@ public:
         if (fb.branch_values().size() == 0)
             return;
 
-        // min value to be considered improvement
-        this->eval_ = min( parentCost_-(fabs(parentCost_)*Parameters::minPerfImprov), parentCost_-Parameters::minAbsPerfImprov )+1e-10;
-
         if ( ((double)fb.evaluation())<this->eval_)
         {
-            this->idxF_ = fb.idxF();
-            this->eval_ = (double)fb.evaluation();
-            this->type_ = Integer;
-            this->value_.vint = fb.branch_value();
-            if (this->elements_.size()==0)
-                this->elements_.resize(2);
+            if ((double)fb.evaluation() < min( parentCost_-(fabs(parentCost_)*Parameters::minPerfImprov), parentCost_-Parameters::minAbsPerfImprov )+1e-10)
+            {
 
-            const size_t *elLeft = fb.branch_elements(0);
-            const size_t nElLeft = fb.n_branch_elements(0);
+                this->idxF_ = fb.idxF();
+                this->eval_ = (double)fb.evaluation();
+                this->type_ = Integer;
+                this->value_.vint = fb.branch_value();
+                if (this->elements_.size()==0)
+                    this->elements_.resize(2);
 
-            const size_t *elRight = fb.branch_elements(1);
-            const size_t nElRight = fb.n_branch_elements(1);
-            this->elements_[0] = std::vector<size_t>( elLeft, elLeft+nElLeft );
-            this->elements_[1] = std::vector<size_t>( elRight, elRight+nElRight );
+                const size_t *elLeft = fb.branch_elements(0);
+                const size_t nElLeft = fb.n_branch_elements(0);
 
-            this->ssrLeft = fb.ssrLeft;
-            this->ssrRight = fb.ssrRight;
+                const size_t *elRight = fb.branch_elements(1);
+                const size_t nElRight = fb.n_branch_elements(1);
+                this->elements_[0] = std::vector<size_t>( elLeft, elLeft+nElLeft );
+                this->elements_[1] = std::vector<size_t>( elRight, elRight+nElRight );
 
-            assert(this->elements_[0].size() == this->ssrLeft.nElSS );
-            assert(this->elements_[1].size() == this->ssrRight.nElSS );
+                this->ssrLeft = fb.ssrLeft;
+                this->ssrRight = fb.ssrRight;
+
+                assert(this->elements_[0].size() == this->ssrLeft.nElSS );
+                assert(this->elements_[1].size() == this->ssrRight.nElSS );
+            }
         }
     }
 
@@ -227,31 +228,31 @@ public:
         if (fb.branch_values().size() == 0)
             return;
 
-        // min value to be considered improvement
-        this->eval_ = min( parentCost_-fabs(parentCost_)*0.01, parentCost_-1e-4 )+1e-10;
-
         if ( ((double)fb.evaluation())<this->eval_)
         {
-            this->idxF_ = fb.idxF();
-            this->eval_ = (double)fb.evaluation();
-            this->type_ = Float;
-            this->value_.vfloat = fb.branch_value();
-            if (this->elements_.size()==0)
-                this->elements_.resize(2);
+            if ((double)fb.evaluation() < min( parentCost_-(fabs(parentCost_)*Parameters::minPerfImprov), parentCost_-Parameters::minAbsPerfImprov )+1e-10)
+            {
+                this->idxF_ = fb.idxF();
+                this->eval_ = (double)fb.evaluation();
+                this->type_ = Float;
+                this->value_.vfloat = fb.branch_value();
+                if (this->elements_.size()==0)
+                    this->elements_.resize(2);
 
-            const size_t *elLeft = fb.branch_elements(0);
-            const size_t nElLeft = fb.n_branch_elements(0);
+                const size_t *elLeft = fb.branch_elements(0);
+                const size_t nElLeft = fb.n_branch_elements(0);
 
-            const size_t *elRight = fb.branch_elements(1);
-            const size_t nElRight = fb.n_branch_elements(1);
-            this->elements_[0] = std::vector<size_t>( elLeft, elLeft+nElLeft );
-            this->elements_[1] = std::vector<size_t>( elRight, elRight+nElRight );
+                const size_t *elRight = fb.branch_elements(1);
+                const size_t nElRight = fb.n_branch_elements(1);
+                this->elements_[0] = std::vector<size_t>( elLeft, elLeft+nElLeft );
+                this->elements_[1] = std::vector<size_t>( elRight, elRight+nElRight );
 
-            this->ssrLeft = fb.ssrLeft;
-            this->ssrRight = fb.ssrRight;
+                this->ssrLeft = fb.ssrLeft;
+                this->ssrRight = fb.ssrRight;
 
-            assert(this->elements_[0].size() == this->ssrLeft.nElSS );
-            assert(this->elements_[1].size() == this->ssrRight.nElSS );
+                assert(this->elements_[0].size() == this->ssrLeft.nElSS );
+                assert(this->elements_[1].size() == this->ssrRight.nElSS );
+            }
         }
     }
 

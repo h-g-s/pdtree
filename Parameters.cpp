@@ -33,7 +33,7 @@ size_t Parameters::minElementsBranch = 3;
 
 // maximum number of branches evaluated for a feature
 // at a given depth
-size_t Parameters::maxEvalBranches[MAX_DEPTH] = { 20, 30, 40, 50, 50, 50, 50, 50, 50, 50 };
+size_t Parameters::maxEvalBranches[MAX_DEPTH] = { 80, 80, 80, 80, 80, 80, 80, 80, 80, 80 };
 
 size_t Parameters::maxDepth = 3;
 

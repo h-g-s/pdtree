@@ -61,7 +61,7 @@ The _experimental results_ file should contain at least three columns: the
 first column including the instance name, the last column including
 a numerical result indicating the execution cost (e.g. processing time) of
 the algorithm. Intermediate columns should indicate the algorithm and its
-parameter settings.
+parameter settings as in the following example.
 
 ## Contact
 

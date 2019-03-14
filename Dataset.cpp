@@ -40,9 +40,6 @@ static inline void rtrim(std::string &s);
 // trim from both ends (in place)
 static inline void trim(std::string &s);
 
-enum Datatype str_type(const string &str);
-
-
 
 class CSVRow
 {
@@ -481,7 +478,15 @@ enum Datatype str_type(const string &str)
                 }
                 catch (const std::exception& e)
                 {
-                    return String;
+                    try
+                    {
+                        stod(str);
+                        return Float;
+                    }
+                    catch (const std::exception& e)
+                    {
+                        return String;
+                    }
                 }
                 if (v>=-127 && v<=127)
                     return Char;

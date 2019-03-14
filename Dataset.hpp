@@ -70,4 +70,6 @@ private:
         size_t rows_;
 };
 
+enum Datatype str_type(const std::string &str);
+
 #endif /* DATASET_HPP_ */

@@ -6,6 +6,7 @@
  */
 
 #include "Node.hpp"
+#include "Dataset.hpp"
 
 #include <cstdlib>
 #include <cstring>
@@ -67,6 +68,7 @@ std::vector<Node *> &Node::perform_branch()
 //    if (ssres_.eval_ == Rank and ssres_.bestAlgRes() <= 1.00001)
 
     bestBranch_.parentCost_ = this->ssres_.bestAlgRes();
+    bestBranch_.eval_ = numeric_limits<double>::max();
 
     const size_t nFeatures = iset_.features().size();
     for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )
@@ -97,7 +99,9 @@ std::vector<Node *> &Node::perform_branch()
             }
             else
             {
-                cerr << "type not handled yet." << endl;
+                cerr << "Type " << iset_.types()[idxF] <<
+                    " of column " << iset_.features()[idxF] <<
+                    " not handled yet" << endl;
                 abort();
             }
         }
