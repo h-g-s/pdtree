@@ -29,7 +29,11 @@ using namespace std;
 Tree::Tree ( const InstanceSet &_iset, const ResultsSet &_rset ) :
     iset_(_iset),
     rset_(_rset),
-    root(nullptr)
+    root(nullptr),
+    resultLeafs(0.0),
+    improvement(0.0),
+    maxDepth(0.0),
+    minInstancesNode(numeric_limits<size_t>::max())
 {
 
 }
@@ -159,6 +163,9 @@ void Tree::build()
 
             of.close();
         }*/
+    
+        this->maxDepth = max( this->maxDepth, node->depth+1 );
+        this->minInstancesNode = min( this->minInstancesNode, node->n_elements() );
 
         node->perform_branch();
 
@@ -169,6 +176,18 @@ void Tree::build()
             for ( auto c : child )
                 queue.push_back(c);
     }
+
+    double rootRes = root->result().bestAlgRes();
+    long double resLeafs = 0.0;
+    for ( auto l : leafs_ )
+        resLeafs  += l->result().bestAlgRes() * ( (long double) l->n_elements() / (long double) root->n_elements() );
+
+    this->resultLeafs = (double) resLeafs;
+
+    if (resultLeafs!=0.0)
+        improvement = rootRes / resultLeafs;
+    else
+        improvement = 0.0;
 }
 
 using namespace tinyxml2;
@@ -179,6 +198,10 @@ void Tree::save( const char *fileName ) const
     tinyxml2::XMLDocument doc;
     XMLElement *tree = doc.NewElement("tree");
     doc.InsertFirstChild(tree);
+
+    tree->SetAttribute("improvement", this->improvement);
+    tree->SetAttribute("maxDepth", (int) this->maxDepth);
+    tree->SetAttribute("minInstancesNode", (int) this->minInstancesNode);
 
     XMLElement *params = doc.NewElement("pdtreeParams");
     tree->InsertFirstChild(params);

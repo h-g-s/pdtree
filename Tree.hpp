@@ -35,9 +35,17 @@ private:
 
     Node *root;
 
+    double resultLeafs;
+
+    double improvement;
+
     std::vector< Node * > nodes_;
 
     std::vector< Node * > leafs_;
+
+    size_t maxDepth;
+
+    size_t minInstancesNode;
 };
 
 #endif /* TREE_HPP_ */
