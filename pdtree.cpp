@@ -45,6 +45,8 @@ int main(int argc, const char **argv)
 
         tree.draw("graph.gv");
 
+        tree.save("graph.xml");
+
     } catch (std::string &str)
     {
         cout << endl; cerr << endl;

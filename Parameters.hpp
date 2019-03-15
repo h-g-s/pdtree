@@ -32,6 +32,10 @@ enum Evaluation
              // scales
 };
 
+const char *str_eval( const enum Evaluation eval );
+
+const char *str_fmrs( const enum FMRStrategy fmrs );
+
 class Parameters
 {
 public:

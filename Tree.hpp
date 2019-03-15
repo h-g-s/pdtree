@@ -21,7 +21,10 @@ public:
 
     void build();
 
-    void draw( const char *fileName );
+    void draw( const char *fileName ) const;
+
+    // saves tree in XML
+    void save( const char *fileName ) const;
 
     virtual ~Tree ();
 private:

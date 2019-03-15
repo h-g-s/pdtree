@@ -22,6 +22,7 @@
 #include "Instance.hpp"
 #include "Node.hpp"
 #include "SubSetResults.hpp"
+#include "tinyxml2.h"
 
 using namespace std;
 
@@ -70,7 +71,7 @@ std::string Tree::node_label( const Node *node ) const
     return ss.str();
 }
 
-void Tree::draw( const char *fileName )
+void Tree::draw( const char *fileName ) const
 {
     ofstream of(fileName);
     of << "digraph G {" << endl;
@@ -146,6 +147,18 @@ void Tree::build()
         Node *node = queue.back();
         nodes_.push_back(node);
         queue.pop_back();
+/*
+        if (node->n_elements()==112)
+        {
+            ofstream of("insts.txt");
+            for (size_t i=0 ; (i<node->n_elements()) ; ++i )
+            {
+                const auto inst = iset_.instance( node->elements()[i] );
+                of << inst.name() << endl;
+            }
+
+            of.close();
+        }*/
 
         node->perform_branch();
 
@@ -158,7 +171,27 @@ void Tree::build()
     }
 }
 
+using namespace tinyxml2;
+
+void Tree::save( const char *fileName ) const
+{
+    cout << fileName;
+    tinyxml2::XMLDocument doc;
+    XMLElement *tree = doc.NewElement("tree");
+    doc.InsertFirstChild(tree);
+
+    XMLElement *params = doc.NewElement("pdtreeParams");
+    tree->InsertFirstChild(params);
+    params->SetAttribute("eval", str_eval(Parameters::eval) );
+    params->SetAttribute("fillMissingRes", str_fmrs(Parameters::fmrStrategy) );
+
+    root->writeXML(&doc, tree);
+
+    doc.SaveFile(fileName);
+}
+
 Tree::~Tree ()
 {
     delete root;
 }
+

@@ -57,6 +57,18 @@ static char EvaluationStr[2][16] =
     "Rank"
 };
 
+
+const char *str_eval( const enum Evaluation eval )
+{
+    return EvaluationStr[eval];
+}
+
+
+const char *str_fmrs( const enum FMRStrategy fmrs  )
+{
+    return FMRStrategyStr[fmrs];
+}
+
 static enum FMRStrategy to_fmrs( const char *s);
 
 static enum Evaluation to_eval( const char *s);

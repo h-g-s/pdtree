@@ -35,7 +35,10 @@ SubSetResults::SubSetResults( const SubSetResults &other ) :
 }
 
 
-SubSetResults::SubSetResults ( const ResultsSet *_rset, const Evaluation _eval, bool addElements ) :
+SubSetResults::SubSetResults ( const ResultsSet *_rset, const Evaluation _eval, bool addElements,
+                    size_t n_elements,
+                    const size_t *elements
+        ) :
     nElSS(0),
     idxBestAlg_(numeric_limits<size_t>::max()),
     resBestAlg_(numeric_limits<double>::max()),
@@ -52,12 +55,19 @@ SubSetResults::SubSetResults ( const ResultsSet *_rset, const Evaluation _eval, 
 
     if (addElements)
     {
-        vector< size_t > el( rset_->instances().size() );
-        for ( size_t i=0 ; (i<rset_->instances().size()) ; ++i )
-            el[i] = i;
+        if (elements==nullptr)
+        {
+            vector< size_t > el( rset_->instances().size() );
+            for ( size_t i=0 ; (i<rset_->instances().size()) ; ++i )
+                el[i] = i;
 
-        this->add( el.size(), &el[0] );
-    }
+            this->add( el.size(), &el[0] );
+        }
+        else
+        {
+            this->add( n_elements, elements );
+        }
+   }
 }
 
 void SubSetResults::add( size_t n, const size_t *el )

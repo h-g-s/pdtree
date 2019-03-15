@@ -13,6 +13,9 @@
 
 #include "Branching.hpp"
 #include "InstanceSet.hpp"
+#include "tinyxml2.h"
+
+class XMLDocument;
 
 class Node
 {
@@ -47,15 +50,35 @@ public:
         return el_;
     }
 
-    const SubSetResults &result() const {
-        return this->ssres_;
+    const SubSetResults &result( const Evaluation eval_ = Parameters::eval ) {
+        if (eval_==Parameters::eval)
+            return this->ssres_;
+        
+        if (ossr==nullptr)
+        {
+            switch (eval_)
+            {
+                case Average:
+                    this->ossr = new SubSetResults( &rset_, Average, true, this->n_elements(), this->elements() );
+                    break;
+                case Rank:
+                    this->ossr = new SubSetResults( &rset_, Rank, true, this->n_elements(), this->elements() );
+                    break;
+            }
+        }
+
+        return *ossr;
     }
+
+    void writeXML(tinyxml2::XMLDocument *doc, tinyxml2::XMLElement *parent ) const;
 
     virtual ~Node ();
 private:
     const InstanceSet &iset_;
     const ResultsSet &rset_;
     const SubSetResults ssres_;
+    // other subset results (rank or average)
+    SubSetResults *ossr;
 
     size_t nEl_;
     size_t *el_;

@@ -10,5 +10,6 @@ pdtree_SOURCES = pdtree.cpp \
 		 Tree.cpp \
 		 Parameters.cpp \
 		 SubSetResults.cpp \
-		 Branching.cpp
+		 Branching.cpp \
+		 tinyxml2.cpp
 

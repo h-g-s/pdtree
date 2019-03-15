@@ -18,6 +18,9 @@
 #include "FeatureBranching.hpp"
 #include "Parameters.hpp"
 #include "ResultsSet.hpp"
+#include "tinyxml2.h"
+
+
 
 using namespace std;
 
@@ -25,6 +28,7 @@ Node::Node( const InstanceSet &_iset, const ResultsSet &_rset ) :
     iset_(_iset),
     rset_(_rset),
     ssres_(_rset.results()),
+    ossr(nullptr),
     nEl_(iset_.size()),
     el_(new size_t[iset_.size()]),
     parent_(nullptr),
@@ -41,6 +45,7 @@ Node::Node( const Node *_parent, size_t _nEl, const size_t *_el, const SubSetRes
     iset_(_parent->iset_),
     rset_(_parent->rset_),
     ssres_(_ssres),
+    ossr(nullptr),
     nEl_(_nEl),
     el_(new size_t[_nEl]),
     parent_(_parent),
@@ -126,10 +131,49 @@ std::vector<Node *> &Node::perform_branch()
     return child_;
 }
 
+using namespace tinyxml2;
+
+void Node::writeXML(tinyxml2::XMLDocument *doc, tinyxml2::XMLElement *parent ) const
+{
+    XMLElement *node = doc->NewElement("node");
+    parent->InsertEndChild(node);
+    node->SetAttribute("depth", (int) this->depth);
+    node->SetAttribute("bestAlg", rset_.algsettings()[this->ssres_.bestAlg()].c_str());
+    if (this->bestBranch_.found())
+    {
+        auto elb = doc->NewElement("branching");
+        elb->SetAttribute( "feature", iset_.features()[bestBranch_.idxF_].c_str() );
+        switch (bestBranch_.type())
+        {
+            case Integer:
+                elb->SetAttribute("value", bestBranch_.get_int() );
+                break;
+            case Float:
+                elb->SetAttribute("value", bestBranch_.get_float() );
+                break;
+            case String:
+                elb->SetAttribute("value", bestBranch_.get_str() );
+                break;
+            default:
+                cout << "branching type not supported" << endl;
+                break;
+        }
+        node->InsertEndChild(elb);
+    }
+
+    node->SetAttribute("id", this->id.c_str() );
+
+    for ( const auto &n : child_ )
+        n->writeXML( doc, node );
+}
+
 
 Node::~Node ()
 {
     delete[] el_;
     for ( auto ch : child_ )
         delete ch;
+
+    if (ossr)
+        delete ossr;
 }
