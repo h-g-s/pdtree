@@ -9,6 +9,7 @@
 #define PARAMETERS_HPP_
 
 #include <stddef.h>
+#include <string>
 
 #define MAX_DEPTH 10
 
@@ -75,6 +76,10 @@ public:
 
     // minimum absolute performance improvement
     static double minAbsPerfImprov;
+
+    static std::string instancesFile;
+
+    static std::string resultsFile;
 };
 
 #endif /* PARAMETERS_HPP_ */

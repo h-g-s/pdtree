@@ -139,6 +139,17 @@ void Node::writeXML(tinyxml2::XMLDocument *doc, tinyxml2::XMLElement *parent ) c
     parent->InsertEndChild(node);
     node->SetAttribute("depth", (int) this->depth);
     node->SetAttribute("bestAlg", rset_.algsettings()[this->ssres_.bestAlg()].c_str());
+
+    XMLElement *insts = doc->NewElement("instances");
+    node->InsertEndChild(insts);
+    for ( size_t i=0 ; (i<n_elements()) ; ++i )
+    {
+        auto inst = iset_.instance(elements()[i]);
+        auto instEl = doc->NewElement("instance");
+        instEl->SetAttribute("name", inst.name() );
+        insts->InsertEndChild(instEl);
+    }
+
     if (this->bestBranch_.found())
     {
         auto elb = doc->NewElement("branching");

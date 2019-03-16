@@ -33,6 +33,7 @@ public:
     virtual ~Instance();
 
     size_t idx_;
+
     static std::vector< std::string > features;
     static Dataset *inst_dataset;
 private:

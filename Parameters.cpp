@@ -17,6 +17,11 @@
 
 using namespace std;
 
+
+string Parameters::instancesFile = "";
+
+string Parameters::resultsFile = "";
+
 enum FMRStrategy Parameters::fmrStrategy = WorseInst;
 
 enum Evaluation Parameters::eval = Rank;
@@ -75,6 +80,9 @@ static enum Evaluation to_eval( const char *s);
 
 void Parameters::parse( int argc, const char **argv )
 {
+    instancesFile = string(argv[1]);
+    resultsFile = string(argv[2]);
+
     for ( int i=3 ; (i<argc) ; ++i )
     {
         if (argv[i][0]!='-')

@@ -151,8 +151,9 @@ void Tree::build()
         Node *node = queue.back();
         nodes_.push_back(node);
         queue.pop_back();
-/*
-        if (node->n_elements()==112)
+
+        /*
+        if (node->n_elements()==79)
         {
             ofstream of("insts.txt");
             for (size_t i=0 ; (i<node->n_elements()) ; ++i )
@@ -162,7 +163,7 @@ void Tree::build()
             }
 
             of.close();
-        }*/
+        } */
     
         this->maxDepth = max( this->maxDepth, node->depth+1 );
         this->minInstancesNode = min( this->minInstancesNode, node->n_elements() );
@@ -192,6 +193,29 @@ void Tree::build()
 
 using namespace tinyxml2;
 
+void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char *name, const double value )
+{
+    auto el2 = doc->NewElement(name);
+    el->InsertEndChild(el2);
+    el2->SetText(to_string(value).c_str());
+}
+
+void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char *name, const int value )
+{
+    auto el2 = doc->NewElement(name);
+    el->InsertEndChild(el2);
+    el2->SetText(to_string(value).c_str());
+}
+
+void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char *name, const char *value )
+{
+    auto el2 = doc->NewElement(name);
+    el->InsertEndChild(el2);
+    el2->SetText(value);
+}
+
+
+
 void Tree::save( const char *fileName ) const
 {
     cout << fileName;
@@ -199,14 +223,24 @@ void Tree::save( const char *fileName ) const
     XMLElement *tree = doc.NewElement("tree");
     doc.InsertFirstChild(tree);
 
-    tree->SetAttribute("improvement", this->improvement);
-    tree->SetAttribute("maxDepth", (int) this->maxDepth);
-    tree->SetAttribute("minInstancesNode", (int) this->minInstancesNode);
+    addElement(&doc, tree, "improvement", this->improvement );
+    addElement(&doc, tree, "maxDepth", (int)this->maxDepth );
+    addElement(&doc, tree, "minInstancesNode", (int)this->minInstancesNode );
+    addElement(&doc, tree, "instancesFile", Parameters::instancesFile.c_str() );
+    addElement(&doc, tree, "experimentsFile", Parameters::resultsFile.c_str() );
+    addElement(&doc, tree, "nInstances", (int)iset_.instances().size() );
+    addElement(&doc, tree, "nAlgorithms", (int)rset_.algsettings().size() );
 
     XMLElement *params = doc.NewElement("pdtreeParams");
     tree->InsertFirstChild(params);
     params->SetAttribute("eval", str_eval(Parameters::eval) );
     params->SetAttribute("fillMissingRes", str_fmrs(Parameters::fmrStrategy) );
+    params->SetAttribute("rankEps", Parameters::rankEps );
+    params->SetAttribute("rankPerc", Parameters::rankPerc );
+    params->SetAttribute("minElementsBranch", (int)Parameters::minElementsBranch );
+    params->SetAttribute("maxDepth", (int)Parameters::maxDepth );
+    params->SetAttribute("minPerfImprov", (int)Parameters::minPerfImprov );
+    params->SetAttribute("minAbsPerfImprov", (int)Parameters::minAbsPerfImprov );
 
     root->writeXML(&doc, tree);
 
