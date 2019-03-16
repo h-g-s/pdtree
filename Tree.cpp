@@ -193,28 +193,26 @@ void Tree::build()
 
 using namespace tinyxml2;
 
-void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char *name, const double value )
+static void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char *name, const double value )
 {
     auto el2 = doc->NewElement(name);
     el->InsertEndChild(el2);
     el2->SetText(to_string(value).c_str());
 }
 
-void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char *name, const int value )
+static void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char *name, const int value )
 {
     auto el2 = doc->NewElement(name);
     el->InsertEndChild(el2);
     el2->SetText(to_string(value).c_str());
 }
 
-void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char *name, const char *value )
+static void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char *name, const char *value )
 {
     auto el2 = doc->NewElement(name);
     el->InsertEndChild(el2);
     el2->SetText(value);
 }
-
-
 
 void Tree::save( const char *fileName ) const
 {
@@ -231,16 +229,17 @@ void Tree::save( const char *fileName ) const
     addElement(&doc, tree, "nInstances", (int)iset_.instances().size() );
     addElement(&doc, tree, "nAlgorithms", (int)rset_.algsettings().size() );
 
-    XMLElement *params = doc.NewElement("pdtreeParams");
-    tree->InsertFirstChild(params);
-    params->SetAttribute("eval", str_eval(Parameters::eval) );
-    params->SetAttribute("fillMissingRes", str_fmrs(Parameters::fmrStrategy) );
-    params->SetAttribute("rankEps", Parameters::rankEps );
-    params->SetAttribute("rankPerc", Parameters::rankPerc );
-    params->SetAttribute("minElementsBranch", (int)Parameters::minElementsBranch );
-    params->SetAttribute("maxDepth", (int)Parameters::maxDepth );
-    params->SetAttribute("minPerfImprov", (int)Parameters::minPerfImprov );
-    params->SetAttribute("minAbsPerfImprov", (int)Parameters::minAbsPerfImprov );
+    XMLElement *params = doc.NewElement("PDTreeParameters");
+    tree->InsertEndChild(params);
+
+    addElement(&doc, params, "eval", str_eval(Parameters::eval) );
+    addElement(&doc, params, "fillMissingRes", str_fmrs(Parameters::fmrStrategy) );
+    addElement(&doc, params, "rankEps", Parameters::rankEps );
+    addElement(&doc, params, "rankPerc", Parameters::rankPerc );
+    addElement(&doc, params, "minElementsBranch", (int)Parameters::minElementsBranch );
+    addElement(&doc, params, "maxDepth", (int)Parameters::maxDepth );
+    addElement(&doc, params, "minPerfImprov", (int)Parameters::minPerfImprov );
+    addElement(&doc, params, "minAbsPerfImprov", (int)Parameters::minAbsPerfImprov );
 
     root->writeXML(&doc, tree);
 

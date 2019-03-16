@@ -133,12 +133,37 @@ std::vector<Node *> &Node::perform_branch()
 
 using namespace tinyxml2;
 
+static void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char *name, const double value )
+{
+    auto el2 = doc->NewElement(name);
+    el->InsertEndChild(el2);
+    el2->SetText(to_string(value).c_str());
+}
+
+static void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char *name, const int value )
+{
+    auto el2 = doc->NewElement(name);
+    el->InsertEndChild(el2);
+    el2->SetText(to_string(value).c_str());
+}
+
+static void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char *name, const char *value )
+{
+    auto el2 = doc->NewElement(name);
+    el->InsertEndChild(el2);
+    el2->SetText(value);
+}
+
 void Node::writeXML(tinyxml2::XMLDocument *doc, tinyxml2::XMLElement *parent ) const
 {
     XMLElement *node = doc->NewElement("node");
     parent->InsertEndChild(node);
-    node->SetAttribute("depth", (int) this->depth);
-    node->SetAttribute("bestAlg", rset_.algsettings()[this->ssres_.bestAlg()].c_str());
+
+    node->SetAttribute("id", this->id.c_str() );
+
+    addElement( doc, node, "depth", (int) this->depth);
+    addElement( doc, node, "bestAlg", rset_.algsettings()[this->ssres_.bestAlg()].c_str() );
+    addElement( doc, node, "bestAlgCost", this->ssres_.bestAlgRes() );
 
     XMLElement *insts = doc->NewElement("instances");
     node->InsertEndChild(insts);
