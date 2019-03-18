@@ -19,8 +19,12 @@
 class InstanceSet
 {
 public:
-    InstanceSet (const char *fileName, const char *resultsFileName = nullptr);
-
+    // constructs an instance set considering instances from fileName which
+    // save some experimental result in resultsFileName
+    // if ifold and kfold are informed (k>=2), then the i-th training subset
+    // from a k-fold validation is built
+    InstanceSet (const char *fileName, const char *resultsFileName = nullptr, int ifold = -1, int kfold=-1 );
+    
     /* instance by index */
     const Instance &instance( size_t idx ) const;
 
@@ -48,8 +52,10 @@ public:
 
     virtual ~InstanceSet ();
 
-    // values from stored in an efficient way
+    // training dataset
     Dataset *inst_dataset_;
+
+    Dataset *test_dataset_;
 private:
     std::vector<std::string> features_;
     std::vector<Instance> instances_;

@@ -10,6 +10,7 @@
 #include <cassert>
 #include <iostream>
 #include <iomanip>
+#include <cmath>
 #include <string>
 #include <algorithm>
 #include <ctime>
@@ -19,21 +20,63 @@ using namespace std;
 
 static std::unordered_set< std::string > check_instances_with_results( const char *resFN );
 
-InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName) :
-    inst_dataset_(new Dataset(fileName))
+InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int ifold, int kfold ) :
+    inst_dataset_(new Dataset(fileName)),
+    test_dataset_(nullptr)
 {
+    if (kfold>=2)
+    {
+        if (ifold<0 or ifold>=kfold)
+        {
+            cerr << "invalid training partition " << ifold << endl;
+            exit(1);
+        }
+    }
     clock_t start = clock();
     auto ires = check_instances_with_results(resultsFileName);
-
     {
         vector< bool > included;
+        vector< bool > inclTest;
+        vector< size_t > elements;
         included.reserve(inst_dataset_->rows());
+        size_t nel = 0;
         for ( size_t i=0 ; (i<inst_dataset_->rows()) ; ++i )
         {
             string iname = string(inst_dataset_->str_cell(i, 0));
-            included.push_back( ires.find(iname)!=ires.end() );
+            bool hasResult = ires.find(iname)!=ires.end();
+            included.push_back( hasResult );
+            if (hasResult)
+            {
+                ++nel;
+                elements.push_back(i);
+            }
         }
+        if ( kfold>=2 )
+        {
+            if ((int)nel<kfold)
+            {
+                cerr << "cannot perform kfold (k=" << kfold 
+                    << ") validation since there are results only for " 
+                    << ires.size() << "instances." << endl;
+                exit(1);
+            }
+
+            // removing elements from test dataset
+            size_t tsize = floor(((double)elements.size()) * (((double)1.0)/((double)kfold)));
+            size_t tstart = tsize * ifold;
+            size_t tend = tstart + tsize;
+            for ( size_t i=tstart ; (i<tend) ; ++i )
+                included[elements[i]] = false;
+
+            inclTest = vector< bool >( included.size(), false );
+            for ( size_t i=tstart ; (i<tend) ; ++i )
+                inclTest[elements[i]] = true;
+        }
+
         Dataset *ds = new Dataset(*inst_dataset_, included);
+        if (kfold>=2)
+            test_dataset_ = new Dataset( *inst_dataset_, inclTest );
+
         delete inst_dataset_;
         inst_dataset_ = ds;
     }
@@ -104,6 +147,9 @@ InstanceSet::~InstanceSet ()
 {
     if (inst_dataset_)
         delete inst_dataset_;
+
+    if (test_dataset_)
+        delete test_dataset_;
 }
 
 static string trim(const std::string &s)
