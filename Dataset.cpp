@@ -749,3 +749,52 @@ void Dataset::cell_set(size_t row, size_t col, const double val)
         }
     }
 }
+
+void Dataset::write_csv( const char *fileName )
+{
+    FILE *f = fopen( fileName, "w" );
+    for ( size_t i=0 ; (i<headers_.size()) ; ++i )
+        if (i)
+            fprintf(f, ",%s", headers_[i].c_str());
+        else
+            fprintf(f, "%s", headers_[i].c_str());
+    fprintf( f, "\n" );
+
+    for ( size_t i=0 ; (i<rows_) ; ++i )
+    {
+        for ( size_t j=0 ; (j<headers_.size()) ; ++j )
+        {
+            if (col_is_number(j))
+            {
+                switch (types()[j])
+                {
+                    case Float:
+                        if (j)
+                            fprintf(f, ",%g", float_cell(i, j));
+                        else
+                            fprintf(f, "%g", float_cell(i, j));
+                        break;
+                    default:
+                        if (j)
+                            fprintf(f, ",%d", int_cell(i, j));
+                        else
+                            fprintf(f, "%d", int_cell(i, j));
+                        break;
+                }
+            }
+            else
+            {
+                if (j)
+                    fprintf(f, ",%s", str_cell(i, j));
+                else
+                    fprintf(f, "%s", str_cell(i, j));
+            }
+        }
+
+        fprintf(f, "\n");
+    }
+
+    fclose(f);
+}
+
+

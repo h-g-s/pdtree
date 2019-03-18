@@ -58,6 +58,8 @@ public:
 
     void cell_set(size_t row, size_t col, const double val);
 
+    void write_csv( const char *fileName );
+
 	virtual ~Dataset();
 private:
         std::vector< std::string > headers_;
