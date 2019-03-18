@@ -516,7 +516,7 @@ enum Datatype str_type(const string &str)
     return Empty;
 }
 
-Dataset::Dataset(const Dataset &other, std::vector<bool> _included ) :
+Dataset::Dataset(const Dataset &other, std::vector<bool> _included, bool _deleteFeatures ) :
     rowSize(0),
     data(nullptr),
     rows_(0)
@@ -572,7 +572,7 @@ Dataset::Dataset(const Dataset &other, std::vector<bool> _included ) :
     for ( size_t j=0 ; (j<other.headers().size() ) ; ++j )
     {
         size_t nDif = diffStr[j].size() + diffDbl[j].size() + diffInt[j].size();
-        if ((j>0) and (nDif<=1))
+        if ((j>0) and (nDif<=1) and _deleteFeatures)
         {
             colIncluded[j] = false;
             continue;

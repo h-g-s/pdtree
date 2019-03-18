@@ -31,7 +31,7 @@ public:
 	/** generates a copy of the dataset
 	 * including a subset of records
 	 */
-	Dataset(const Dataset &other, std::vector<bool> _included );
+	Dataset(const Dataset &other, std::vector<bool> _included, bool _deleteFeatures = false );
 
 	size_t rows() const { return rows_; }
 

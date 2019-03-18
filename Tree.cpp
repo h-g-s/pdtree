@@ -257,7 +257,7 @@ const Node *Tree::node_instance( const Dataset *testd, size_t idxInst ) const
 
         // check if instance is at left or right
         size_t idxF = node->bestBranch_.idxF_;
-        std::string colName = node->iset_.inst_dataset_->headers()[idxF];
+        std::string colName = node->iset_.features()[idxF];
         size_t idxFtd = iset_.test_dataset_->colIdx(colName);
         assert( iset_.types()[idxF] == iset_.test_dataset_->types()[idxFtd] );
 

@@ -60,6 +60,7 @@ int main( int argc, const char **argv )
 
             char drawCmd[1024] = "";
             sprintf(drawCmd, "dot -Tpdf %s -o %s", treeGVName, treePDFName );
+            system(drawCmd);
         }
     }
 
