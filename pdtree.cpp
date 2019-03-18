@@ -38,7 +38,7 @@ int main(int argc, const char **argv)
         ResultsSet rset( iset, argv[2] );
         rset.print_summarized_results();
 
-        rset.save_csv("res.csv", Rank);
+        //rset.save_csv("res.csv", Rank);
 
         Tree tree(iset, rset);
         tree.build();

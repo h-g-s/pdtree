@@ -246,6 +246,62 @@ void Tree::save( const char *fileName ) const
     doc.SaveFile(fileName);
 }
 
+const Node *Tree::node_instance( const Dataset *testd, size_t idxInst ) const
+{
+    const Node *node = this->root;
+    while (node->bestBranch_.found())
+    {
+        // check if instance is at left or right
+        size_t idxF = node->bestBranch_.idxF_;
+        assert( iset_.types()[idxF]==testd->types()[idxF+1] );
+
+        if (iset_.feature_is_float(idxF))
+        {
+            double vinst = testd->float_cell(idxInst, idxF+1);
+            if (vinst<=node->bestBranch_.value_.vfloat)
+                node = node->child_[0];
+            else
+                node = node->child_[1];
+        }
+        else
+        {
+            if (iset_.feature_is_integer(idxF))
+            {
+                int vinst = testd->int_cell(idxInst, idxF+1);
+                if (vinst<=node->bestBranch_.value_.vint)
+                    node = node->child_[0];
+                else
+                    node = node->child_[1];
+            }
+            else
+            {
+                cerr << "branch type not supported" << endl;
+                exit(1);
+            }
+        }
+    } // continue branch
+
+
+    return node;
+}
+
+double Tree::cost_instance( const Dataset *testd, size_t idxInst ) const
+{
+    const Node *nodeInst = this->node_instance(testd, idxInst);
+
+    return 0.0;
+}
+
+double Tree::evaluate( const Dataset *testData ) const
+{
+    for ( size_t i=0 ; (i<testData->rows()) ; ++i )
+    {
+        cout << "test instance " << testData->str_cell(i, 0) << endl;
+    }
+
+    return 0.0;
+}
+
 Tree::~Tree ()
 {
     delete root;

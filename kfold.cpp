@@ -4,7 +4,8 @@
 #include <cstdlib>
 #include "Parameters.hpp"
 #include "InstanceSet.hpp"
-
+#include "ResultsSet.hpp"
+#include "Tree.hpp"
 
 using namespace std;
 
@@ -24,14 +25,9 @@ int main( int argc, const char **argv )
         cout << "performing step " << i << " of " <<
              k << "-fold validation" << endl;
         InstanceSet trainSet( argv[1], argv[2], i, k );
-
-        char trainFN[256];
-        sprintf(trainFN, "train-%d-%d.csv", i, k);
-        trainSet.inst_dataset_->write_csv(trainFN);
-
-        char testFN[256];
-        sprintf(testFN, "test-%d-%d.csv", i, k);
-        trainSet.test_dataset_->write_csv(testFN);
+        ResultsSet trainRes( trainSet, argv[2], Parameters::fmrStrategy );
+        Tree tree(trainSet, trainRes);
+        tree.build();
     }
 }
 

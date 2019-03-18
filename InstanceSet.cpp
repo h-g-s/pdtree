@@ -195,6 +195,14 @@ bool InstanceSet::feature_is_integer( size_t idxF ) const
     return (types_[idxF] <= Integer);
 }
 
+bool InstanceSet::feature_is_float( size_t idxF ) const
+{
+    assert( idxF<features().size() );
+
+    return (types_[idxF] == Float);
+}
+
+
 bool InstanceSet::has(const std::string &iname) const
 {
     auto it = instByName_.find(iname);

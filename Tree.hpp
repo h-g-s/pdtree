@@ -26,8 +26,14 @@ public:
     // saves tree in XML
     void save( const char *fileName ) const;
 
+    double evaluate( const Dataset *testData ) const;
+
     virtual ~Tree ();
 private:
+    const Node *node_instance( const Dataset *testd, size_t idxInst ) const;
+
+    double cost_instance( const Dataset *testd, size_t idxInst ) const;
+
     std::string node_label( const Node *node ) const;
 
     const InstanceSet &iset_;
