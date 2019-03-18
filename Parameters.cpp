@@ -17,7 +17,6 @@
 
 using namespace std;
 
-
 string Parameters::instancesFile = "";
 
 string Parameters::resultsFile = "";
@@ -38,7 +37,7 @@ size_t Parameters::minElementsBranch = 3;
 
 // maximum number of branches evaluated for a feature
 // at a given depth
-size_t Parameters::maxEvalBranches[MAX_DEPTH] = { 80, 80, 80, 80, 80, 80, 80, 80, 80, 80 };
+size_t Parameters::maxEvalBranches[MAX_DEPTH] = { 999, 999, 999, 999, 999, 999, 999, 999, 999, 999 };
 
 size_t Parameters::maxDepth = 3;
 

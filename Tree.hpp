@@ -13,6 +13,7 @@
 #include "ResultsSet.hpp"
 
 class Node;
+class ResTestSet;
 
 class Tree
 {
@@ -26,13 +27,18 @@ public:
     // saves tree in XML
     void save( const char *fileName ) const;
 
+    // evaluate in a set of training instances
     double evaluate( const Dataset *testData ) const;
+
+    double leafResults() const {
+        return resultLeafs;
+    }
 
     virtual ~Tree ();
 private:
     const Node *node_instance( const Dataset *testd, size_t idxInst ) const;
 
-    double cost_instance( const Dataset *testd, size_t idxInst ) const;
+    double cost_instance( const Dataset *testd, size_t idxInst, const ResTestSet *rtst ) const;
 
     std::string node_label( const Node *node ) const;
 

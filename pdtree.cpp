@@ -30,7 +30,7 @@ int main(int argc, const char **argv)
 
         cout << "Loading instances set ... "  << endl;
         InstanceSet iset(argv[1], argv[2]);
-        Instance::inst_dataset = iset.inst_dataset_;
+//        Instance::inst_dataset = iset.inst_dataset_;
         cout << endl;
 
         cout << "ResultsSet settings: " << endl;

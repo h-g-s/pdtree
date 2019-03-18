@@ -17,12 +17,14 @@
 #include <sstream>
 #include <utility>
 #include <vector>
+#include <unordered_map>
 
 #include "Branching.hpp"
 #include "Instance.hpp"
 #include "Node.hpp"
 #include "SubSetResults.hpp"
 #include "tinyxml2.h"
+#include "ResTestSet.hpp"
 
 using namespace std;
 
@@ -251,6 +253,8 @@ const Node *Tree::node_instance( const Dataset *testd, size_t idxInst ) const
     const Node *node = this->root;
     while (node->bestBranch_.found())
     {
+        assert(node->child_.size()==2);
+
         // check if instance is at left or right
         size_t idxF = node->bestBranch_.idxF_;
         assert( iset_.types()[idxF]==testd->types()[idxF+1] );
@@ -281,25 +285,40 @@ const Node *Tree::node_instance( const Dataset *testd, size_t idxInst ) const
         }
     } // continue branch
 
-
     return node;
 }
 
-double Tree::cost_instance( const Dataset *testd, size_t idxInst ) const
+double Tree::cost_instance( const Dataset *testd, size_t idxInst, const ResTestSet *rtst ) const
 {
     const Node *nodeInst = this->node_instance(testd, idxInst);
+    size_t idxAlg = nodeInst->ssres_.bestAlg();
 
-    return 0.0;
+    return rtst->get(idxInst, idxAlg);
 }
 
 double Tree::evaluate( const Dataset *testData ) const
 {
+    unordered_map< std::string, size_t > insts;
+    for ( size_t idxInst = 0 ; (idxInst<iset_.test_dataset_->rows()) ; ++idxInst )
+        insts[iset_.test_dataset_->str_cell(idxInst, 0)] = idxInst;
+    unordered_map< std::string, size_t > algs;
+    size_t idxa = 0;
+    for ( const auto &alg : rset_.algsettings() )
+        algs[alg] = idxa++;
+
+    ResTestSet rtst( insts, algs, Parameters::resultsFile.c_str() );
+
+    long double sum = 0.0;
+
     for ( size_t i=0 ; (i<testData->rows()) ; ++i )
     {
-        cout << "test instance " << testData->str_cell(i, 0) << endl;
+        const double instCost = cost_instance(iset_.test_dataset_, i, &rtst);
+        //cout << "test instance " << testData->str_cell(i, 0) << " cost: " << instCost << endl;
+        sum += instCost;
     }
 
-    return 0.0;
+    long double res = (sum) / ((long double)testData->rows());
+    return res;
 }
 
 Tree::~Tree ()

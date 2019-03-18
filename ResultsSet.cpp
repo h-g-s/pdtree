@@ -408,4 +408,3 @@ void ResultsSet::save_csv( const char *fileName, Evaluation _eval ) const
     of.close();
 }
 
-

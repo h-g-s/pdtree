@@ -6,8 +6,10 @@
  */
 
 #include <cstdlib>
+#include <cstring>
 #include <algorithm>
 #include <cstdio>
+#include <cassert>
 #include <cfloat>
 #include <cmath>
 #include "ResTestSet.hpp"
@@ -65,12 +67,21 @@ ResTestSet::ResTestSet(
         char instName[256]="";
         char algSetting[256]="";
         float res=DBL_MAX;
-        int nr = sscanf(s, "%s,%s,%g", instName, algSetting, &res);
-        if (nr!=3)
-        {
-            fprintf(stderr, "invalid file format\n");
-            exit(1);
-        }
+
+        char *savep = NULL, *token = NULL;
+        token = strtok_r(s, ",", &savep );
+        assert( token );
+        strcpy( instName, token );
+
+        token = strtok_r(NULL, ",", &savep );
+        assert( token );
+        strcpy( algSetting, token );
+
+        token = strtok_r(NULL, ",", &savep );
+        assert( token );
+        res = atof(token);
+
+        //printf("line %s - inst %s alg %s res %g\n", s, instName, algSetting, res);
 
         auto iti = _instances.find(std::string(instName));
         if (iti == _instances.end())

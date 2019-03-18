@@ -110,6 +110,14 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int
     cout << instances_.size() << " instances loaded in " << setprecision(3) << secs << endl;
     if (discarded)
         cout << discarded << " instances were discarded because no experiments were performed with them" << endl;
+
+    if (Instance::inst_dataset != nullptr)
+    {
+        cerr << "only one instance dataset is allowed at time" << endl;
+        exit(1);
+    }
+
+    Instance::inst_dataset = this->inst_dataset_;
 }
 
 size_t InstanceSet::size() const
@@ -147,6 +155,8 @@ InstanceSet::~InstanceSet ()
 {
     if (inst_dataset_)
         delete inst_dataset_;
+
+    Instance::inst_dataset = nullptr;
 
     if (test_dataset_)
         delete test_dataset_;
