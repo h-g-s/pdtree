@@ -30,7 +30,6 @@ using namespace std;
 #include <chrono>
 #include <cmath>
 
-
 // trim from start (in place)
 static inline void ltrim(std::string &s);
 
@@ -39,7 +38,6 @@ static inline void rtrim(std::string &s);
 
 // trim from both ends (in place)
 static inline void trim(std::string &s);
-
 
 class CSVRow
 {
@@ -201,6 +199,7 @@ Dataset::Dataset(const char *fileName, bool deleteFeatures_) :
             } // not float
         } // all columns
 
+        this->colIdx_[this->headers_[i]] = idx;
         this->headers_[idx] = this->headers_[i];
         this->rowSize += this->cSizes_[idx];
         ++idx;
@@ -316,7 +315,6 @@ void Dataset::cell_set(size_t row, size_t col, const std::string &str)
         }
     }
 }
-
 
 int Dataset::int_cell(size_t row, size_t col) const
 {
@@ -445,7 +443,6 @@ bool Dataset::col_is_number( size_t col ) const
             or cTypes_[col] == Char
             );
 }
-
 
 enum Datatype str_type(const string &str)
 {
@@ -581,6 +578,7 @@ Dataset::Dataset(const Dataset &other, std::vector<bool> _included ) :
             continue;
         }
 
+        this->colIdx_[other.headers()[j]] = this->headers_.size();
         this->headers_.push_back(other.headers()[j]);
 
         enum Datatype colt = Datatype::N_DATA_TYPES;
@@ -797,4 +795,31 @@ void Dataset::write_csv( const char *fileName )
     fclose(f);
 }
 
+int Dataset::int_cell(size_t row, std::string colName) const
+{
+    auto it = colIdx_.find(colName);
+    assert( it!=colIdx_.end() );
+    return this->int_cell(row, it->second);
+}
 
+double Dataset::float_cell(size_t row, std::string colName) const
+{
+    auto it = colIdx_.find(colName);
+    assert( it!=colIdx_.end() );
+    return this->float_cell(row, it->second);
+}
+
+size_t Dataset::colIdx( const std::string &colName ) const
+{
+    auto it = colIdx_.find(colName);
+    assert( it!=colIdx_.end() );
+
+    return it->second;
+}
+
+const char *Dataset::str_cell(size_t row, std::string colName) const
+{
+    auto it = colIdx_.find(colName);
+    assert( it!=colIdx_.end() );
+    return this->str_cell(row, it->second);
+}

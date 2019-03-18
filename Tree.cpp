@@ -257,11 +257,13 @@ const Node *Tree::node_instance( const Dataset *testd, size_t idxInst ) const
 
         // check if instance is at left or right
         size_t idxF = node->bestBranch_.idxF_;
-        assert( iset_.types()[idxF]==testd->types()[idxF+1] );
+        std::string colName = node->iset_.inst_dataset_->headers()[idxF];
+        size_t idxFtd = iset_.test_dataset_->colIdx(colName);
+        assert( iset_.types()[idxF] == iset_.test_dataset_->types()[idxFtd] );
 
         if (iset_.feature_is_float(idxF))
         {
-            double vinst = testd->float_cell(idxInst, idxF+1);
+            double vinst = testd->float_cell(idxInst, idxFtd);
             if (vinst<=node->bestBranch_.value_.vfloat)
                 node = node->child_[0];
             else
@@ -271,7 +273,7 @@ const Node *Tree::node_instance( const Dataset *testd, size_t idxInst ) const
         {
             if (iset_.feature_is_integer(idxF))
             {
-                int vinst = testd->int_cell(idxInst, idxF+1);
+                int vinst = testd->int_cell(idxInst, idxFtd);
                 if (vinst<=node->bestBranch_.value_.vint)
                     node = node->child_[0];
                 else

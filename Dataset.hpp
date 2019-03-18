@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 enum Datatype { Char=0, 
                 Short, 
@@ -48,6 +49,14 @@ public:
 
     const char *str_cell(size_t row, size_t col) const;
 
+    int int_cell(size_t row, std::string colName) const;
+
+    double float_cell(size_t row, std::string colName) const;
+
+    const char *str_cell(size_t row, std::string colName) const;
+
+    size_t colIdx( const std::string &colName ) const;
+
     bool col_is_number( size_t col ) const;
 
     // sets the cell contents, converting to the
@@ -63,6 +72,8 @@ public:
 	virtual ~Dataset();
 private:
         std::vector< std::string > headers_;
+
+        std::unordered_map< std::string, size_t > colIdx_;
 
         std::vector< enum Datatype > cTypes_;
         std::vector< size_t > cSizes_; // in bytes
