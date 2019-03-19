@@ -1,4 +1,4 @@
-instance,algs,time
+instance,algsetting,result
 iis-bupa-cov,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,0.21
 robot_sch_syn_plain_4_100_1605_0.05#0,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,0.02
 br2,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,1.29
@@ -69,13 +69,13 @@ comp21-2idx,crash-idiot5-dualp-pesteep-pertv-55-duals,0.55
 exp-1-500-5-5,dual-pesteep-psi--0.43-pertv-17-duals,0.01
 cbs-cta,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,0.15
 cbs-cta,crash-idiot5-dualp-pesteep-pertv-55-duals,0.15
-br2,dual-pesteep-psi--0.43-pertv-17-duals,8000
-core4872-1529,dual-pesteep-psi--0.43-pertv-17-duals,8000
+supportcase42,dual-pesteep-psi--0.43-pertv-17-duals,8000
+scpk1_core,dual-pesteep-psi--0.43-pertv-17-duals,8000
 DWS012_02,dual-pesteep-psi--0.43-pertv-17-duals,8000
-iis-bupa-cov,dual-pesteep-psi--0.43-pertv-17-duals,8000
-long04_j,dual-pesteep-psi--0.43-pertv-17-duals,8000
+uccase9,dual-pesteep-psi--0.43-pertv-17-duals,8000
 p0201,dual-pesteep-psi--0.43-pertv-17-duals,8000
 robot_sch_syn_plain_4_100_1605_0.05#0,dual-pesteep-psi--0.43-pertv-17-duals,8000
-scpk1_core,dual-pesteep-psi--0.43-pertv-17-duals,8000
-supportcase42,dual-pesteep-psi--0.43-pertv-17-duals,8000
-uccase9,dual-pesteep-psi--0.43-pertv-17-duals,8000
+iis-bupa-cov,dual-pesteep-psi--0.43-pertv-17-duals,8000
+core4872-1529,dual-pesteep-psi--0.43-pertv-17-duals,8000
+long04_j,dual-pesteep-psi--0.43-pertv-17-duals,8000
+br2,dual-pesteep-psi--0.43-pertv-17-duals,8000

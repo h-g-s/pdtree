@@ -1,6 +1,6 @@
 insts=set()
 
-fi=open('/home/haroldo/inst/cbcbench/tinySubs/features.csv')
+fi=open('mip-features.csv')
 
 for i,l in enumerate(fi):
     if i:
@@ -9,15 +9,16 @@ fi.close()
 print(insts)
 
 params=set()
-fp=open('incparams.csv')
+fp=open('incparams-mip.csv')
 for l in fp:
     params.add(l.strip())
 fp.close()
 
 print(params)
 
-fr=open('../relaxation.csv')
-fro=open('relaxation.csv', 'w')
+fr=open('/home/haroldo/git/fbps/data/experiments/cbc/relaxation-time.csv')
+fro=open('mip-results.csv', 'w')
+fro.write('instance,algsetting,result\n')
 for l in fr:
     lc=l.strip().split(',')
     iname=lc[0]
