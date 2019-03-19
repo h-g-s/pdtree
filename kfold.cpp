@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstdio>
+#include <cstring>
 #include <cstdlib>
 #include <unordered_map>
 #include "Parameters.hpp"
@@ -11,24 +12,26 @@
 
 using namespace std;
 
+// 0: very basic log
 // 1: basic log
 // 2: very detailed log, saving files
-int save_log = 2;
+int save_log = 0;
 
 int main( int argc, const char **argv )
 {
-    if (argc<4)
+    if (argc<5)
     {
-        cerr << "usage: kfold dataset results k [options]" << endl;
+        cerr << "usage: kfold dataset results k datasetname [options]" << endl;
         exit(1);
     }
     int k = atoi(argv[3]);
     Parameters::parse(argc, argv);
     Parameters::print();
 
+    char dsName[256];  strcpy(dsName, argv[4]);
+
     FILE *fkfold = NULL;
-    if (save_log>=2)
-        fkfold=fopen("kfold.csv", "w");
+    fkfold=fopen("kfold.csv", "a");
 
     for ( int i=0 ; (i<k) ; ++i )
     {
@@ -52,7 +55,12 @@ int main( int argc, const char **argv )
         cout << "result train: " << tree.leafResults() << " result test: " << rtest << endl << endl;
 
         if (fkfold)
-            fprintf(fkfold, "%d,%g,%g\n", i+1, tree.leafResults(), rtest );
+        {
+            fprintf(fkfold, "%s,%zu,%zu,%d,%d,%zu,%zu,%s,%g,%g\n", 
+                dsName, trainSet.size(), algs.size(), i+1, k, Parameters::maxDepth,
+                Parameters::minElementsBranch, str_eval(Parameters::eval), tree.leafResults(), rtest );
+            fflush(fkfold);
+        }
 
         if (save_log>=2)
         {
@@ -64,6 +72,9 @@ int main( int argc, const char **argv )
             
             char testResName[256]; sprintf(testResName, "restest-%d-%d.csv", i+1, k);
             resTestSet.save(testResName);
+
+            char trainResName[256]; sprintf(trainResName, "restrain-%d-%d.csv", i+1, k);
+            trainRes.save_csv(trainResName);
 
             char treeXMLName[256]; sprintf(treeXMLName, "tree-%d-%d.xml", i+1, k);
             tree.save(treeXMLName);

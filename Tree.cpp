@@ -106,8 +106,10 @@ void Tree::draw( const char *fileName ) const
         of << "    style=filled;" << endl;
         of << "    color=\"PaleGreen\";" << endl;
         of << "    label=< <b>Depth " << level << " cost: " << perfLevel[level] << "</b> >;" << endl;
-        for ( auto n : nodes )
+
+        for ( auto ni=nodes.rbegin() ; (ni!=nodes.rend()) ; ++ni )
         {
+            auto n = *ni;
             of << "  \"" << n->id.c_str() << "\" [";
             of << "    label = <" << endl;
             of << node_label(n);
