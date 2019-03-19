@@ -14,6 +14,7 @@
 #include <cmath>
 #include "ResTestSet.hpp"
 #include "Parameters.hpp"
+#include "ResultsSet.hpp"
 
 using namespace std;
 
@@ -21,6 +22,8 @@ ResTestSet::ResTestSet(
     const std::unordered_map<std::string, size_t> &_instances,
     const std::unordered_map<std::string, size_t> &_algsettings,
     const char *fileName ) :
+    instances_(_instances),
+    algsettings_(_algsettings),
     res_(nullptr)
 {
     FILE *f=fopen( fileName, "r" );
@@ -37,6 +40,11 @@ ResTestSet::ResTestSet(
     res_[0] = new float[_instances.size()*_algsettings.size()];
     for ( size_t i=1 ; (i<_instances.size()) ; ++i )
         res_[i] = res_[i-1] + _algsettings.size();
+
+    rank_ = new int*[_instances.size()];
+    rank_[0] = new int[_instances.size()*_algsettings.size()];
+    for ( size_t i=1 ; (i<_instances.size()) ; ++i )
+        rank_[i] = rank_[i-1] + _algsettings.size();
 
     char **loaded = new char*[_instances.size()];
     loaded[0] = new char[_instances.size()*_algsettings.size()];
@@ -138,6 +146,8 @@ ResTestSet::ResTestSet(
         }
     }
 
+    ResultsSet::compute_rankings( algsettings_.size(), instances_.size(), (const float **)res_, rank_ );
+
     delete[] avgInst;
     delete[] worseInst;
     delete[] loaded[0];
@@ -151,8 +161,40 @@ float ResTestSet::get( size_t idxInst, size_t idxAlgSetting ) const
     return res_[idxInst][idxAlgSetting];
 }
 
+int ResTestSet::rank( size_t idxInst, size_t idxAlgSetting ) const
+{
+    return this->rank_[idxInst][idxAlgSetting];
+}
+
+void ResTestSet::save( const char *fileName ) const
+{
+    FILE *f=fopen(fileName, "w");
+    for ( const auto &alg : algsettings_ )
+        fprintf(f, ",%s", alg.first.c_str() );
+    fprintf(f, "\n");
+    for ( const auto &inst : instances_ )
+    {
+        fprintf(f,"%s", inst.first.c_str());
+        switch (Parameters::eval)
+        {
+            case Average:
+                for ( const auto &alg : algsettings_ )
+                    fprintf(f, ",%g", res_[inst.second][alg.second]);
+                break;
+            case Rank:
+                for ( const auto &alg : algsettings_ )
+                    fprintf(f, ",%d", rank_[inst.second][alg.second]);
+                break;
+        }
+        fprintf(f, "\n");
+    }
+    fclose(f);
+}
+
 ResTestSet::~ResTestSet ()
 {
+    delete[] rank_[0];
+    delete[] rank_;
     delete[] res_[0];
     delete[] res_;
 }

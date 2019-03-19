@@ -28,14 +28,15 @@
 
 using namespace std;
 
-Tree::Tree ( const InstanceSet &_iset, const ResultsSet &_rset ) :
+Tree::Tree ( const InstanceSet &_iset, const ResultsSet &_rset, const ResTestSet *_rtest ) :
     iset_(_iset),
     rset_(_rset),
     root(nullptr),
     resultLeafs(0.0),
     improvement(0.0),
     maxDepth(0.0),
-    minInstancesNode(numeric_limits<size_t>::max())
+    minInstancesNode(numeric_limits<size_t>::max()),
+    rtest_(_rtest)
 {
 
 }
@@ -295,32 +296,34 @@ double Tree::cost_instance( const Dataset *testd, size_t idxInst, const ResTestS
     const Node *nodeInst = this->node_instance(testd, idxInst);
     size_t idxAlg = nodeInst->ssres_.bestAlg();
 
+    if (Parameters::eval==Rank)
+        return rtst->rank(idxInst, idxAlg);
+
     return rtst->get(idxInst, idxAlg);
 }
 
 double Tree::evaluate( const Dataset *testData ) const
 {
-    unordered_map< std::string, size_t > insts;
-    for ( size_t idxInst = 0 ; (idxInst<iset_.test_dataset_->rows()) ; ++idxInst )
-        insts[iset_.test_dataset_->str_cell(idxInst, 0)] = idxInst;
-    unordered_map< std::string, size_t > algs;
-    size_t idxa = 0;
-    for ( const auto &alg : rset_.algsettings() )
-        algs[alg] = idxa++;
-
-    ResTestSet rtst( insts, algs, Parameters::resultsFile.c_str() );
+    if (rtest_ == nullptr)
+    {
+        cerr << "results test set not informed." << endl;
+        abort();
+    }
 
     long double sum = 0.0;
 
     for ( size_t i=0 ; (i<testData->rows()) ; ++i )
     {
-        const double instCost = cost_instance(iset_.test_dataset_, i, &rtst);
+        const double instCost = cost_instance(iset_.test_dataset_, i, rtest_);
         //cout << "test instance " << testData->str_cell(i, 0) << " cost: " << instCost << endl;
         sum += instCost;
     }
 
     long double res = (sum) / ((long double)testData->rows());
-    return res;
+
+    if (Parameters::eval==Rank)
+        return (double) 1.0 + res;
+    return (double)res;
 }
 
 Tree::~Tree ()

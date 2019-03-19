@@ -53,6 +53,7 @@ public:
     const SubSetResults &results() const {
         return *this->defRes_;
     }
+
 private:
     const InstanceSet &iset_;
 
@@ -73,8 +74,9 @@ private:
     SubSetResults *rnkRes_;
     SubSetResults *defRes_;
 
-    void compute_rankings();
     friend class Tree;
+    friend class ResTestSet;
+    static void compute_rankings( size_t nAlgs, size_t nInsts, const float **res, int **rank );
 };
 
 #endif /* RESULTSSET_HPP_ */

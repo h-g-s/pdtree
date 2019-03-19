@@ -211,7 +211,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     clock_t startr = clock();
     cout << "Computing ranking and summarized results ... ";
 
-    compute_rankings();
+    compute_rankings( algsettings_.size(), iset_.size(), (const float **)res_, ranks_ );
 
     cout << "done in " << fixed << setprecision(2) <<
             (((double)clock()-startr) / ((double)CLOCKS_PER_SEC)) << endl;
@@ -283,17 +283,14 @@ ResultsSet::~ResultsSet ()
 }
 
 
-
-
-void ResultsSet::compute_rankings()
+void ResultsSet::compute_rankings( size_t nAlgs, size_t nInsts, const float **res, int **rank )
 {
-    size_t nAlgs = algsettings_.size();
     vector< pair< float, size_t> > resInst = vector< pair< float, size_t> >(nAlgs);
 
-    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    for ( size_t i=0 ; (i<nInsts) ; ++i )
     {
         for ( size_t j=0 ; (j<nAlgs) ; ++j )
-            resInst[j] = make_pair( res_[i][j], j );
+            resInst[j] = make_pair( res[i][j], j );
 
         std::sort(resInst.begin(), resInst.end() );
 
@@ -309,11 +306,11 @@ void ResultsSet::compute_rankings()
             if ((res>=startValRank+Parameters::rankEps) and (res>=startValRank+pr))
             {
                 ++currRank;
-                ranks_[i][iAlg] = currRank;
+                rank[i][iAlg] = currRank;
                 startValRank = res;
             }
             else
-                ranks_[i][iAlg] = currRank;
+                rank[i][iAlg] = currRank;
         } // all algorithms
     } // all instances
 }

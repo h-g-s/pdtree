@@ -18,7 +18,7 @@ class ResTestSet;
 class Tree
 {
 public:
-    Tree( const InstanceSet &_iset, const ResultsSet &_rset );
+    Tree( const InstanceSet &_iset, const ResultsSet &_rset, const ResTestSet *_rtest = nullptr );
 
     void build();
 
@@ -58,6 +58,8 @@ private:
     size_t maxDepth;
 
     size_t minInstancesNode;
+
+    const ResTestSet *rtest_;
 };
 
 #endif /* TREE_HPP_ */
