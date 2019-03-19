@@ -31,6 +31,23 @@ int main( int argc, const char **argv )
     char dsName[256];  strcpy(dsName, argv[4]);
 
     FILE *fkfold = NULL;
+    
+    {
+        // adding header if first line
+            //fprintf(fkfold, "%s,%zu,%zu,%d,%d,%zu,%zu,%s,%g,%g\n", 
+              //  dsName, trainSet.size(), algs.size(), i+1, k, Parameters::maxDepth,
+                //Parameters::minElementsBranch, str_eval(Parameters::eval), tree.leafResults(), rtest );
+        FILE *fh = fopen("kfold.csv", "r");
+        if (fh)
+            fclose(fh);
+        else
+        {
+            fh = fopen("kfold.csv", "w");
+            fprintf(fh, "dataset,trainSetSize,nAlgs,part,nFold,maxDepth,minElBranch,eval,trainRes,testRes\n");
+            fclose(fh);
+        }
+    }
+
     fkfold=fopen("kfold.csv", "a");
 
     for ( int i=0 ; (i<k) ; ++i )
