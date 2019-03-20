@@ -18,7 +18,8 @@ enum FMRStrategy {Worse = 0,       // worse result
                   WorseT2,     // abs worse result times 2
                   WorseInst,   // worse result from instance
                   WorseInstT2, // worse result from instance times 2
-                  AverageInst
+                  AverageInst,
+                  Value
 };
 
 enum Evaluation
@@ -80,6 +81,8 @@ public:
     static std::string instancesFile;
 
     static std::string resultsFile;
+
+    static double fillMissingValue;
 };
 
 #endif /* PARAMETERS_HPP_ */

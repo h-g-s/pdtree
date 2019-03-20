@@ -74,6 +74,8 @@ ResTestSet::ResTestSet(
     sumRes[0] = new long double[_instances.size()*_algsettings.size()];
     for ( size_t i=0 ; (i<_instances.size()*_algsettings.size()) ; ++i )
         sumRes[0][i] = 0.0;
+    for ( size_t i=1 ; (i<_instances.size()) ; ++i )
+        sumRes[i] = sumRes[i-1] + _algsettings.size();
     int **nResIA = new int*[_instances.size()];
     nResIA[0] = new int[_instances.size()*_algsettings.size()];
     for ( size_t i=0 ; (i<_instances.size()*_algsettings.size()) ; ++i )
@@ -162,6 +164,9 @@ ResTestSet::ResTestSet(
                     break;
                 case FMRStrategy::AverageInst:
                     res_[i][j] = avgInst[i];
+                    break;
+                case FMRStrategy::Value:
+                    res_[i][j] = Parameters::fillMissingValue;
                     break;
             }
         }

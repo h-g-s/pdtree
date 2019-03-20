@@ -53,6 +53,8 @@ public:
 
     size_t size() const;
 
+    double norm_feature_val( size_t idxInst, size_t idxF ) const;
+
     virtual ~InstanceSet ();
 
     // training dataset
@@ -64,6 +66,8 @@ private:
     std::vector<Instance> instances_;
     std::vector<Datatype> types_;
     std::unordered_map< std::string, size_t > instByName_;
+
+    std::vector< std::pair<double, double> > limitsFeature;
 };
 
 #endif /* INSTANCESET_HPP_ */

@@ -8,12 +8,12 @@
 #include "Parameters.hpp"
 
 #include <strings.h>
-#include <cctype>
 #include <cassert>
+#include <cctype>
+#include <cstdlib>
 #include <cstring>
 #include <iomanip>
 #include <iostream>
-#include <string>
 
 using namespace std;
 
@@ -22,6 +22,8 @@ string Parameters::instancesFile = "";
 string Parameters::resultsFile = "";
 
 enum FMRStrategy Parameters::fmrStrategy = WorseInst;
+
+double Parameters::fillMissingValue = 999999999;
 
 enum Evaluation Parameters::eval = Rank;
 
@@ -48,12 +50,13 @@ double Parameters::minPerfImprov = 0.01;
 double Parameters::minAbsPerfImprov = 1e-5;
 
 
-static char FMRStrategyStr[5][16] = {
+static char FMRStrategyStr[6][16] = {
     "Worse",
     "WorseT2",
     "WorseInst",
     "WorseInstT2",
-    "AverageInst" };
+    "AverageInst",
+    "Value" };
 
 static char EvaluationStr[2][16] =
 {
@@ -118,6 +121,11 @@ void Parameters::parse( int argc, const char **argv )
         if (strcasecmp(pName, "-fmrs")==0)
         {
             Parameters::fmrStrategy = to_fmrs(pValue);
+            continue;
+        }
+        if (strcasecmp(pName, "-fmrValue")==0)
+        {
+            Parameters::fillMissingValue = stod(string(pValue));
             continue;
         }
         if (strcasecmp(pName, "-eval")==0)
@@ -237,6 +245,7 @@ static enum Evaluation to_eval( const char *s)
 void Parameters::help()
 {
     cout << "\t-fmrs=[Worse, WorseT2, WorseInst, WorseInstT2, AverageInst]" << endl;
+    cout << "\t-fmrValue=double" << endl;
     cout << "\t-eval=[Average, Rank]" << endl;
     cout << "\t-rankEps=float" << endl;
     cout << "\t-rankPerc=float" << endl;
@@ -252,6 +261,7 @@ void Parameters::print()
 {
     cout << "Parameter settings: " << endl;
     cout << "             fmrs=" << FMRStrategyStr[Parameters::fmrStrategy] << endl;
+    cout << "         fmrValue=" << defaultfloat << setprecision(4) << Parameters::fillMissingValue << endl;
     cout << "             eval=" << EvaluationStr[Parameters::eval] << endl;
     cout << "         maxDepth=" << Parameters::maxDepth << endl;
     cout << "          rankEps=" << scientific << rankEps << endl;

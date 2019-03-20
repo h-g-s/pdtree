@@ -15,7 +15,7 @@ using namespace std;
 // 0: very basic log
 // 1: basic log
 // 2: very detailed log, saving files
-int save_log = 0;
+int save_log = 2;
 
 int main( int argc, const char **argv )
 {

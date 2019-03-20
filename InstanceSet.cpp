@@ -7,6 +7,7 @@
 
 #include "InstanceSet.hpp"
 #include <fstream>
+#include <cfloat>
 #include <cassert>
 #include <iostream>
 #include <iomanip>
@@ -117,7 +118,33 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int
         exit(1);
     }
 
+    limitsFeature = vector< pair<double, double> >( features().size(), make_pair( (double) DBL_MAX, (double)DBL_MIN ) );
+
+
     Instance::inst_dataset = this->inst_dataset_;
+
+    for ( size_t idxF=0 ; (idxF<features().size()) ; ++idxF )
+    {
+        if (feature_is_integer(idxF))
+        {
+            for ( const auto &inst : instances() )
+            {
+                limitsFeature[inst.idx()].first = min( limitsFeature[inst.idx()].first, (double)inst.int_feature(idxF) );
+                limitsFeature[inst.idx()].second = max( limitsFeature[inst.idx()].second, (double)inst.int_feature(idxF) );
+            }
+        }
+        else
+        {
+            if (feature_is_float(idxF))
+            {
+                for ( const auto &inst : instances() )
+                {
+                    limitsFeature[inst.idx()].first = min( limitsFeature[inst.idx()].first, (double)inst.float_feature(idxF) );
+                    limitsFeature[inst.idx()].second = max( limitsFeature[inst.idx()].second, (double)inst.float_feature(idxF) );
+                }
+            }
+        }
+    } // all features
 }
 
 size_t InstanceSet::size() const
@@ -212,6 +239,39 @@ bool InstanceSet::feature_is_float( size_t idxF ) const
     return (types_[idxF] == Float);
 }
 
+double InstanceSet::norm_feature_val( size_t idxInst, size_t idxF ) const
+{
+    if (feature_is_integer(idxF))
+    {
+        double v = instance(idxInst).int_feature(idxF) - limitsFeature[idxF].first;
+        double interval = limitsFeature[idxF].second - limitsFeature[idxF].first;
+
+        double r = v/interval;
+
+        assert( (r>=0.0-1e-9) and (r<=1.0+1e-9) );
+
+        return r;
+    }
+    else
+    {
+        if (feature_is_float(idxF))
+        {
+            double v = instance(idxInst).float_feature(idxF) - limitsFeature[idxF].first;
+            double interval = limitsFeature[idxF].second - limitsFeature[idxF].first;
+
+            double r = v/interval;
+
+            assert( (r>=0.0-1e-9) and (r<=1.0+1e-9) );
+
+            return r;
+        }
+    }
+
+    cerr << "cannot get normalized value for field " << features_[idxF] << endl;
+    abort();
+
+    return 0.0;
+}
 
 bool InstanceSet::has(const std::string &iname) const
 {

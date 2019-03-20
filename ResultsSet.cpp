@@ -215,6 +215,9 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
                     case FMRStrategy::AverageInst:
                         res_[i][j] = avgInst[i];
                         break;
+                    case FMRStrategy::Value:
+                        res_[i][j] = Parameters::fillMissingValue;
+                        break;
                 }
                 nMissing++;
             }
