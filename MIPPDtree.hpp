@@ -8,7 +8,10 @@
 #ifndef MIPPDTREE_HPP_
 #define MIPPDTREE_HPP_
 
+extern "C"
+{
 #include "lp.h"
+}
 class InstanceSet;
 class ResultsSet;
 
