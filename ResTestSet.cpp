@@ -70,6 +70,17 @@ ResTestSet::ResTestSet(
     for ( size_t i=0 ; (i<_instances.size()) ; ++i )
         avgInst[i] = 1e20;
 
+    long double **sumRes = new long double*[_instances.size()];
+    sumRes[0] = new long double[_instances.size()*_algsettings.size()];
+    for ( size_t i=0 ; (i<_instances.size()*_algsettings.size()) ; ++i )
+        sumRes[0][i] = 0.0;
+    int **nResIA = new int*[_instances.size()];
+    nResIA[0] = new int[_instances.size()*_algsettings.size()];
+    for ( size_t i=0 ; (i<_instances.size()*_algsettings.size()) ; ++i )
+        nResIA[0][i] = 0;
+    for ( size_t i=1 ; (i<_instances.size()) ; ++i )
+        nResIA[i] = nResIA[i-1] + _algsettings.size();
+
     while (char *s=fgets(line, 4096, f))
     {
         char instName[256]="";
@@ -89,8 +100,6 @@ ResTestSet::ResTestSet(
         assert( token );
         res = atof(token);
 
-        //printf("line %s - inst %s alg %s res %g\n", s, instName, algSetting, res);
-
         auto iti = _instances.find(std::string(instName));
         if (iti == _instances.end())
             continue;
@@ -100,7 +109,9 @@ ResTestSet::ResTestSet(
             continue;
 
         loaded[iti->second][ita->second] = true;
-        res_[iti->second][ita->second] = res;
+
+        sumRes[iti->second][ita->second] += (long double) res;
+        nResIA[iti->second][ita->second]++;
 
         sum += res;
         nRes++;
@@ -111,6 +122,16 @@ ResTestSet::ResTestSet(
         worseRes = max( worseRes, (double)res);
     }
     fclose(f);
+
+    for ( size_t i=0 ; (i<_instances.size()) ; ++i )
+        for ( size_t j=0 ; (j<_instances.size()) ; ++j )
+            if (nResIA)
+                res_[i][j] = (float)( ((long double)sumRes[i][j]) /  ((long double)nResIA[i][j]) );
+
+    delete[] sumRes[0];
+    delete[] sumRes;
+    delete[] nResIA[0];
+    delete[] nResIA;
 
     for ( size_t i=0 ; (i<_instances.size()) ; ++i )
         if (nResInst[i])

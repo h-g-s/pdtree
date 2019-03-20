@@ -134,37 +134,61 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     std::vector< long double > sumInst( iset_.size(), 0.0 );
     std::vector< size_t > nResInst( iset_.size(), 0 );
 
+    // one instance and algorithm may appear more than once
+    long double **sumRes = new long double *[iset_.size()];
+    sumRes[0] = new long double[iset_.size()*algsettings_.size()];
+    for (size_t i=0 ; (i<iset_.size()*algsettings_.size()) ; ++i )
+        sumRes[0][i] = 0.0;
+    for (size_t i=1 ; (i<iset_.size()) ; ++i )
+        sumRes[i] = sumRes[i-1] + algsettings_.size();
+    int **nRes = new int *[iset_.size()];
+    nRes[0] = new int[iset_.size()*algsettings_.size()];
+    for (size_t i=0 ; (i<iset_.size()*algsettings_.size()) ; ++i )
+        nRes[0][i] = 0;
+    for (size_t i=1 ; (i<iset_.size()) ; ++i )
+        nRes[i] = nRes[i-1] + algsettings_.size();
+
     size_t ir = 0;
-    bool msgITwice = false;
     for ( size_t i=0 ; (i<nRows) ; ++i )
     {
         string iname = string(dsres.str_cell(i, 0));
         if (not _iset.has(iname))
             continue;
-        if (res_[iIdx[ir]][aIdx[ir]] != numeric_limits<float>::max() and (not msgITwice))
-        {
-            cout << "warning: result for instance " << iset_.instance(iIdx[ir]).name() <<
-              " and parameter setting " << algsettings_[aIdx[ir]] <<
-              " appear twice in the results file, disable this message for the next repeated entries. " << endl ;
-            msgITwice = true;
-            continue;
-        }
 
         const float r = (float)dsres.float_cell(i, colResult);
 
-        res_[iIdx[ir]][aIdx[ir]] = r;
+        const size_t ii = iIdx[ir];
+        const size_t ia = aIdx[ir];
+
+        sumRes[ii][ia] += (long double)r;
+        nRes[ii][ia]++;
+
         worse = max( worse, r );
-        worseInst[iIdx[ir]] = max( worseInst[iIdx[ir]], r );
-        sumInst[iIdx[ir]] += ((long double)r);
-        ++nResInst[iIdx[ir]];
+        worseInst[ii] = max( worseInst[ii], r );
+        sumInst[ii] += ((long double)r);
+        ++nResInst[ii];
 
         ++ir;
     }
 
+    for ( size_t i=0 ; i<iset_.size() ; ++i )
+        for ( size_t j=0 ; j<algsettings_.size()  ; ++j )
+            if (nRes[i][j])
+                res_[i][j] = (float)(((long double)sumRes[i][j]) / ((long double)nRes[i][j]));
+
+    // average per instance and algorithm
+    delete[] sumRes[0];
+    delete[] sumRes;
+    delete[] nRes[0];
+    delete[] nRes;
+
     // computing average per instance
     std::vector< float > avgInst = vector<float>(iset_.size());
     for ( size_t i=0 ; (i<iset_.size()) ; ++i )
-        avgInst[i] = (float)(((long double)sumInst[i])/((long double)nResInst[i]));
+        if (nResInst[i])
+            avgInst[i] = (float)(((long double)sumInst[i])/((long double)nResInst[i]));
+        else
+            avgInst[i] = worse;
 
     size_t nMissing = 0;
     for ( size_t i=0 ; (i<iset_.size()) ; ++i )
@@ -180,13 +204,13 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
                         res_[i][j] = worse;
                         break;
                     case FMRStrategy::WorseT2:
-                        res_[i][j] = fabs(worse)*2.0;
+                        res_[i][j] = worse + fabs(worse);;
                         break;
                     case FMRStrategy::WorseInst:
                         res_[i][j] = worseInst[i];
                         break;
                     case FMRStrategy::WorseInstT2:
-                        res_[i][j] = fabs(worseInst[i])*2.0;
+                        res_[i][j] = worseInst[i]+fabs(worseInst[i]);;
                         break;
                     case FMRStrategy::AverageInst:
                         res_[i][j] = avgInst[i];
