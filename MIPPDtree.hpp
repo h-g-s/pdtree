@@ -29,9 +29,34 @@ private:
     const ResultsSet *rset_;
     LinearProgram *mip;
 
+    // penalty for more branches
+    static double alpha;
+
     void createBVars();
+    void createDVars();
+    void createAVars();
+    void createLVars();
+    void createZVars();
+    //void createYVars();
+    void createConsLnkBD();
+    void createConsLnkAD();
+    void createConsLNKZL();
 
     std::vector< std::string > branchNodes;
+
+    // feature names without special characters
+    std::vector< std::string > featNames;
+
+    // variable indexes
+    std::vector< int > b; // b indexes
+    std::vector< int > d; // d indexes
+    std::vector< std::vector< int > > a; // a indexes
+    std::vector< int > l;
+    std::vector< std::vector< int > > z;
+
+    size_t nLeafs;
+
+    size_t nInsts;
 };
 
 #endif /* MIPPDTREE_HPP_ */
