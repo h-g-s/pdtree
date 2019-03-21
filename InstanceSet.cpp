@@ -129,8 +129,8 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int
         {
             for ( const auto &inst : instances() )
             {
-                limitsFeature[inst.idx()].first = min( limitsFeature[inst.idx()].first, (double)inst.int_feature(idxF) );
-                limitsFeature[inst.idx()].second = max( limitsFeature[inst.idx()].second, (double)inst.int_feature(idxF) );
+                limitsFeature[idxF].first = min( limitsFeature[idxF].first, (double)inst.int_feature(idxF) );
+                limitsFeature[idxF].second = max( limitsFeature[idxF].second, (double)inst.int_feature(idxF) );
             }
         }
         else
@@ -139,8 +139,8 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int
             {
                 for ( const auto &inst : instances() )
                 {
-                    limitsFeature[inst.idx()].first = min( limitsFeature[inst.idx()].first, (double)inst.float_feature(idxF) );
-                    limitsFeature[inst.idx()].second = max( limitsFeature[inst.idx()].second, (double)inst.float_feature(idxF) );
+                    limitsFeature[idxF].first = min( limitsFeature[idxF].first, (double)inst.float_feature(idxF) );
+                    limitsFeature[idxF].second = max( limitsFeature[idxF].second, (double)inst.float_feature(idxF) );
                 }
             }
         }

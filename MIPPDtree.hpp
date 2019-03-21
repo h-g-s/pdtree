@@ -32,6 +32,12 @@ private:
     // penalty for more branches
     static double alpha;
 
+    // max eps_j value
+    std::vector< double > epsj;
+    double emax;
+
+    void computeEMax();
+
     void createBVars();
     void createDVars();
     void createAVars();
@@ -41,6 +47,8 @@ private:
     void createConsLnkBD();
     void createConsLnkAD();
     void createConsLNKZL();
+    void createConsOneLeaf();
+    void createConsSelectLeaf();
 
     std::vector< std::string > branchNodes;
 
@@ -57,6 +65,13 @@ private:
     size_t nLeafs;
 
     size_t nInsts;
+
+    size_t nFeatures;
+
+    // parents at leaf (0) and right (1)  for each leaf node
+    // parents[l][0] has a list of all nodes which the left side branch has been followed to arrive at l
+    // parents[l][1] has a list of all nodes which the right side branch has been followed to arrive at l
+    std::vector< std::vector< std::vector< int > > > parents;
 };
 
 #endif /* MIPPDTREE_HPP_ */
