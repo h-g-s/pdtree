@@ -24,6 +24,8 @@ public:
 
     Node( const Node *_parent, size_t _nEl, const size_t *_el, const SubSetResults &_ssres, size_t _idx );
 
+    Node( const Node *_parent, size_t _nEl, const size_t *_el, size_t _idx );
+
     // searches for the best branch that does not violates any constraint,
     // if it exists performs it. returns the children nodes
     std::vector<Node *> &perform_branch();

@@ -22,6 +22,12 @@ public:
 
     void build();
 
+    // creates and returns the root node
+    const Node *create_root();
+    
+    // branches by the normalized value
+    std::vector< const Node * > branch( Node *node, size_t idxFeature, const double branchValue );
+
     void draw( const char *fileName ) const;
 
     // saves tree in XML

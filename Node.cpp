@@ -59,6 +59,23 @@ Node::Node( const Node *_parent, size_t _nEl, const size_t *_el, const SubSetRes
     id = ss.str();
 }
 
+Node::Node( const Node *_parent, size_t _nEl, const size_t *_el, size_t _idx ) :
+    iset_(_parent->iset_),
+    rset_(_parent->rset_),
+    ssres_( &(_parent->rset_), Parameters::eval, true, _nEl, _el ),
+    ossr(nullptr),
+    nEl_(_nEl),
+    el_(new size_t[_nEl]),
+    parent_(_parent),
+    depth(_parent->depth+1),
+    idx(_idx)
+{
+    memcpy(el_, _el, sizeof(size_t)*nEl_ );
+    stringstream ss;
+    ss << "nL" << depth << "I" << idx;
+    id = ss.str();
+}
+
 std::vector<Node *> &Node::perform_branch()
 {
     if (child_.size())
@@ -202,6 +219,7 @@ void Node::writeXML(tinyxml2::XMLDocument *doc, tinyxml2::XMLElement *parent ) c
     for ( const auto &n : child_ )
         n->writeXML( doc, node );
 }
+
 
 
 Node::~Node ()

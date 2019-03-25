@@ -138,6 +138,50 @@ void Tree::draw( const char *fileName ) const
     of.close();
 }
 
+const Node *Tree::create_root()
+{
+    Node *root = new Node(this->iset_, this->rset_);
+
+    nodes_.push_back( root );
+
+    return root;
+}
+
+vector< const Node * > Tree::branch( Node *node, size_t idxFeature, const double branchValue )
+{
+    vector< const Node * > res(2, nullptr);
+    vector< vector<size_t> > elementsB(2);
+    for ( size_t i=0 ; (i<node->n_elements()) ; ++i )
+    {
+        const size_t el = node->elements()[i];
+        const double v = (iset_.norm_feature_val(el, idxFeature));
+        if (v<=branchValue+1e-12)
+            elementsB[0].push_back(el);
+        else
+            elementsB[1].push_back(el);
+    }
+
+    Node *nodeLeft = new Node(node, elementsB[0].size(), &elementsB[0][0], (node->idx*2) );
+    Node *nodeRight = new Node(node, elementsB[1].size(), &elementsB[1][0], (node->idx*2)+1 );
+    res[0] = nodeLeft;
+    res[1] = nodeRight;
+
+    node->bestBranch_.elements_.resize(2);
+    node->bestBranch_.elements_[0] = vector< size_t >(&elementsB[0][0], &elementsB[0][0] + elementsB[0].size());
+    node->bestBranch_.elements_[1] = vector< size_t >(&elementsB[1][0], &elementsB[1][0] + elementsB[1].size());
+    
+/*
+    if (iset_.types()[idxFeature] == Float)
+    {
+        node->bestBranch_
+    } */
+
+    node->child_.push_back(nodeLeft);
+    node->child_.push_back(nodeRight);
+
+    return res;
+}
+
 void Tree::build()
 {
     if (root != nullptr)
