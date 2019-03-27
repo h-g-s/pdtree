@@ -66,7 +66,7 @@ int main( int argc, const char **argv )
             algs[alg] = idxa++;
 
         ResTestSet resTestSet(instsTest, algs, argv[2]);
-        Tree tree(trainSet, trainRes, &resTestSet);
+        Tree tree(&trainSet, &trainRes, &resTestSet);
         tree.build();
         double rtest = tree.evaluate(trainSet.test_dataset_);
         cout << "result train: " << tree.leafResults() << " result test: " << rtest << endl << endl;

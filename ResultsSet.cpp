@@ -10,6 +10,7 @@
 #include <bits/types/clock_t.h>
 #include <sys/time.h>
 #include <algorithm>
+#include <cfloat>
 #include <cassert>
 #include <cctype>
 #include <cmath>
@@ -171,10 +172,13 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         ++ir;
     }
 
+    // if there are more results per instance and algorithm
     for ( size_t i=0 ; i<iset_.size() ; ++i )
         for ( size_t j=0 ; j<algsettings_.size()  ; ++j )
-            if (nRes[i][j])
+            if (nRes[i][j]>=2)
                 res_[i][j] = (float)(((long double)sumRes[i][j]) / ((long double)nRes[i][j]));
+            else
+                res_[i][j] = (float)(((long double)sumRes[i][j]));
 
     // average per instance and algorithm
     delete[] sumRes[0];
@@ -224,6 +228,21 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         }
     }
 
+    // storing difference from best result per instance
+    vector< double > bestResInst( iset_.size(), DBL_MAX );
+    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+        for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+            bestResInst[i] = min(bestResInst[i], (double)res_[i][j]);
+
+    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    {
+        for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+        {
+            res_[i][j] = res_[i][j]-bestResInst[i];
+            assert(res_[i][j] >= 0.0-1e-9);
+        }
+    }
+    
     if (nMissing)
     {
         const double percm = ( (((double)nMissing))/(((double)iset_.size()*algsettings_.size())) )*100.0;
@@ -430,5 +449,20 @@ void ResultsSet::save_csv( const char *fileName, Evaluation _eval ) const
     }
 
     of.close();
+}
+
+int ResultsSet::res(size_t iIdx, size_t iAlg) const
+{
+    switch (Parameters::eval)
+    {
+    case Average:
+        return this->get(iIdx, iAlg);
+        break;
+    case Rank:
+        return this->rank(iIdx, iAlg);
+        break;
+    }
+
+    return 0.0;
 }
 

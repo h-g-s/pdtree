@@ -18,13 +18,15 @@ class Tree;
 
 #include <vector>
 #include <string>
+#include <cfloat>
+#include <climits>
 
 class MIPPDtree
 {
 public:
     MIPPDtree( const InstanceSet *_iset, const ResultsSet *_rset );
 
-    Tree *build();
+    Tree *build( const int maxSeconds = INT_MAX );
 
     virtual ~MIPPDtree ();
 private:
@@ -50,33 +52,43 @@ private:
 
     void computeEMax();
 
-    void createBVars();
-    void createDVars();
-    void createAVars();
-    void createLVars();
-    void createZVars();
-    void createCVars();
-    void createWVars();
-    void createConsLnkBD();
-    void createConsLnkAD();
-    void createConsLNKZL();
-    void createConsOneLeaf();
-    void createConsSelectLeaf();
-    void createConsSelCLeaf();
+    std::vector< std::vector< int > > c;
+    std::vector< std::vector<int> > w;
+    std::vector< std::vector< std::vector< int > > > parents;
 
+    // name of branchnodes
     std::vector< std::string > branchNodes;
 
     // feature names without special characters
     std::vector< std::string > featNames;
 
-    // variable indexes
+    std::vector< std::string > leafNodes;
+
     std::vector< int > b; // b indexes
     std::vector< int > d; // d indexes
+
+    void createBVars();
+    void createDVars();
+    void createAVars();
+    void createConsLnkAD();
+    void createLVars();
     std::vector< std::vector< int > > a; // a indexes
     std::vector< int > l;
+
+    // variable indexes
+    /*
+    void createLVars();
+    void createZVars();
+    void createCVars();
+    void createWVars();
+    void createConsLnkBD();
+    void createConsLNKZL();
+    void createConsOneLeaf();
+    void createConsSelectLeaf();
+    void createConsSelCLeaf();
+
+    std::vector< int > l;
     std::vector< std::vector< int > > z;
-    std::vector< std::vector< int > > c;
-    std::vector< std::vector<int> > w;
 
     void createConsLnkParent();
 
@@ -86,8 +98,8 @@ private:
     // parents at leaf (0) and right (1)  for each leaf node
     // parents[l][0] has a list of all nodes which the left side branch has been followed to arrive at l
     // parents[l][1] has a list of all nodes which the right side branch has been followed to arrive at l
-    std::vector< std::vector< std::vector< int > > > parents;
-
+*/
 };
 
 #endif /* MIPPDTREE_HPP_ */
+

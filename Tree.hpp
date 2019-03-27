@@ -8,26 +8,24 @@
 #ifndef TREE_HPP_
 #define TREE_HPP_
 
-#include <string>
 #include "InstanceSet.hpp"
 #include "ResultsSet.hpp"
 
 class Node;
 class ResTestSet;
+class InstanceSet;
+class ResultsSet;
 
 class Tree
 {
 public:
-    Tree( const InstanceSet &_iset, const ResultsSet &_rset, const ResTestSet *_rtest = nullptr );
+    Tree( const InstanceSet *_iset, const ResultsSet *_rset, const ResTestSet *_rtest = nullptr );
 
-    void build();
+    void addNode( Node *_node );
 
     // creates and returns the root node
-    const Node *create_root();
+    Node *create_root();
     
-    // branches by the normalized value
-    std::vector< const Node * > branch( Node *node, size_t idxFeature, const double branchValue );
-
     void draw( const char *fileName ) const;
 
     // saves tree in XML
@@ -42,14 +40,11 @@ public:
 
     virtual ~Tree ();
 private:
-    const Node *node_instance( const Dataset *testd, size_t idxInst ) const;
+    char nLabel[8192];
+    const char *node_label( const Node *node ) const;
 
-    double cost_instance( const Dataset *testd, size_t idxInst, const ResTestSet *rtst ) const;
-
-    std::string node_label( const Node *node ) const;
-
-    const InstanceSet &iset_;
-    const ResultsSet &rset_;
+    const InstanceSet *iset_;
+    const ResultsSet *rset_;
 
     Node *root;
 

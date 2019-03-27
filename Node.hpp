@@ -9,91 +9,105 @@
 #define NODE_HPP_
 
 #include <stddef.h>
-#include <vector>
 
-#include "Branching.hpp"
-#include "InstanceSet.hpp"
 #include "tinyxml2.h"
 
+class InstanceSet;
+class ResultsSet;
 class XMLDocument;
 
 class Node
 {
 public:
-    Node( const InstanceSet &_iset, const ResultsSet &_rset );
-
-    Node( const Node *_parent, size_t _nEl, const size_t *_el, const SubSetResults &_ssres, size_t _idx );
+    Node( const InstanceSet *_iset, const ResultsSet *_rset );
 
     Node( const Node *_parent, size_t _nEl, const size_t *_el, size_t _idx );
+    
+    void branchOn( const size_t idxF, const double normValue );
 
-    // searches for the best branch that does not violates any constraint,
-    // if it exists performs it. returns the children nodes
-    std::vector<Node *> &perform_branch();
-
-    // returns the best branch selected in this node
-    // may be empty if the node is a leaf
-    const Branching &best_branch() {
-        return this->bestBranch_;
-    }
-
-    const std::vector<Node *> &child() {
-        return child_;
+    Node **child() {
+        return &(child_[0]);
     }
 
     const Node *parent() const {
         return parent_;
     }
 
+    // number of instances in node
     size_t n_elements() const {
         return nEl_;
     }
 
+    // instances on node
     const size_t *elements() const {
         return el_;
     }
 
-    const SubSetResults &result( const Evaluation eval_ = Parameters::eval ) {
-        if (eval_==Parameters::eval)
-            return this->ssres_;
-        
-        if (ossr==nullptr)
-        {
-            switch (eval_)
-            {
-                case Average:
-                    this->ossr = new SubSetResults( &rset_, Average, true, this->n_elements(), this->elements() );
-                    break;
-                case Rank:
-                    this->ossr = new SubSetResults( &rset_, Rank, true, this->n_elements(), this->elements() );
-                    break;
-            }
-        }
+    size_t bestAlg() const {
+        return idxBestAlg;
+    }
 
-        return *ossr;
+    size_t idx() const {
+        return idx_;
+    }
+
+    // cost based on best algorithm
+    double nodeCost() const {
+        return nodeCost_;
+    }
+    
+    // node depth  
+    int depth() const {
+        return depth_;
+    }
+
+    // branch feature idx or
+    // numeric_limits<size_t>::max()
+    size_t branchFeature() const {
+        return idxFBranch;
+    }
+
+    // branch value
+    double branchValue() const {
+        return branchValue_;
+    }
+
+    const char *id() const {
+        return &id_[0];
     }
 
     void writeXML(tinyxml2::XMLDocument *doc, tinyxml2::XMLElement *parent ) const;
 
     virtual ~Node ();
 private:
-    const InstanceSet &iset_;
-    const ResultsSet &rset_;
-    const SubSetResults ssres_;
-    // other subset results (rank or average)
-    SubSetResults *ossr;
-
+    const InstanceSet *iset_;
+    const ResultsSet *rset_;
+    
+    // instances on this node
     size_t nEl_;
     size_t *el_;
-
+    
+    // parent node
     const Node *parent_;
-    std::vector< Node * > child_;
-    Branching bestBranch_;
 
-    size_t depth; // node depth
-    size_t idx; // index on this depth
-    std::string id;
+    // child nodes
+    Node *child_[2];
+
+    size_t idxFBranch;
+    double branchValue_;
+    
+    size_t depth_; // node depth
+    size_t idx_; // index on this depth
+    char id_[64];
+    
+    size_t idxBestAlg;
+    double nodeCost_;
+    double avRank;
+
+    void computeResultsNode();
 
     friend class Tree;
 };
 
 #endif /* NODE_HPP_ */
+

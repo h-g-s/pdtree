@@ -40,7 +40,7 @@ int main(int argc, const char **argv)
 
         //rset.save_csv("res.csv", Rank);
 
-        Tree tree(iset, rset);
+        Tree tree(&iset, &rset);
         tree.build();
 
         tree.draw("graph.gv");

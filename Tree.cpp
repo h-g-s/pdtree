@@ -7,7 +7,8 @@
 
 #include "Tree.hpp"
 
-#include <stddef.h>
+#include <cstddef>
+#include <cfloat>
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
@@ -17,8 +18,11 @@
 #include <sstream>
 #include <utility>
 #include <vector>
+#include <cstring>
 #include <unordered_map>
 
+#include "InstanceSet.hpp"
+#include "ResultsSet.hpp"
 #include "Branching.hpp"
 #include "Instance.hpp"
 #include "Node.hpp"
@@ -28,7 +32,7 @@
 
 using namespace std;
 
-Tree::Tree ( const InstanceSet &_iset, const ResultsSet &_rset, const ResTestSet *_rtest ) :
+Tree::Tree( const InstanceSet *_iset, const ResultsSet *_rset, const ResTestSet *_rtest ) :
     iset_(_iset),
     rset_(_rset),
     root(nullptr),
@@ -41,11 +45,11 @@ Tree::Tree ( const InstanceSet &_iset, const ResultsSet &_rset, const ResTestSet
 
 }
 
-std::string Tree::node_label( const Node *node ) const
+const char *Tree::node_label( const Node *node ) const
 {
     stringstream ss;
-    string algsetting = rset_.algsettings()[node->ssres_.bestAlg()];
-    double res = node->ssres_.bestAlgRes();
+    string algsetting = rset_->algsettings()[node->bestAlg() ];
+    double res = node->nodeCost();
 
     ss << "     <table border=\"1\" cellspacing=\"1\" cellborder=\"1\" bgcolor=\"LightYellow\">" << endl;
     ss << "     <tr>" << endl;
@@ -54,7 +58,7 @@ std::string Tree::node_label( const Node *node ) const
     for ( int i=0 ; (i<(int)min(((int)5), ((int)node->nEl_))) ; ++i )
     {
         ss << "     <tr>" << endl;
-        ss << "      <td align=\"left\"><font color=\"Indigo\"><i>" << iset_.instance(node->el_[i]).name() << "</i></font></td>" << endl;
+        ss << "      <td align=\"left\"><font color=\"Indigo\"><i>" << iset_->instance(node->el_[i]).name() << "</i></font></td>" << endl;
         ss << "     </tr>" << endl;
     }
     if (node->nEl_>5)
@@ -75,7 +79,9 @@ std::string Tree::node_label( const Node *node ) const
     ss << "     </tr>" << endl;
     ss << "    </table>" << endl;;
 
-    return ss.str();
+    strncpy( (char*)&nLabel[0], (const char *) ss.str().c_str(), 8192 );
+
+    return &nLabel[0];
 }
 
 void Tree::draw( const char *fileName ) const
@@ -90,12 +96,12 @@ void Tree::draw( const char *fileName ) const
     map< size_t, double > perfLevel;
     map< size_t, int > nInstLevel;
     for ( auto n : nodes_ )
-        nInstLevel[n->depth] += n->nEl_;
+        nInstLevel[n->depth_] += n->nEl_;
 
     for ( auto n : nodes_ )
     {
-        levelNodes[n->depth].push_back(n);
-        perfLevel[n->depth] += (n->ssres_.bestAlgRes()) * (((double)n->nEl_) / ((double)nInstLevel[n->depth]));
+        levelNodes[n->depth_].push_back(n);
+        perfLevel[n->depth_] += (n->nodeCost()) * (((double)n->nEl_) / ((double)nInstLevel[n->depth_]));
     }
 
     for ( auto nl : levelNodes )
@@ -110,7 +116,7 @@ void Tree::draw( const char *fileName ) const
         for ( auto ni=nodes.rbegin() ; (ni!=nodes.rend()) ; ++ni )
         {
             auto n = *ni;
-            of << "  \"" << n->id.c_str() << "\" [";
+            of << "  \"" << n->id() << "\" [";
             of << "    label = <" << endl;
             of << node_label(n);
             of << "> shape=\"box\" fillcolor=\"LightYellow\" ];" << endl;
@@ -124,12 +130,23 @@ void Tree::draw( const char *fileName ) const
     for ( auto n : nodes_ )
     {
         bool left = true;
-        for ( auto c : n->child() )
+        const Node **childs = (const Node **)n->child();
+        if (childs[0])
         {
-            string lbl = iset_.features()[n->best_branch().idxF_] +
-                    (left ? string("≤") : string(">")) + n->best_branch().as_str();
-            of << "    " << n->id << " -> " << c->id << " [label=\""<< lbl << "\"];" << endl;
-            left = not left;
+            assert( childs[1] );
+
+            {
+                const Node *c = childs[0];
+                char lbl[256];
+                sprintf(lbl, "%s≤%g", iset_->features()[n->branchFeature()].c_str(), n->branchValue());
+                of << "    " << n->id() << " -> " << c->id() << " [label=\""<< lbl << "\"];" << endl;
+            }
+            {
+                const Node *c = childs[1];
+                char lbl[256];
+                sprintf(lbl, "%s>%g", iset_->features()[n->branchFeature()].c_str(), n->branchValue());
+                of << "    " << n->id() << " -> " << c->id() << " [label=\""<< lbl << "\"];" << endl;
+            }
         }
     }
 
@@ -138,106 +155,13 @@ void Tree::draw( const char *fileName ) const
     of.close();
 }
 
-const Node *Tree::create_root()
+Node *Tree::create_root()
 {
     Node *root = new Node(this->iset_, this->rset_);
 
     nodes_.push_back( root );
 
     return root;
-}
-
-vector< const Node * > Tree::branch( Node *node, size_t idxFeature, const double branchValue )
-{
-    vector< const Node * > res(2, nullptr);
-    vector< vector<size_t> > elementsB(2);
-    for ( size_t i=0 ; (i<node->n_elements()) ; ++i )
-    {
-        const size_t el = node->elements()[i];
-        const double v = (iset_.norm_feature_val(el, idxFeature));
-        if (v<=branchValue+1e-12)
-            elementsB[0].push_back(el);
-        else
-            elementsB[1].push_back(el);
-    }
-
-    Node *nodeLeft = new Node(node, elementsB[0].size(), &elementsB[0][0], (node->idx*2) );
-    Node *nodeRight = new Node(node, elementsB[1].size(), &elementsB[1][0], (node->idx*2)+1 );
-    res[0] = nodeLeft;
-    res[1] = nodeRight;
-
-    node->bestBranch_.elements_.resize(2);
-    node->bestBranch_.elements_[0] = vector< size_t >(&elementsB[0][0], &elementsB[0][0] + elementsB[0].size());
-    node->bestBranch_.elements_[1] = vector< size_t >(&elementsB[1][0], &elementsB[1][0] + elementsB[1].size());
-    
-/*
-    if (iset_.types()[idxFeature] == Float)
-    {
-        node->bestBranch_
-    } */
-
-    node->child_.push_back(nodeLeft);
-    node->child_.push_back(nodeRight);
-
-    return res;
-}
-
-void Tree::build()
-{
-    if (root != nullptr)
-    {
-        cerr << "tree already built" << endl;
-        abort();
-    }
-
-    root = new Node( iset_, rset_ );
-
-    vector< Node * > queue;
-    queue.push_back( root );
-
-    while (queue.size())
-    {
-        Node *node = queue.back();
-        nodes_.push_back(node);
-        queue.pop_back();
-
-        /*
-        if (node->n_elements()==79)
-        {
-            ofstream of("insts.txt");
-            for (size_t i=0 ; (i<node->n_elements()) ; ++i )
-            {
-                const auto inst = iset_.instance( node->elements()[i] );
-                of << inst.name() << endl;
-            }
-
-            of.close();
-        } */
-    
-        this->maxDepth = max( this->maxDepth, node->depth+1 );
-        this->minInstancesNode = min( this->minInstancesNode, node->n_elements() );
-
-        node->perform_branch();
-
-        auto child = node->child();
-        if (child.size() == 0)
-            leafs_.push_back(node);
-        else
-            for ( auto c : child )
-                queue.push_back(c);
-    }
-
-    double rootRes = root->result().bestAlgRes();
-    long double resLeafs = 0.0;
-    for ( auto l : leafs_ )
-        resLeafs  += l->result().bestAlgRes() * ( (long double) l->n_elements() / (long double) root->n_elements() );
-
-    this->resultLeafs = (double) resLeafs;
-
-    if (resultLeafs!=0.0)
-        improvement = rootRes / resultLeafs;
-    else
-        improvement = 0.0;
 }
 
 using namespace tinyxml2;
@@ -275,8 +199,8 @@ void Tree::save( const char *fileName ) const
     addElement(&doc, tree, "minInstancesNode", (int)this->minInstancesNode );
     addElement(&doc, tree, "instancesFile", Parameters::instancesFile.c_str() );
     addElement(&doc, tree, "experimentsFile", Parameters::resultsFile.c_str() );
-    addElement(&doc, tree, "nInstances", (int)iset_.instances().size() );
-    addElement(&doc, tree, "nAlgorithms", (int)rset_.algsettings().size() );
+    addElement(&doc, tree, "nInstances", (int)iset_->instances().size() );
+    addElement(&doc, tree, "nAlgorithms", (int)rset_->algsettings().size() );
 
     XMLElement *params = doc.NewElement("PDTreeParameters");
     tree->InsertEndChild(params);
@@ -295,81 +219,14 @@ void Tree::save( const char *fileName ) const
     doc.SaveFile(fileName);
 }
 
-const Node *Tree::node_instance( const Dataset *testd, size_t idxInst ) const
+void Tree::addNode( Node *_node )
 {
-    const Node *node = this->root;
-    while (node->bestBranch_.found())
-    {
-        assert(node->child_.size()==2);
-
-        // check if instance is at left or right
-        size_t idxF = node->bestBranch_.idxF_;
-        std::string colName = node->iset_.features()[idxF];
-        size_t idxFtd = iset_.test_dataset_->colIdx(colName);
-        assert( iset_.types()[idxF] == iset_.test_dataset_->types()[idxFtd] );
-
-        if (iset_.feature_is_float(idxF))
-        {
-            double vinst = testd->float_cell(idxInst, idxFtd);
-            if (vinst<=node->bestBranch_.value_.vfloat)
-                node = node->child_[0];
-            else
-                node = node->child_[1];
-        }
-        else
-        {
-            if (iset_.feature_is_integer(idxF))
-            {
-                int vinst = testd->int_cell(idxInst, idxFtd);
-                if (vinst<=node->bestBranch_.value_.vint)
-                    node = node->child_[0];
-                else
-                    node = node->child_[1];
-            }
-            else
-            {
-                cerr << "branch type not supported" << endl;
-                exit(1);
-            }
-        }
-    } // continue branch
-
-    return node;
-}
-
-double Tree::cost_instance( const Dataset *testd, size_t idxInst, const ResTestSet *rtst ) const
-{
-    const Node *nodeInst = this->node_instance(testd, idxInst);
-    size_t idxAlg = nodeInst->ssres_.bestAlg();
-
-    if (Parameters::eval==Rank)
-        return rtst->rank(idxInst, idxAlg);
-
-    return rtst->get(idxInst, idxAlg);
+    this->nodes_.push_back(_node);
 }
 
 double Tree::evaluate( const Dataset *testData ) const
 {
-    if (rtest_ == nullptr)
-    {
-        cerr << "results test set not informed." << endl;
-        abort();
-    }
-
-    long double sum = 0.0;
-
-    for ( size_t i=0 ; (i<testData->rows()) ; ++i )
-    {
-        const double instCost = cost_instance(iset_.test_dataset_, i, rtest_);
-        //cout << "test instance " << testData->str_cell(i, 0) << " cost: " << instCost << endl;
-        sum += instCost;
-    }
-
-    long double res = (sum) / ((long double)testData->rows());
-
-    if (Parameters::eval==Rank)
-        return (double) 1.0 + res;
-    return (double)res;
+    return DBL_MAX;
 }
 
 Tree::~Tree ()

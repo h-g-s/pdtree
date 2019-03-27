@@ -31,6 +31,10 @@ public:
     // returns the ranking of instance
     // iIdx, for algorithm/parameter setting iAlg
     int rank(size_t iIdx, size_t iAlg) const;
+    
+    // return normal result or rank 
+    // depending on param settings
+    int res(size_t iIdx, size_t iAlg) const;
 
     const std::vector<std::string> &algsettings() const {
         return this->algsettings_;
