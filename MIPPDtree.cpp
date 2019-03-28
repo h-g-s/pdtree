@@ -68,6 +68,10 @@ MIPPDtree::MIPPDtree( const InstanceSet *_iset, const ResultsSet *_rset ) :
 {
     computeEMax();
 
+    // names for instances
+    for ( size_t i=0 ; (i<nInsts) ; ++i )
+        insts.push_back( clean_str(iset_->instance(i).name()) );
+
     // branch nodes
     for ( size_t d=0 ; (d<Parameters::maxDepth-1) ; ++d )
     {
@@ -107,19 +111,25 @@ MIPPDtree::MIPPDtree( const InstanceSet *_iset, const ResultsSet *_rset ) :
     createDVars();
     createLVars();
     createAVars();
+    createCVars();
+    createZVars();
+    createWVars();
 
     createConsLnkAD();
-    /*
-    createLVars();
-    createZVars();
     createConsLnkBD();
-    createConsLNKZL();
     createConsOneLeaf();
+    createConsLNKZL();
+    createConsBranchOrLeaf();
+    createConsOneLeafPath();
     createConsSelectLeaf();
-    createCVars();
-    createWVars();
-    createConsLnkParent();
+    createConsOneLeafPerProb();
     createConsLnkWCZ();
+    createConsSelOneW();
+    createConsBranchBeforeLeaf();
+
+    
+    /*
+    createConsLnkParent();
     createConsSelCLeaf();
 */
     lp_write_lp(mip, "mm.lp");
@@ -211,28 +221,6 @@ void MIPPDtree::createConsLnkAD()
     }
 }
 
-
-/*
-void MIPPDtree::createBVars()
-{
-    b = vector< int >( branchNodes.size() );
-    vector< double > lb( branchNodes.size(), 0.0 );
-    vector< double > ub( branchNodes.size(), 1.0 );
-    vector< double > obj( branchNodes.size(), 0.0 );
-    vector< char > isint( branchNodes.size(), 0 );
-    vector< string > cnames(branchNodes.size());
-    for ( size_t i=0 ; (i<branchNodes.size()) ; ++i )
-    {
-        b[i] = lp_cols(mip) + i;
-        cnames[i] = "b(" + branchNodes[i] + ")";
-    }
-
-    char **names = to_char_vec(cnames);
-    lp_add_cols( mip, cnames.size(), &obj[0], &lb[0], &ub[0], &isint[0], names );
-
-    free( names );
-}
- */
 static char **to_char_vec( const vector< string > names )
 {
     size_t spaceVec = (sizeof(char*)*names.size());
@@ -271,28 +259,6 @@ void MIPPDtree::createLVars()
     free(names);
 }
 
-/*
-void MIPPDtree::createDVars()
-{
-    d = vector< int >( branchNodes.size() );
-    vector< double > lb( branchNodes.size(), 0.0 );
-    vector< double > ub( branchNodes.size(), 1.0 );
-    vector< double > obj( branchNodes.size(), MIPPDtree::alpha );
-    vector< char > isint( branchNodes.size(), 1 );
-    vector< string > cnames(branchNodes.size());
-    lb[0] = 1.0;
-    for ( size_t i=0 ; (i<branchNodes.size()) ; ++i )
-    {
-        cnames[i] = "d(" + branchNodes[i] + ")";
-        d[i] = lp_cols(mip) + i;
-    }
-
-    char **names = to_char_vec(cnames);
-    lp_add_cols( mip, cnames.size(), &obj[0], &lb[0], &ub[0], &isint[0], names );
-
-    free( names );
-}
-
 void MIPPDtree::createConsLnkBD()
 {
     for ( size_t i=0 ; (i<branchNodes.size()) ; ++i )
@@ -300,53 +266,8 @@ void MIPPDtree::createConsLnkBD()
         double coef[] = { 1.0, -1.0 };
         int idx[] = { b[i], d[i] };
         char rname[256] = "";
-        sprintf(rname, "lnkbd(%zu)", i );
+        sprintf(rname, "lnkbd(%s)", branchNodes[i].c_str() );
         lp_add_row(mip, 2, idx, coef, rname, 'L', 0.0);
-    }
-}
-
-void MIPPDtree::createAVars()
-{
-    vector< string > vnames;
-    a = vector< vector< int > >( iset_->features().size(), vector< int >( branchNodes.size() ) );
-    for ( size_t idxF=0 ; (idxF<iset_->features().size()) ; ++idxF )
-    {
-        for ( size_t idxN=0 ; (idxN<branchNodes.size()) ; ++idxN )
-        {
-            char vname[512];
-            sprintf(vname, "a(%s,%s)",
-                    clean_str(iset_->features()[idxF].c_str()).c_str() ,
-                    branchNodes[idxN].c_str());
-            a[idxF][idxN] = lp_cols(mip) + vnames.size();
-            vnames.push_back(vname);
-        }
-    }
-
-    vector< double > lb( vnames.size(), 0.0 );
-    vector< double > ub( vnames.size(), 1.0 );
-    vector< double > obj( vnames.size(), 0.0 );
-    vector< char > isint( vnames.size(), 1 );
-
-    char **names = to_char_vec(vnames);
-    lp_add_cols( mip, vnames.size(), &obj[0], &lb[0], &ub[0], &isint[0], names );
-
-    free( names );
-}
-
-void MIPPDtree::createConsLnkAD()
-{
-    for ( size_t idxN=0 ; (idxN<branchNodes.size()) ; ++idxN )
-    {
-        vector< int > idx( iset_->features().size()+1 );
-        vector< double > coef( iset_->features().size()+1, 1.0 );
-        *coef.rbegin() = -1.0;
-        *idx.rbegin() = d[idxN];
-        for ( size_t idxF=0 ; (idxF<iset_->features().size()) ; ++idxF )
-            idx[idxF] = a[idxF][idxN];
-
-        char rname[256];
-        sprintf( rname, "lnkAD(%s)", branchNodes[idxN].c_str() );
-        lp_add_row(mip, iset_->features().size()+1, &idx[0], &coef[0], rname, 'E', 0.0 );
     }
 }
 
@@ -359,7 +280,11 @@ void MIPPDtree::createZVars()
         for ( size_t il=0 ; (il<nLeafs) ; ++il )
         {
             char cName[256];
-            sprintf(cName, "z(%zu,%zu)", i, il );
+#ifdef DEBUG
+            sprintf(cName, "z(%zu,%s)", i, leafNodes[il].c_str());
+#else
+            sprintf(cName, "z(%s,%s)", insts[i].c_str(), leafNodes[il].c_str());
+#endif
             z[i][il] = lp_cols(mip)+cnames.size();
             cnames.push_back( cName );
         }
@@ -398,7 +323,6 @@ void MIPPDtree::createConsLNKZL()
 
         lp_add_row( mip, nInsts+1, &idx[0], &coef[0], rName, 'G', 0.0 );
     }
-
 }
 
 void MIPPDtree::createConsSelectLeaf()
@@ -416,24 +340,22 @@ void MIPPDtree::createConsSelectLeaf()
 
                 for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )
                 {
-                    const double c = iset_->norm_feature_val( i, idxF )*SEL_LEAF_SCAL;
-                    if (fabs((c<=1e-2)))
-                        continue;
+                    const double c = iset_->norm_feature_val( i, idxF )*SEL_LEAF_SCAL + 1.0;
 
                     idx.push_back(a[idxF][leftN]);
                     coef.push_back(c);
                 }
 
                 idx.push_back(b[leftN]);
-                coef.push_back(-1.0);
+                coef.push_back(-1.0*SEL_LEAF_SCAL);
 
                 idx.push_back( z[i][idxL] );
-                coef.push_back( 1.0*SEL_LEAF_SCAL );
+                coef.push_back( 1.0*SEL_LEAF_SCAL+1.0 );
 
                 char rName[256];
-                sprintf(rName, "selNAL(%zu,%zu,%d)", i, idxL, leftN );
+                sprintf(rName, "selNAL(%zu,%s,%d)", i, leafNodes[idxL].c_str(), leftN );
 
-                lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'L', SEL_LEAF_SCAL*1.0 );
+                lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'L', SEL_LEAF_SCAL+1.0 );
             } // parents at left
 
             for ( const auto rightN : parents[idxL][Right] )
@@ -445,29 +367,27 @@ void MIPPDtree::createConsSelectLeaf()
 
                 for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )
                 {
-                    double c = (iset_->norm_feature_val( i, idxF )-epsj[idxF])*SEL_LEAF_SCAL;
-                    if (fabs((c<=1e-2)))
-                        continue;
+                    double c = (iset_->norm_feature_val( i, idxF )-epsj[idxF])*SEL_LEAF_SCAL + 1.0;
 
                     idx.push_back(a[idxF][rightN]);
-                    coef.push_back(c );
+                    coef.push_back( c );
                 }
 
                 idx.push_back(b[rightN]);
-                coef.push_back(-1.0);
+                coef.push_back( -1.0*SEL_LEAF_SCAL );
 
                 idx.push_back( z[i][idxL] );
-                coef.push_back( (-(1.0+emax))*SEL_LEAF_SCAL );
+                coef.push_back( (-( (1.0+emax))*SEL_LEAF_SCAL +1.0 )  );
 
                 char rName[256];
-                sprintf(rName, "selNRL(%zu,%zu,%d)", i, idxL, rightN );
+                sprintf(rName, "selNRL(%zu,%s,%d)", i, leafNodes[idxL].c_str(), rightN );
 
-                lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'G', (-(1.0+emax))*SEL_LEAF_SCAL );
+                lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'G', (-((1.0+emax))*SEL_LEAF_SCAL+1.0) );
             } // parents at right
         } // leafs
     } // instances
 }
-*/
+
 void MIPPDtree::computeEMax()
 {
     emax = DBL_MIN;
@@ -497,7 +417,6 @@ void MIPPDtree::computeEMax()
     printf("%g", emax);
 }
 
-/*
 void MIPPDtree::createConsOneLeaf()
 {
     for ( size_t i=0 ; (i<nInsts) ; ++i  )
@@ -523,7 +442,7 @@ void MIPPDtree::createCVars()
         for ( size_t idxAlg=0 ; (idxAlg<nAlgs) ; ++idxAlg )
         {
             char cName[256];
-            sprintf(cName, "c(%zu,%zu)", idxL, idxAlg );
+            sprintf(cName, "c(%s,%zu)", leafNodes[idxL].c_str(), idxAlg );
             c[idxL][idxAlg] = lp_cols(mip) + cnames.size();
             cnames.push_back( string(cName) );
         }
@@ -534,20 +453,6 @@ void MIPPDtree::createCVars()
 
     lp_add_bin_cols(mip, cnames.size(), &obj[0], names );
     free(names);
-}
-
-void MIPPDtree::createConsLnkParent()
-{
-    for ( int idxb=1 ; (idxb<(int)branchNodes.size()) ; ++idxb )
-    {
-        int parent = (idxb-1)/2;
-
-        int idx[] = {d[idxb], d[parent]};
-        double coef[] = {1.0, -1,0};
-        char rName[256];
-        sprintf(rName, "parent(%d)", idxb);
-        lp_add_row( mip, 2, idx, coef, rName, 'L', 0.0 );
-    }
 }
 
 void MIPPDtree::createWVars()
@@ -571,6 +476,25 @@ void MIPPDtree::createWVars()
     lp_add_bin_cols(mip, cnames.size(), &obj[0], names );
     free(names);
 }
+
+void MIPPDtree::createConsSelCLeaf()
+{
+    for ( size_t idxL=0 ; (idxL<nLeafs) ; ++idxL )
+    {
+        vector< int > idx( nAlgs + 1 );
+        vector< double > coef( nAlgs +1 , 1.0 );
+        
+        for ( size_t idxAlg=0 ; (idxAlg<nAlgs) ; ++idxAlg )
+            idx[idxAlg] = c[idxL][idxAlg];
+
+        *idx.rbegin() = l[idxL];
+        *coef.rbegin() = -1.0;
+
+        char rName[256];
+        sprintf(rName, "selParamL(%s)", leafNodes[idxL].c_str());
+        lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'E', 0.0 );
+    }
+} 
 
 void MIPPDtree::createConsLnkWCZ()
 {
@@ -603,24 +527,22 @@ void MIPPDtree::createConsLnkWCZ()
     }
 }
 
-void MIPPDtree::createConsSelCLeaf()
+/*
+void MIPPDtree::createConsLnkParent()
 {
-    for ( size_t idxL=0 ; (idxL<nLeafs) ; ++idxL )
+    for ( int idxb=1 ; (idxb<(int)branchNodes.size()) ; ++idxb )
     {
-        vector< int > idx( nAlgs + 1 );
-        vector< double > coef( nAlgs +1 , 1.0 );
-        
-        for ( size_t idxAlg=0 ; (idxAlg<nAlgs) ; ++idxAlg )
-            idx[idxAlg] = c[idxL][idxAlg];
+        int parent = (idxb-1)/2;
 
-        *idx.rbegin() = l[idxL];
-        *coef.rbegin() = -1.0;
-
+        int idx[] = {d[idxb], d[parent]};
+        double coef[] = {1.0, -1,0};
         char rName[256];
-        sprintf(rName, "selParamL(%zu)", idxL);
-        lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'E', 0.0 );
+        sprintf(rName, "parent(%d)", idxb);
+        lp_add_row( mip, 2, idx, coef, rName, 'L', 0.0 );
     }
-} */
+}
+
+*/
 
 Tree *MIPPDtree::build( const int maxSeconds )
 {
@@ -692,6 +614,116 @@ Tree *MIPPDtree::build( const int maxSeconds )
     }
     
     return tree;
+}
+
+void MIPPDtree::createConsBranchOrLeaf()
+{
+    for ( size_t idxL=0 ; ( idxL+1<branchNodes.size() ) ; idxL++ )
+    {
+        vector< int > idx;
+        idx.push_back(d[idxL+1]);
+        idx.push_back(l[idxL]);
+        for ( size_t side=0 ; side<2 ; ++side )
+        {
+            for ( size_t i=0 ; (i<parents[idxL][side].size()) ; ++i )
+            {
+                int ip = parents[idxL][side][i];
+                if (ip==0) continue;
+
+                idx.push_back( l[ip-1] );
+            }
+        }
+
+        vector< double > coef(idx.size(), 1.0);
+
+        char rName[256] = "";
+        sprintf(rName, "branchOrLeaf(%s)", leafNodes[idxL].c_str() );
+
+        lp_add_row( mip, idx.size(), &idx[0], &coef[0], rName, 'L', 1.0 );
+    }
+}
+
+void MIPPDtree::createConsOneLeafPath()
+{
+    size_t nl = floor(pow( 2.0, Parameters::maxDepth-1 )+1e-5);
+
+    for ( size_t idxL=leafNodes.size()-1 ; ((int)idxL>=((int)leafNodes.size())-((int)nl)) ; --idxL )
+    {
+        vector< int > idx;
+        idx.push_back( l[idxL] );
+
+        for ( size_t side=0 ; (side<2) ; ++side )
+        {
+            for ( size_t i=0 ; (i<parents[idxL][side].size()) ; ++i )
+            {
+                int in = parents[idxL][side][i];
+                if (in==0)
+                    continue;
+                idx.push_back(l[in-1]);
+            }
+        }
+
+        vector< double > coef( idx.size(), 1.0 );
+
+        char rName[256] = "";
+        sprintf( rName, "oneLeafPath(%s)", leafNodes[idxL].c_str() );
+
+        lp_add_row( mip, idx.size(), &idx[0], &coef[0], rName, 'L', 1.0 );
+    }
+}
+
+void MIPPDtree::createConsOneLeafPerProb()
+{
+    for ( size_t i=0 ; (i<nInsts) ; ++i )
+    {
+        vector< int > idx;
+        for ( size_t il=0 ; (il<nLeafs) ; ++il )
+            idx.push_back( z[i][il] );
+        vector< double > coef( idx.size(), 1.0 );
+
+        char rName[256];
+        sprintf( rName, "selLeafProb(%zu)", i );
+
+        lp_add_row( mip, idx.size(), &idx[0], &coef[0], rName, 'E', 1.0 );
+    }
+}
+
+void MIPPDtree::createConsSelOneW()
+{
+    for ( size_t i=0 ; (i<nInsts) ; ++i )
+    {
+        vector< int > idx( nAlgs );
+        vector< double > coef( nAlgs, 1.0 );
+
+        for ( size_t ia=0 ; (ia<nAlgs) ; ++ia )
+            idx[ia] = w[i][ia];
+
+        char rName[256] = "";
+        sprintf(rName, "selAlgProb(%zu)", i);
+        lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'E', 1.0);
+    }
+}
+
+void MIPPDtree::createConsBranchBeforeLeaf()
+{
+    size_t idxNL = 1;
+    for ( int iln=0 ; iln<(int)nLeafs; ++iln,++idxNL )
+    {
+        int pNodeIdx = idxNL;
+        do
+        {
+            int pside = 1-(pNodeIdx % 2);
+            pNodeIdx=(pNodeIdx-1)/2;
+
+            int idx[]     = { l[iln], d[pNodeIdx] };
+            double coef[] = { 1.0   , -1.0        };
+
+            char rName[256];
+            sprintf( rName, "branchBeforeL(%s, %s)", leafNodes[iln].c_str(), branchNodes[pNodeIdx].c_str() );
+
+            lp_add_row( mip, 2, idx, coef, rName, 'L', 0.0 );
+        } while (pNodeIdx>0);
+    }
 }
 
 MIPPDtree::~MIPPDtree ()

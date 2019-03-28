@@ -67,6 +67,8 @@ private:
     std::vector< int > b; // b indexes
     std::vector< int > d; // d indexes
 
+    std::vector< std::vector< int > > z;
+
     void createBVars();
     void createDVars();
     void createAVars();
@@ -74,25 +76,31 @@ private:
     void createLVars();
     std::vector< std::vector< int > > a; // a indexes
     std::vector< int > l;
+    void createCVars();
+    void createZVars();
+    void createWVars();
+
+    void createConsLnkBD();
+    void createConsOneLeaf();
+    void createConsSelCLeaf();
+    void createConsLNKZL();
+    void createConsBranchOrLeaf();
+    void createConsOneLeafPath();
+    void createConsSelectLeaf();
+    void createConsOneLeafPerProb();
+    void createConsLnkWCZ();
+    void createConsSelOneW();
+    void createConsBranchBeforeLeaf();
+
+    std::vector< std::string > insts;
 
     // variable indexes
     /*
-    void createLVars();
-    void createZVars();
-    void createCVars();
-    void createWVars();
-    void createConsLnkBD();
-    void createConsLNKZL();
-    void createConsOneLeaf();
-    void createConsSelectLeaf();
-    void createConsSelCLeaf();
 
     std::vector< int > l;
-    std::vector< std::vector< int > > z;
 
     void createConsLnkParent();
 
-    void createConsLnkWCZ();
 
 
     // parents at leaf (0) and right (1)  for each leaf node
