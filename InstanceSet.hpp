@@ -57,6 +57,8 @@ public:
 
     virtual ~InstanceSet ();
 
+    void save(const char *fileName, bool normalized = true) const;
+
     // training dataset
     Dataset *inst_dataset_;
 

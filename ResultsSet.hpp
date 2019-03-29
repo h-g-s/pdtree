@@ -48,7 +48,7 @@ public:
 
     virtual ~ResultsSet ();
 
-    void save_csv(const char *fileName, Evaluation _eval = Parameters::eval ) const;
+    void save_csv(const char *fileName) const;
 
     void compute_summarized_results();
 

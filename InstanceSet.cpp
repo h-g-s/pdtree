@@ -273,6 +273,29 @@ double InstanceSet::norm_feature_val( size_t idxInst, size_t idxF ) const
     return 0.0;
 }
 
+void InstanceSet::save(const char *fileName, bool normalized) const
+{
+    FILE *f = fopen(fileName, "w");
+    assert(f);
+    fprintf(f, "name");
+    for ( size_t i=0 ; (i<features_.size()) ; ++i )
+        fprintf(f, ",%s", features_[i].c_str());
+    fprintf( f, "\n" );
+    for ( const auto &inst : instances_ )
+    {
+        fprintf(f, "%s", inst.name() );
+        for ( size_t i=0 ; (i<features_.size()) ; ++i )
+        {
+            if (normalized)
+                fprintf(f, ",%g", norm_feature_val(inst.idx(), i));
+            else
+                fprintf(f, ",%g", inst.float_feature(i));
+        }
+        fprintf(f, "\n");
+    }
+    fclose(f);
+}
+
 bool InstanceSet::has(const std::string &iname) const
 {
     auto it = instByName_.find(iname);

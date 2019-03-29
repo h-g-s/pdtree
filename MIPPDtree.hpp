@@ -82,7 +82,6 @@ private:
 
     void createConsLnkBD();
     void createConsOneLeaf();
-    void createConsSelCLeaf();
     void createConsLNKZL();
     void createConsBranchOrLeaf();
     void createConsOneLeafPath();
@@ -91,8 +90,11 @@ private:
     void createConsLnkWCZ();
     void createConsSelOneW();
     void createConsBranchBeforeLeaf();
+    void createConsSelAlgLeaf();
 
+    // names for lp when in debug
     std::vector< std::string > insts;
+    std::vector< std::string > algs;
 
     // variable indexes
     /*
