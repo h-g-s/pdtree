@@ -1,1 +1,1 @@
-export CXXFLAGS="-O0 -Og -g3 -DDEBUG -fsanitize=address -D_GLIBCXX_DEBUG" ; export LFFLAGS="-g -fsanitize=address" ; ./configure ; make clean ; make
+export CXXFLAGS="-I/opt/gurobi/linux64/include/ -O0 -Og -g3 -DDEBUG -fsanitize=address -D_GLIBCXX_DEBUG" ; export LDFLAGS="-L/opt/gurobi/linux64/lib/ -g -fsanitize=address" ; ./configure ; make clean ; make

@@ -46,7 +46,7 @@ private:
     const InstanceSet *iset_;
     const ResultsSet *rset_;
 
-    Node *root;
+    Node *root_;
 
     double resultLeafs;
 

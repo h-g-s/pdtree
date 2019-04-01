@@ -53,6 +53,8 @@ Node::Node( const Node *_parent, size_t _nEl, const size_t *_el, size_t _idx ) :
     nEl_(_nEl),
     el_(new size_t[_nEl]),
     parent_(_parent),
+    idxFBranch(numeric_limits<size_t>::max()),
+    branchValue_(0.0),
     depth_(_parent->depth_+1),
     idx_(_idx),
     idxBestAlg(numeric_limits<size_t>::max()),
@@ -92,6 +94,7 @@ static void addElement( tinyxml2::XMLDocument *doc,  XMLElement *el, const char 
 void Node::writeXML(tinyxml2::XMLDocument *doc, tinyxml2::XMLElement *parent ) const
 {
     XMLElement *node = doc->NewElement("node");
+    assert( node!=NULL);
     parent->InsertEndChild(node);
 
     node->SetAttribute("id", this->id_ );
@@ -120,8 +123,12 @@ void Node::writeXML(tinyxml2::XMLDocument *doc, tinyxml2::XMLElement *parent ) c
 
     node->SetAttribute("id", this->id_ );
 
-    for ( const auto &n : child_ )
-        n->writeXML( doc, node );
+    if (child_[0]!=nullptr)
+    {
+        assert( child_[1]!=nullptr );
+        child_[0]->writeXML(doc, node);
+        child_[1]->writeXML(doc, node);
+    }
 }
 
 void Node::branchOn( const size_t idxF, const double normValue )

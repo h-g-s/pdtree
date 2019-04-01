@@ -615,6 +615,8 @@ Tree *MIPPDtree::build( const int maxSeconds )
             idxn += node->idx()*2;
             queue.push_back( make_pair(idxn, childs[0]) );
             queue.push_back( make_pair(idxn+1, childs[1]) );
+            tree->addNode(childs[0]);
+            tree->addNode(childs[1]);
         }
     }
     

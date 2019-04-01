@@ -35,7 +35,7 @@ using namespace std;
 Tree::Tree( const InstanceSet *_iset, const ResultsSet *_rset, const ResTestSet *_rtest ) :
     iset_(_iset),
     rset_(_rset),
-    root(nullptr),
+    root_(nullptr),
     resultLeafs(0.0),
     improvement(0.0),
     maxDepth(0.0),
@@ -156,11 +156,12 @@ void Tree::draw( const char *fileName ) const
 
 Node *Tree::create_root()
 {
-    Node *root = new Node(this->iset_, this->rset_);
+    assert( root_ == nullptr );
+    root_ = new Node(this->iset_, this->rset_);
 
-    nodes_.push_back( root );
+    nodes_.push_back( root_ );
 
-    return root;
+    return root_;
 }
 
 using namespace tinyxml2;
@@ -213,7 +214,7 @@ void Tree::save( const char *fileName ) const
     addElement(&doc, params, "minPerfImprov", (int)Parameters::minPerfImprov );
     addElement(&doc, params, "minAbsPerfImprov", (int)Parameters::minAbsPerfImprov );
 
-    root->writeXML(&doc, tree);
+    root_->writeXML(&doc, tree);
 
     doc.SaveFile(fileName);
 }
@@ -228,8 +229,9 @@ double Tree::evaluate( const Dataset *testData ) const
     return DBL_MAX;
 }
 
+
 Tree::~Tree ()
 {
-    delete root;
+    delete root_;
 }
 
