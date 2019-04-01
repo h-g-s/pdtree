@@ -126,7 +126,7 @@ void Node::writeXML(tinyxml2::XMLDocument *doc, tinyxml2::XMLElement *parent ) c
 
 void Node::branchOn( const size_t idxF, const double normValue )
 {
-    assert( idxF<rset_->algsettings().size());
+    assert( idxF<iset_->features().size());
     assert( normValue >= 0.0-1e-10 && normValue <= 1.0+1e+10 );
 
     double bestDiff = DBL_MAX;

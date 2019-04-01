@@ -563,6 +563,8 @@ Tree *MIPPDtree::build( const int maxSeconds )
         return nullptr;
     }
     
+    lp_write_sol(mip, "a.sol");
+
     const double *x = lp_x(mip);
     
     if (x[d[0]]<=0.01)
@@ -586,7 +588,7 @@ Tree *MIPPDtree::build( const int maxSeconds )
         int id = idNode.first;
         Node *node = idNode.second;
 
-        if (node->depth() < (int)Parameters::maxDepth)
+        if (node->depth() < ((int)Parameters::maxDepth)-1)
         {
             if (x[d[id]]<0.01)
                 continue;
@@ -608,9 +610,7 @@ Tree *MIPPDtree::build( const int maxSeconds )
             assert( childs[0] );
             assert( childs[1] );
             
-            size_t idxn = 0;
-            if (node->depth()>0)
-                idxn = pow( 2.0, node->depth()-1)+1e-8;
+            size_t idxn = pow( 2.0, node->depth() )+1e-8;
 
             idxn += node->idx()*2;
             queue.push_back( make_pair(idxn, childs[0]) );
@@ -717,7 +717,6 @@ void MIPPDtree::createConsBranchBeforeLeaf()
         int pNodeIdx = idxNL;
         do
         {
-            int pside = 1-(pNodeIdx % 2);
             pNodeIdx=(pNodeIdx-1)/2;
 
             int idx[]     = { l[iln], d[pNodeIdx] };

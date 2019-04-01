@@ -129,7 +129,6 @@ void Tree::draw( const char *fileName ) const
 
     for ( auto n : nodes_ )
     {
-        bool left = true;
         const Node **childs = (const Node **)n->child();
         if (childs[0])
         {
