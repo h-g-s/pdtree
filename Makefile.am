@@ -42,5 +42,6 @@ mpdt_SOURCES =  mpdt.cpp \
 		Tree.cpp \
 		SubSetResults.cpp \
 		Parameters.cpp \
-		tinyxml2.cpp
+		tinyxml2.cpp \
+		Greedy.cpp
 

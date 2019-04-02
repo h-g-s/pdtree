@@ -52,6 +52,10 @@ public:
     // number of instances in this subset
     size_t nElSS;
 
+    const SumType *sum() const {
+        return sum_;
+    }
+
     virtual ~SubSetResults ();
 private:
     void updateBest();
