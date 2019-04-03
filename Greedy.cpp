@@ -63,6 +63,7 @@ public:
         elv( new ElVal[iset_->size()] ),
         nEl(iset_->size()),
         nElLeft(0),
+        idxFeature(numeric_limits<size_t>::max()),
         bestSplit(SplitInfo(rset_->algsettings().size(), iset_->size()))
     { 
         for ( size_t i=0 ; (i<iset_->size()) ; ++i )
@@ -132,7 +133,7 @@ public:
                 return false;
             double v = elv[nElLeft].val;
 
-            while (nElLeft<nEl and elv[nElLeft].val==v)
+            while (nElLeft<nEl and elv[nElLeft].val==v and nElLeft<Parameters::minElementsBranch)
             {
                 ++nElLeft;
                 if (nElLeft>=nEl)
@@ -206,7 +207,7 @@ Tree *Greedy::build()
         nqueue.pop_back();
 
         size_t idxLeft = 2*np.first+1;
-        size_t idxRight = 2*np.first+1;
+        size_t idxRight = 2*np.first+2;
 
         // if children will be will within max depth
         if (idxLeft >= tnodes) 

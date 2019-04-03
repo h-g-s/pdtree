@@ -441,7 +441,7 @@ void ResultsSet::save_csv( const char *fileName ) const
     of.close();
 }
 
-int ResultsSet::res(size_t iIdx, size_t iAlg) const
+double ResultsSet::res(size_t iIdx, size_t iAlg) const
 {
     switch (Parameters::eval)
     {
