@@ -225,6 +225,30 @@ void Node::computeResultsNode()
     delete[] sumAlg;
 }
 
+void Node::branchOnVal( const size_t idxF, const double val )
+{
+    assert( idxF<iset_->features().size());
+
+    this->branchValue_ = val;
+
+    vector< vector<size_t> > elb = vector< vector<size_t> >(2);
+
+    for ( size_t i=0 ; (i<nEl_) ; i++ )
+    {
+        const Instance &inst = iset_->instance(el_[i]);
+        if (inst.float_feature(idxF)<=val)
+            elb[0].push_back(el_[i]);
+        else
+            elb[1].push_back(el_[i]);
+    }
+
+    assert( elb[0].size() >= Parameters::minElementsBranch );
+    assert( elb[1].size() >= Parameters::minElementsBranch );
+
+    child_[0] = new Node( (const Node *)this, elb[0].size(), &elb[0][0], this->idx_*2 );
+    child_[1] = new Node( (const Node *)this, elb[1].size(), &elb[1][0], this->idx_*2+1 );
+}
+
 Node::~Node ()
 {
     delete[] el_;

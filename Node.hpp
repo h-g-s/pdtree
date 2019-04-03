@@ -25,6 +25,8 @@ public:
     
     void branchOn( const size_t idxF, const double normValue );
 
+    void branchOnVal( const size_t idxF, const double val );
+
     Node **child() {
         return &(child_[0]);
     }

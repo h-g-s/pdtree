@@ -5,13 +5,6 @@
  *      Author: haroldo
  */
 
-#include "Greedy.hpp"
-#include  "InstanceSet.hpp"
-#include  "ResultsSet.hpp"
-#include  "Tree.hpp"
-#include  "Parameters.hpp"
-#include  "SubSetResults.hpp"
-
 #include <vector>
 #include <cassert>
 #include <cfloat>
@@ -19,6 +12,14 @@
 #include <utility>
 #include <cmath>
 #include <cstring>
+
+#include "Greedy.hpp"
+#include  "InstanceSet.hpp"
+#include  "ResultsSet.hpp"
+#include  "Tree.hpp"
+#include  "Parameters.hpp"
+#include  "SubSetResults.hpp"
+#include  "Node.hpp"
 
 using namespace std;
 
@@ -201,6 +202,7 @@ Tree *Greedy::build()
     while (nqueue.size())
     {
         pair< size_t, Node *> np = nqueue.back();
+        Node *node = np.second;
         nqueue.pop_back();
 
         size_t idxLeft = 2*np.first+1;
@@ -231,6 +233,24 @@ Tree *Greedy::build()
             gnd->splitCost = gnd->bestSplit.splitCost;
             memcpy(gnd->elv , gnd->bestSplit.elv, sizeof(ElVal)*gnd->nEl );
             gnd->idxFeature = gnd->bestSplit.idxFeature;
+            // update child node elements
+            auto *gndLeft = ndata[idxLeft];
+            gndLeft->nEl = gnd->nElLeft;
+            for ( size_t ie=0 ; (ie<gnd->nElLeft) ; ++ie )
+                gndLeft->elv[ie].el = gnd->elv[ie].el;
+            auto *gndRight = ndata[idxRight];
+            gndRight->nEl = gnd->nEl-gnd->nElLeft;
+            size_t ii = 0;
+            for ( size_t ie=gnd->nElLeft ; (ie<gnd->nEl) ; ++ie,++ii )
+                gndRight->elv[ii].el = gnd->elv[ie].el;
+
+            node->branchOnVal( gnd->idxFeature, gnd->cutValue() );
+
+            nqueue.push_back( make_pair( (size_t) idxLeft, node->child()[0]) );
+            nqueue.push_back( make_pair( (size_t) idxRight, node->child()[1]) );
+
+            res->addNode(node->child()[0]);
+            res->addNode(node->child()[1]);
         }
     }
 
