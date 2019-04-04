@@ -423,9 +423,9 @@ void MIPPDtree::computeEMax()
         for ( size_t p=1 ; (p<sv.size()) ; ++p )
         {
             const double diff = sv[p]-sv[p-1];
-            if ( diff <= 1e-7 )
+            if ( diff < minDiffBranches )
                 continue;
-            epsj[idxF] = min(epsj[idxF], max(sv[p]-sv[p-1], 1e-5) );
+            epsj[idxF] = min(epsj[idxF], diff );
         }
 
         emax = max(epsj[idxF], emax);

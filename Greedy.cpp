@@ -136,7 +136,10 @@ goNext:
         if (nElLeft>nEl-Parameters::minElementsBranch )
             return false;
 
-        if (elv[nElLeft-1].el != elv[nElLeft].el and nElLeft>=Parameters::minElementsBranch)
+        const double diff = elv[nElLeft].el - elv[nElLeft-1].el;
+        assert( diff>=0.0 );
+
+        if (diff>=minDiffBranches and nElLeft>=Parameters::minElementsBranch)
             return true;
         else
         {

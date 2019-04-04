@@ -151,7 +151,7 @@ void Node::branchOn( const size_t idxF, const double normValue )
         } // all diferences
     } // all elements
 
-    assert( bestDiff <= 1e-5 );
+    assert( bestDiff < 0.0005 );
     
     this->idxFBranch = idxF;
     this->branchValue_ = bv;
@@ -229,6 +229,7 @@ void Node::branchOnVal( const size_t idxF, const double val )
 {
     assert( idxF<iset_->features().size());
 
+    this->idxFBranch = idxF;
     this->branchValue_ = val;
 
     vector< vector<size_t> > elb = vector< vector<size_t> >(2);
