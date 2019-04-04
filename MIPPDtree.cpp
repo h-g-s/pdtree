@@ -8,6 +8,7 @@
 #include "MIPPDtree.hpp"
 
 #include <stddef.h>
+#include <iostream>
 #include <stdlib.h>
 #include <algorithm>
 #include <cassert>
@@ -343,9 +344,11 @@ void MIPPDtree::createConsSelectLeaf()
 
                 for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )
                 {
-                    const double c = iset_->norm_feature_val( i, idxF )*SEL_LEAF_SCAL;
-                    if (fabs(c)<=1e-4)
+                    const double nfv = iset_->norm_feature_val( i, idxF );
+                    if (nfv<minDiffBranches)
                         continue;
+
+                    const double c = nfv*SEL_LEAF_SCAL;
 
                     idx.push_back(a[idxF][leftN]);
                     coef.push_back(c);
@@ -377,9 +380,10 @@ void MIPPDtree::createConsSelectLeaf()
                 for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )
                 {
                     assert(epsj[idxF] >= 0.0-1e-10 && epsj[idxF]<=1.0+1e-10 );
-                    double c = (iset_->norm_feature_val( i, idxF )-epsj[idxF])*SEL_LEAF_SCAL;
-                    if (fabs(c)<=1e-4)
+                    const double nfv = iset_->norm_feature_val( i, idxF )-epsj[idxF];
+                    if (nfv<minDiffBranches)
                         continue;
+                    double c = (nfv*SEL_LEAF_SCAL);
 
                     idx.push_back(a[idxF][rightN]);
                     coef.push_back( c );
@@ -725,7 +729,7 @@ void MIPPDtree::createConsBranchBeforeLeaf()
             double coef[] = { 1.0   , -1.0        };
 
             char rName[256];
-            sprintf( rName, "branchBeforeL(%s, %s)", leafNodes[iln].c_str(), branchNodes[pNodeIdx].c_str() );
+            sprintf( rName, "branchBeforeL(%s,%s)", leafNodes[iln].c_str(), branchNodes[pNodeIdx].c_str() );
 
             lp_add_row( mip, 2, idx, coef, rName, 'L', 0.0 );
         } while (pNodeIdx>0);
