@@ -114,11 +114,11 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
             aIdx.push_back(it->second);
     }
 
-    res_ = new float*[iset_.size()];
-    res_[0] = new float[iset_.size()*algsettings_.size()];
+    res_ = new TResult*[iset_.size()];
+    res_[0] = new TResult[iset_.size()*algsettings_.size()];
     for ( size_t i=1 ; (i<iset_.size()) ; ++i )
         res_[i] = res_[i-1] + algsettings_.size();
-    std::fill( res_[0], res_[0]+(iset_.size()*algsettings_.size()), std::numeric_limits<float>::max() );
+    std::fill( res_[0], res_[0]+(iset_.size()*algsettings_.size()), std::numeric_limits<TResult>::max() );
 
     ranks_ = new int*[iset_.size()];
     ranks_[0] = new int[iset_.size()*algsettings_.size()];
@@ -130,8 +130,8 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     // missing ones
     size_t nRows = dsres.rows();
     size_t colResult = dsres.headers().size()-1;
-    float worse = std::numeric_limits<float>::min();
-    std::vector< float > worseInst(iset_.size(), std::numeric_limits<float>::min());
+    auto worse = std::numeric_limits<TResult>::min();
+    std::vector< TResult > worseInst(iset_.size(), std::numeric_limits<TResult>::min());
     std::vector< long double > sumInst( iset_.size(), 0.0 );
     std::vector< size_t > nResInst( iset_.size(), 0 );
 
@@ -156,7 +156,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         if (not _iset.has(iname))
             continue;
 
-        const float r = (float)dsres.float_cell(i, colResult);
+        const auto r = (TResult)dsres.float_cell(i, colResult);
 
         const size_t ii = iIdx[ir];
         const size_t ia = aIdx[ir];
@@ -176,9 +176,9 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     for ( size_t i=0 ; i<iset_.size() ; ++i )
         for ( size_t j=0 ; j<algsettings_.size()  ; ++j )
             if (nRes[i][j]>=2)
-                res_[i][j] = (float)(((long double)sumRes[i][j]) / ((long double)nRes[i][j]));
+                res_[i][j] = (TResult)(((long double)sumRes[i][j]) / ((long double)nRes[i][j]));
             else
-                res_[i][j] = (float)(((long double)sumRes[i][j]));
+                res_[i][j] = (TResult)(((long double)sumRes[i][j]));
 
     // average per instance and algorithm
     delete[] sumRes[0];
@@ -187,10 +187,10 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     delete[] nRes;
 
     // computing average per instance
-    std::vector< float > avgInst = vector<float>(iset_.size());
+    std::vector< TResult > avgInst = vector<TResult>(iset_.size());
     for ( size_t i=0 ; (i<iset_.size()) ; ++i )
         if (nResInst[i])
-            avgInst[i] = (float)(((long double)sumInst[i])/((long double)nResInst[i]));
+            avgInst[i] = (TResult)(((long double)sumInst[i])/((long double)nResInst[i]));
         else
             avgInst[i] = worse;
 
@@ -200,7 +200,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
         {
             auto r = res_[i][j];
-            if (r == numeric_limits<float>::max())
+            if (r == numeric_limits<TResult>::max())
             {
                 switch (fmrs_)
                 {
@@ -257,15 +257,15 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     clock_t startr = clock();
     cout << "Computing ranking and summarized results ... ";
 
-    compute_rankings( algsettings_.size(), iset_.size(), (const float **)res_, ranks_ );
+    compute_rankings( algsettings_.size(), iset_.size(), (const TResult **)res_, ranks_ );
 
     cout << "done in " << fixed << setprecision(2) <<
             (((double)clock()-startr) / ((double)CLOCKS_PER_SEC)) << endl;
 
-    avInst = new float[iset_.size()];
+    avInst = new TResult[iset_.size()];
 
-    vector< pair< float, size_t > > algsByAv;
-    vector< pair< float, size_t > > algsByAvRnk;
+    vector< pair< TResult, size_t > > algsByAv;
+    vector< pair< TResult, size_t > > algsByAvRnk;
 
     avRes_ = new SubSetResults( this, Average );
     rnkRes_ = new SubSetResults( this, Rank );
@@ -308,7 +308,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         topAlgByRnkOne.push_back(algsByNro[i].second);
 }
 
-float ResultsSet::get(size_t iIdx, size_t aIdx) const
+TResult ResultsSet::get(size_t iIdx, size_t aIdx) const
 {
     assert( iIdx<iset_.size() );
     assert( aIdx<algsettings_.size() );
@@ -329,9 +329,9 @@ ResultsSet::~ResultsSet ()
 }
 
 
-void ResultsSet::compute_rankings( size_t nAlgs, size_t nInsts, const float **res, int **rank )
+void ResultsSet::compute_rankings( size_t nAlgs, size_t nInsts, const TResult **res, int **rank )
 {
-    vector< pair< float, size_t> > resInst = vector< pair< float, size_t> >(nAlgs);
+    vector< pair< TResult, size_t> > resInst = vector< pair< TResult, size_t> >(nAlgs);
 
     for ( size_t i=0 ; (i<nInsts) ; ++i )
     {
@@ -340,13 +340,13 @@ void ResultsSet::compute_rankings( size_t nAlgs, size_t nInsts, const float **re
 
         std::sort(resInst.begin(), resInst.end() );
 
-        float startValRank = resInst.begin()->first;
+        auto startValRank = resInst.begin()->first;
 
         int currRank = 0;
         for ( size_t j=0 ; (j<nAlgs) ; ++j )
         {
             size_t iAlg = resInst[j].second;
-            const float res = resInst[j].first;
+            const auto res = resInst[j].first;
             const double pr = fabsf(res)*Parameters::rankPerc;
 
             if ((res>=startValRank+Parameters::rankEps) and (res>=startValRank+pr))

@@ -34,6 +34,7 @@ int main( int argc, char **argv )
     Greedy grd(&iset, &rset);
     Tree *greedyT = grd.build();
     greedyT->save("gtree.xml");
+    greedyT->draw("gtree.gv");
     delete greedyT;
 
 

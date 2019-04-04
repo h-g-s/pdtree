@@ -15,6 +15,7 @@
 
 #include "InstanceSet.hpp"
 #include "Parameters.hpp"
+#include "pdtdefines.hpp"
 
 class SubSetResults;
 
@@ -26,7 +27,7 @@ public:
                 const enum FMRStrategy _fmrs = WorseInstT2 );
 
     // returns a specific result
-    float get(size_t iIdx, size_t aIdx) const;
+    TResult get(size_t iIdx, size_t aIdx) const;
 
     // returns the ranking of instance
     // iIdx, for algorithm/parameter setting iAlg
@@ -64,11 +65,11 @@ private:
     // different algorithms and parameter settings
     std::vector< std::string > algsettings_;
     std::unordered_map< std::string, size_t > algsByName_;
-    float **res_;
+    TResult **res_;
     int **ranks_;
     const enum FMRStrategy fmrs_;
 
-    float *avInst;
+    TResult *avInst;
     int *nRankOne;
 
     std::vector< size_t > topAlgByRnkOne;
@@ -80,7 +81,7 @@ private:
 
     friend class Tree;
     friend class ResTestSet;
-    static void compute_rankings( size_t nAlgs, size_t nInsts, const float **res, int **rank );
+    static void compute_rankings( size_t nAlgs, size_t nInsts, const TResult **res, int **rank );
 };
 
 #endif /* RESULTSSET_HPP_ */

@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <cassert>
+#include <set>
 #include <cfloat>
 #include <algorithm>
 #include <utility>
@@ -14,12 +15,12 @@
 #include <cstring>
 
 #include "Greedy.hpp"
-#include  "InstanceSet.hpp"
-#include  "ResultsSet.hpp"
-#include  "Tree.hpp"
-#include  "Parameters.hpp"
-#include  "SubSetResults.hpp"
-#include  "Node.hpp"
+#include "InstanceSet.hpp"
+#include "ResultsSet.hpp"
+#include "Tree.hpp"
+#include "Parameters.hpp"
+#include "SubSetResults.hpp"
+#include "Node.hpp"
 
 using namespace std;
 
@@ -37,7 +38,8 @@ public:
         sumRR( new long double[nAlgs] ),
         elv(new ElVal[nInsts]),
         splitCost(DBL_MAX),
-        idxFeature(numeric_limits<size_t>::max())
+        idxFeature(numeric_limits<size_t>::max()),
+        nElLeft(0)
     {}
 
     virtual ~SplitInfo() {
@@ -58,11 +60,13 @@ public:
     GNodeData( const InstanceSet *_iset, const ResultsSet *_rset ) :
         iset_(_iset),
         rset_(_rset),
+        idx(0),
         sumResR( new long double[rset_->algsettings().size()] ),
         sumResL( new long double[rset_->algsettings().size()] ),
         elv( new ElVal[iset_->size()] ),
         nEl(iset_->size()),
         nElLeft(0),
+        splitCost(DBL_MAX),
         idxFeature(numeric_limits<size_t>::max()),
         bestSplit(SplitInfo(rset_->algsettings().size(), iset_->size()))
     { 
@@ -85,7 +89,9 @@ public:
         for ( size_t ia=0 ; (ia<rset_->algsettings().size()) ; ++ia )
         {
             sumResR[ia] -= ((long double)rset_->res(idxInst, ia));
+            assert( sumResR[ia] >= -1e-5 );
             sumResL[ia] += ((long double)rset_->res(idxInst, ia));
+            assert( sumResL[ia] >= -1e-5 );
         }
     }
 
@@ -116,38 +122,26 @@ public:
 
     double cutValue() const {
         // is in a valid branching position
-        assert( nElLeft >=1 and nElLeft<nEl );
+        assert( nElLeft >=1 && nElLeft<nEl );
 
         return elv[((int)nElLeft)-1].val;
     }
 
     bool next() {
+        assert(nElLeft>=0 && nElLeft<nEl);
         moveInstanceLeft( elv[nElLeft].el );
 
-        while ( nElLeft<nEl and nElLeft<Parameters::minElementsBranch )
-        {
-            ++nElLeft;
-            if (nElLeft>=nEl)
-                return false;
-            if ( nEl-nElLeft<Parameters::minElementsBranch )
-                return false;
-            double v = elv[nElLeft].val;
+goNext:
+        ++nElLeft;
+        if (nElLeft>nEl-Parameters::minElementsBranch )
+            return false;
 
-            while (nElLeft<nEl and elv[nElLeft].val==v and nElLeft<Parameters::minElementsBranch)
-            {
-                ++nElLeft;
-                if (nElLeft>=nEl)
-                    return false;
-                if ( nEl-nElLeft<Parameters::minElementsBranch )
-                    return false;
-
-                if (elv[nElLeft].val==v)
-                    moveInstanceLeft( elv[nElLeft].el );
-            }
-
-            // arrived in a different value ready for branching
-
+        if (elv[nElLeft-1].el != elv[nElLeft].el and nElLeft>=Parameters::minElementsBranch)
             return true;
+        else
+        {
+            moveInstanceLeft( elv[nElLeft].el );
+            goto goNext;
         }
 
         return false;
@@ -267,7 +261,6 @@ void Greedy::prepareBranch( size_t n, size_t f )
     gnd->nElLeft = 0;
     gnd->idxFeature = f;
 
-
     if (gnd->idx==0)
     {
         // root node
@@ -293,6 +286,14 @@ void Greedy::prepareBranch( size_t n, size_t f )
     std::sort( gnd->elv, gnd->elv+gnd->nEl, compElVal );
 
     gnd->nElLeft = 0;
+#ifdef DEBUG
+    {
+        set< size_t > sEl;
+        for ( size_t i=0 ; (i<gnd->nEl) ; ++i )
+            sEl.insert(gnd->elv[i].el);
+        assert( sEl.size() == gnd->nEl );
+    }
+#endif
 }
 
 Greedy::~Greedy ()

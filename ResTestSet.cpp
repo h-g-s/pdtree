@@ -172,7 +172,6 @@ ResTestSet::ResTestSet(
         }
     }
 
-    ResultsSet::compute_rankings( algsettings_.size(), instances_.size(), (const float **)res_, rank_ );
 
     delete[] avgInst;
     delete[] worseInst;
