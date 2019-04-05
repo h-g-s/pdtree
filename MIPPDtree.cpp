@@ -344,7 +344,11 @@ void MIPPDtree::createConsSelectLeaf()
 
                 for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )
                 {
-                    const double nfv = iset_->norm_feature_val( i, idxF );
+                    double nfv = iset_->norm_feature_val( i, idxF );
+
+//                    if (nfv>=1.0-minDiffBranches)
+//                        nfv = 1.0;
+
                     if (nfv<minDiffBranches)
                         continue;
 
@@ -380,10 +384,13 @@ void MIPPDtree::createConsSelectLeaf()
                 for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )
                 {
                     assert(epsj[idxF] >= 0.0-1e-10 && epsj[idxF]<=1.0+1e-10 );
-                    const double nfv = iset_->norm_feature_val( i, idxF )-epsj[idxF];
-                    if (nfv<minDiffBranches)
+                    double nfv = iset_->norm_feature_val( i, idxF );
+                    if (nfv < minDiffBranches)
                         continue;
-                    double c = (nfv*SEL_LEAF_SCAL);
+
+                    nfv = max(iset_->norm_feature_val( i, idxF )-epsj[idxF], minDiffBranches);
+
+                    double c = nfv*SEL_LEAF_SCAL;
 
                     idx.push_back(a[idxF][rightN]);
                     coef.push_back( c );
@@ -401,6 +408,7 @@ void MIPPDtree::createConsSelectLeaf()
 #else
                 sprintf(rName, "selNRL(%zu,%s,%s)", i, leafNodes[idxL].c_str(), branchNodes[rightN].c_str() );
 #endif
+
 
                 lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'G', -1.0*SEL_LEAF_SCAL );
             } // parents at right

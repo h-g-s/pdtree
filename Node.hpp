@@ -23,7 +23,7 @@ public:
 
     Node( const Node *_parent, size_t _nEl, const size_t *_el, size_t _idx );
     
-    void branchOn( const size_t idxF, const double normValue );
+    void branchOn( const size_t idxF, double normValue );
 
     void branchOnVal( const size_t idxF, const double val );
 

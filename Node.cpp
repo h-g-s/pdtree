@@ -131,10 +131,13 @@ void Node::writeXML(tinyxml2::XMLDocument *doc, tinyxml2::XMLElement *parent ) c
     }
 }
 
-void Node::branchOn( const size_t idxF, const double normValue )
+void Node::branchOn( const size_t idxF, double normValue )
 {
     assert( idxF<iset_->features().size());
     assert( normValue >= 0.0-1e-10 && normValue <= 1.0+1e+10 );
+    normValue = max( 0.0, normValue );
+    normValue = min( 1.0, normValue );
+    normValue += minDiffBranches / 3.0;
 
     double bestDiff = DBL_MAX;
     double bv = DBL_MAX;
@@ -142,7 +145,7 @@ void Node::branchOn( const size_t idxF, const double normValue )
     {
         size_t idxInst = el_[i];
         const double v = iset_->norm_feature_val(idxInst, idxF);
-        const double diff = abs(v-normValue);
+        const double diff = fabs(v-normValue);
         if (diff<bestDiff)
         {
             bestDiff = diff;
@@ -151,7 +154,6 @@ void Node::branchOn( const size_t idxF, const double normValue )
         } // all diferences
     } // all elements
 
-    assert( bestDiff < 0.0005 );
     
     this->idxFBranch = idxF;
     this->branchValue_ = bv;
