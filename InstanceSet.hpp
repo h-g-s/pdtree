@@ -55,6 +55,8 @@ public:
 
     double norm_feature_val( size_t idxInst, size_t idxF ) const;
 
+    double norm_feature_val_rank( size_t idxInst, size_t idxF ) const;
+
     virtual ~InstanceSet ();
 
     void save(const char *fileName, bool normalized = true) const;
@@ -68,6 +70,12 @@ private:
     std::vector<Instance> instances_;
     std::vector<Datatype> types_;
     std::unordered_map< std::string, size_t > instByName_;
+
+    // normalized value feature rank
+    std::vector< std::unordered_map< double, int > > featureValRank;
+    std::vector< std::unordered_map< int, double > > featureRankVal;
+
+    int **instFeatRank; // per instance
 
     std::vector< std::pair<double, double> > limitsFeature;
 };

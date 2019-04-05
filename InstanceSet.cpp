@@ -6,6 +6,7 @@
  */
 
 #include "InstanceSet.hpp"
+#include "pdtdefines.hpp"
 #include <fstream>
 #include <cfloat>
 #include <cassert>
@@ -16,6 +17,7 @@
 #include <algorithm>
 #include <ctime>
 #include <unordered_set>
+#include <algorithm>
 
 using namespace std;
 
@@ -23,7 +25,8 @@ static std::unordered_set< std::string > check_instances_with_results( const cha
 
 InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int ifold, int kfold ) :
     inst_dataset_(new Dataset(fileName)),
-    test_dataset_(nullptr)
+    test_dataset_(nullptr),
+    instFeatRank(nullptr)
 {
     if (kfold>=2)
     {
@@ -145,6 +148,49 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int
             }
         }
     } // all features
+
+    featureValRank = vector< unordered_map< double, int > >( features().size(), unordered_map< double, int >() );
+    featureRankVal = vector< unordered_map< int, double > >( features().size(), unordered_map< int, double >());
+
+    for ( size_t idxF=0 ; (idxF<features().size()) ; ++idxF )
+    {
+        std::unordered_set< double > values;
+        for ( const auto &inst : instances() )
+        {
+            const double v = norm_feature_val(inst.idx(), idxF);
+            values.insert(v);
+        }
+
+        std::vector< double > svalues( values.begin(), values.end() );
+        std::sort( svalues.begin(), svalues.end() );
+
+        double prev = limitsFeature[idxF].first - 10;
+
+        int rank = -1;
+        for ( const auto v : svalues )
+        {
+            if (v-prev>=minDiffBranches)
+                rank++;
+
+            featureValRank[idxF][v] = rank;
+            featureValRank[idxF][rank] = v;
+            prev = v;
+        }
+    }
+
+    instFeatRank = new int*[instances_.size()];
+    instFeatRank[0] = new int[instances_.size()*features().size()];
+    for ( int i=1 ; (i<(int)instances().size()) ; ++i )
+        instFeatRank[i] = instFeatRank[i-1] + features().size();
+    for ( int i=0 ; (i<(int)instances().size()) ; ++i )
+    {
+        for ( int f=0 ; (f<(int)features().size()) ; ++f )
+        {
+            auto itv = featureValRank[f].find(norm_feature_val(i,f));
+            assert(itv!=featureValRank[f].end());
+            instFeatRank[i][f] = itv->second;
+        }
+    }
 }
 
 size_t InstanceSet::size() const
@@ -184,6 +230,9 @@ InstanceSet::~InstanceSet ()
         delete inst_dataset_;
 
     Instance::inst_dataset = nullptr;
+
+    delete[] instFeatRank[0];
+    delete[] instFeatRank;
 
     if (test_dataset_)
         delete test_dataset_;
@@ -271,6 +320,15 @@ double InstanceSet::norm_feature_val( size_t idxInst, size_t idxF ) const
     abort();
 
     return 0.0;
+}
+
+double InstanceSet::norm_feature_val_rank( size_t idxInst, size_t idxF ) const
+{
+    const double v = ((double)instFeatRank[idxInst][idxF]) / ((double) featureValRank[idxF].size());
+    assert( v>=0.0-1e-10 );
+    assert( v<=1.0+1e-10 );
+
+    return v;
 }
 
 void InstanceSet::save(const char *fileName, bool normalized) const
