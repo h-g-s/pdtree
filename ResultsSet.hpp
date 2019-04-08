@@ -32,6 +32,11 @@ public:
     // returns the ranking of instance
     // iIdx, for algorithm/parameter setting iAlg
     int rank(size_t iIdx, size_t iAlg) const;
+
+    // returns the algsetting of i-th rank (starting from zero)
+    // for some instance of -1 if it does
+    // not exists
+    int algsetting_rank( size_t idxInst, int rank ) const;
     
     // return normal result or rank 
     // depending on param settings
@@ -59,6 +64,9 @@ public:
         return *this->defRes_;
     }
 
+    // summary information per instance in a csv file
+    void saveInstanceSum(const char *fileName) const;
+
 private:
     const InstanceSet &iset_;
 
@@ -77,6 +85,7 @@ private:
     // algorithms results
     SubSetResults *avRes_;
     SubSetResults *rnkRes_;
+    // points to one of the two previous
     SubSetResults *defRes_;
 
     friend class Tree;

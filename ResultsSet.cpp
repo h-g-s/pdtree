@@ -228,8 +228,9 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         }
     }
 
+
     // storing difference from best result per instance
-    vector< double > bestResInst( iset_.size(), DBL_MAX );
+    /*vector< double > bestResInst( iset_.size(), DBL_MAX );
     for ( size_t i=0 ; (i<iset_.size()) ; ++i )
         for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
             bestResInst[i] = min(bestResInst[i], (double)res_[i][j]);
@@ -241,7 +242,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
             res_[i][j] = res_[i][j]-bestResInst[i];
             assert(res_[i][j] >= 0.0-1e-9);
         }
-    }
+    } */
     
     if (nMissing)
     {
@@ -439,6 +440,31 @@ void ResultsSet::save_csv( const char *fileName ) const
     }
 
     of.close();
+}
+
+int ResultsSet::algsetting_rank( size_t idxInst, int rank ) const
+{
+    for ( int i=0 ; (i<(int)algsettings_.size()) ; ++i )
+    {
+        if (this->ranks_[idxInst][i] == rank)
+            return i;
+    }
+    return -1;
+}
+
+void ResultsSet::saveInstanceSum(const char *fileName) const
+{
+    FILE *f=fopen(fileName, "w");
+
+    fprintf(f, "instance,average,best setting,time best setting\n");
+    for ( const auto &inst : this->instances() )
+    {
+        int bestAS = algsetting_rank( inst.idx(), 0 );
+        assert(bestAS>=0 && bestAS<(int)algsettings_.size());
+        fprintf( f, "%s,%g,%s,%g\n", inst.name(), avInst[inst.idx()], algsettings()[bestAS].c_str(), this->res_[inst.idx()][bestAS] );
+    }
+
+    fclose(f);
 }
 
 double ResultsSet::res(size_t iIdx, size_t iAlg) const

@@ -27,9 +27,12 @@ int main( int argc, char **argv )
     Parameters::parse( argc, (const char **)argv );
 
     InstanceSet iset( argv[1], argv[2] );
-    iset.save("instances-norm.csv", true);
+    //iset.save("instances-norm.csv", true);
     ResultsSet rset( iset, argv[2] );
-    rset.save_csv("results.csv");
+    //rset.save_csv("results.csv");
+
+    rset.saveInstanceSum("instsum.csv");
+    exit(0);
 
     Greedy grd(&iset, &rset);
     Tree *greedyT = grd.build();
