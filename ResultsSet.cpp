@@ -11,6 +11,7 @@
 #include <sys/time.h>
 #include <algorithm>
 #include <cfloat>
+#include <unordered_set>
 #include <cassert>
 #include <cctype>
 #include <cmath>
@@ -35,12 +36,17 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     ranks_(nullptr),
     fmrs_(_fmrs),
     avInst(nullptr),
+    stdDevInst(nullptr),
+    worseInst(nullptr),
+    nTimeOutsInst(nullptr),
     avRes_(nullptr),
     rnkRes_(nullptr),
     defRes_(nullptr)
 {
     clock_t start = clock();
     Dataset dsres(fileName, false);
+
+    worseInst = new TResult[iset_.size()];
 
     if (dsres.headers().size()<3)
         throw "Results file should have at least 3 columns: instance,algorithmAndParamSettings,result";
@@ -131,7 +137,6 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     size_t nRows = dsres.rows();
     size_t colResult = dsres.headers().size()-1;
     auto worse = std::numeric_limits<TResult>::min();
-    std::vector< TResult > worseInst(iset_.size(), std::numeric_limits<TResult>::min());
     std::vector< long double > sumInst( iset_.size(), 0.0 );
     std::vector< size_t > nResInst( iset_.size(), 0 );
 
@@ -150,6 +155,8 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         nRes[i] = nRes[i-1] + algsettings_.size();
 
     size_t ir = 0;
+    fill(worseInst, worseInst+iset_.size(), -DBL_MIN);
+
     for ( size_t i=0 ; (i<nRows) ; ++i )
     {
         string iname = string(dsres.str_cell(i, 0));
@@ -171,6 +178,8 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
 
         ++ir;
     }
+
+    this->timeOut = worse;
 
     // if there are more results per instance and algorithm
     for ( size_t i=0 ; i<iset_.size() ; ++i )
@@ -228,9 +237,20 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         }
     }
 
+    // second pass, checking number of timeouts per instance
+
+    nTimeOutsInst = new int[iset_.size()];
+    memset( nTimeOutsInst, 0, sizeof(int)*iset_.size());
+
+    fill(worseInst, worseInst+iset_.size(), -DBL_MIN);
+
+    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+        for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+            if (res_[i][j] == timeOut)
+                ++nTimeOutsInst[i];
 
     // storing difference from best result per instance
-    /*vector< double > bestResInst( iset_.size(), DBL_MAX );
+    vector< double > bestResInst( iset_.size(), DBL_MAX );
     for ( size_t i=0 ; (i<iset_.size()) ; ++i )
         for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
             bestResInst[i] = min(bestResInst[i], (double)res_[i][j]);
@@ -240,10 +260,26 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
         {
             res_[i][j] = res_[i][j]-bestResInst[i];
+            worseInst[i] = max(worseInst[i], res_[i][j]);
             assert(res_[i][j] >= 0.0-1e-9);
         }
-    } */
+    }
     
+    // normalizing
+    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    {
+        for (size_t ia=0 ; (ia<algsettings_.size()) ; ++ia )
+        {
+            if (worseInst[i]==0.0)
+                res_[i][ia] = 0.0;
+            else
+                res_[i][ia] = (res_[i][ia]/worseInst[i]);
+
+            assert( res_[i][ia]>=0.0-1e-10 );
+            assert( res_[i][ia]<=1.0+1e-10 );
+        }
+    }
+
     if (nMissing)
     {
         const double percm = ( (((double)nMissing))/(((double)iset_.size()*algsettings_.size())) )*100.0;
@@ -262,8 +298,10 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
 
     cout << "done in " << fixed << setprecision(2) <<
             (((double)clock()-startr) / ((double)CLOCKS_PER_SEC)) << endl;
-
+    
     avInst = new TResult[iset_.size()];
+    stdDevInst = new TResult[iset_.size()];
+    
 
     vector< pair< TResult, size_t > > algsByAv;
     vector< pair< TResult, size_t > > algsByAvRnk;
@@ -288,17 +326,37 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         avInst[i] = sum / ((long double)algsettings_.size());
     }
 
+    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    {
+        long double ds = 0.0;
+        for ( size_t ia=0 ; (ia<algsettings_.size()) ; ++ia )
+            ds += pow( avInst[i] - res_[i][ia], 2.0 );
+
+        stdDevInst[i] =(TResult) (ds /= ((long double) algsettings_.size()-1.0));
+
+    }
+
     nRankOne = new int[algsettings_.size()];
+    nLastRank = new int[algsettings_.size()];
+
     fill(nRankOne, nRankOne+algsettings_.size(), 0);
+    fill(nLastRank, nLastRank+algsettings_.size(), 0);
     for ( size_t i=0 ; i<iset_.size(); ++i )
     {
+        int lastRank = -1;
         for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
         {
             if (ranks_[i][j]==0)
                 nRankOne[j]++;
-        }
-    }
 
+            lastRank = max(lastRank, ranks_[i][j]);
+        }
+
+        for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+            if (ranks_[i][j]==lastRank)
+                nLastRank[j]++;
+    }
+    
     vector< pair<int, size_t > > algsByNro;
     for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
         algsByNro.push_back( make_pair(nRankOne[j]*-1, j) );
@@ -322,11 +380,15 @@ ResultsSet::~ResultsSet ()
     delete rnkRes_;
 
     delete[] nRankOne;
+    delete[] nLastRank;
     delete[] ranks_[0];
     delete[] ranks_;
     delete[] res_[0];
     delete[] res_;
     delete[] avInst;
+    delete[] stdDevInst;
+    delete[] worseInst;
+    delete[] nTimeOutsInst;
 }
 
 
@@ -348,7 +410,7 @@ void ResultsSet::compute_rankings( size_t nAlgs, size_t nInsts, const TResult **
         {
             size_t iAlg = resInst[j].second;
             const auto res = resInst[j].first;
-            const double pr = fabsf(res)*Parameters::rankPerc;
+            const double pr = fabs(res)*Parameters::rankPerc;
 
             if ((res>=startValRank+Parameters::rankEps) and (res>=startValRank+pr))
             {
@@ -456,15 +518,71 @@ void ResultsSet::saveInstanceSum(const char *fileName) const
 {
     FILE *f=fopen(fileName, "w");
 
-    fprintf(f, "instance,average,best setting,time best setting\n");
+    fprintf(f, "instance,average,best setting,time best setting,nTimeOuts,stdDev\n");
     for ( const auto &inst : this->instances() )
     {
         int bestAS = algsetting_rank( inst.idx(), 0 );
         assert(bestAS>=0 && bestAS<(int)algsettings_.size());
-        fprintf( f, "%s,%g,%s,%g\n", inst.name(), avInst[inst.idx()], algsettings()[bestAS].c_str(), this->res_[inst.idx()][bestAS] );
+        fprintf( f, "%s,%g,%s,%g,%d,%g\n", inst.name(), avInst[inst.idx()], algsettings()[bestAS].c_str(), this->res_[inst.idx()][bestAS], nTimeOutsInst[inst.idx()], stdDevInst[inst.idx()] );
     }
 
     fclose(f);
+}
+
+void ResultsSet::saveAlgSummary(const char *fileName) const
+{
+    FILE *f=fopen(fileName, "w");
+    fprintf(f, "algsetting,nBestRank,nWorseRank\n");
+    for ( size_t ia=0 ; (ia<algsettings_.size()) ; ++ia )
+        fprintf(f, "%s,%d,%d\n", algsettings_[ia].c_str(), nRankOne[ia], nLastRank[ia]);
+    fclose(f);
+}
+
+void ResultsSet::saveFilteredDataSets(const char *featuresFile, const char *resultsFile)
+{
+    FILE *f=fopen(featuresFile, "w");
+    fprintf(f, "instance");
+    for ( const auto feat : iset_.features() )
+        fprintf(f, ",%s", feat.c_str());
+    fprintf(f, "\n");
+    std::unordered_set< size_t > inclInstances;
+    for ( const auto &inst : iset_.instances() )
+    {
+        if (this->stdDevInst[inst.idx()]<=100.0)
+            continue;
+        inclInstances.insert(inst.idx());
+        fprintf(f, "%s", inst.name());
+        size_t idxF=0;
+        for ( const auto feat : iset_.features() )
+        {
+            if (iset_.feature_is_integer(idxF))
+                fprintf(f, ",%d", inst.int_feature(idxF));
+            else
+                fprintf(f, ",%g", inst.float_feature(idxF));
+            ++idxF;
+        }
+        fprintf(f, "\n");
+    }
+    fclose(f);
+
+    // filtering algorithms
+    unordered_set< size_t > inclAlgs;
+    for ( size_t ia=0 ; (ia<algsettings_.size()) ; ++ia )
+    {
+        if ( nLastRank[ia] >= ((double)algsettings_.size())*0.98 )
+            continue;
+        inclAlgs.insert(ia);
+    }
+
+    f=fopen(resultsFile, "w");
+    for ( size_t idxInst : inclInstances )
+    {
+        for ( size_t ia : inclAlgs )
+            fprintf(f, "%s,%s,%g\n", iset_.instance(idxInst).name(), algsettings_[ia].c_str(), this->res(idxInst, ia) );
+    }
+
+    fclose(f);
+
 }
 
 double ResultsSet::res(size_t iIdx, size_t iAlg) const

@@ -30,8 +30,12 @@ int main( int argc, char **argv )
     //iset.save("instances-norm.csv", true);
     ResultsSet rset( iset, argv[2] );
     //rset.save_csv("results.csv");
+    //
+    
+    rset.saveFilteredDataSets("features-pp.csv", "results-pp.csv");
 
     rset.saveInstanceSum("instsum.csv");
+    rset.saveAlgSummary("algsum.csv");
     exit(0);
 
     Greedy grd(&iset, &rset);

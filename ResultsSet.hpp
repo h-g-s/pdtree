@@ -67,6 +67,14 @@ public:
     // summary information per instance in a csv file
     void saveInstanceSum(const char *fileName) const;
 
+    // algorithm summary
+    void saveAlgSummary(const char *fileName) const;
+
+    void saveFilteredDataSets(const char *featuresFile, const char *resultsFile);
+
+    const InstanceSet &instanceSet() const {
+        return this->iset_;
+    }
 private:
     const InstanceSet &iset_;
 
@@ -78,7 +86,12 @@ private:
     const enum FMRStrategy fmrs_;
 
     TResult *avInst;
+    TResult *stdDevInst;
+    TResult *worseInst;
+    int *nTimeOutsInst;
+
     int *nRankOne;
+    int *nLastRank;
 
     std::vector< size_t > topAlgByRnkOne;
 
@@ -87,6 +100,9 @@ private:
     SubSetResults *rnkRes_;
     // points to one of the two previous
     SubSetResults *defRes_;
+
+    // worse result
+    double timeOut;
 
     friend class Tree;
     friend class ResTestSet;
