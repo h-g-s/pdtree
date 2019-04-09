@@ -75,6 +75,14 @@ public:
     const InstanceSet &instanceSet() const {
         return this->iset_;
     }
+
+    TResult stdDevInst( size_t idxInst ) const {
+        return stdDevInst_[idxInst];
+    }
+
+    TResult avAlg( size_t idxAlg ) const {
+        return avAlg_[idxAlg];
+    }
 private:
     const InstanceSet &iset_;
 
@@ -86,12 +94,14 @@ private:
     const enum FMRStrategy fmrs_;
 
     TResult *avInst;
-    TResult *stdDevInst;
+    TResult *stdDevInst_;
     TResult *worseInst;
     int *nTimeOutsInst;
 
+    // per algorithm
     int *nRankOne;
     int *nLastRank;
+    TResult *avAlg_;
 
     std::vector< size_t > topAlgByRnkOne;
 
@@ -102,7 +112,7 @@ private:
     SubSetResults *defRes_;
 
     // worse result
-    double timeOut;
+    TResult timeOut;
 
     friend class Tree;
     friend class ResTestSet;

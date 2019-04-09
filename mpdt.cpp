@@ -14,6 +14,7 @@
 #include "ResultsSet.hpp"
 #include "Tree.hpp"
 #include "Greedy.hpp"
+#include "MIPSelAlg.hpp"
 
 
 int main( int argc, char **argv )
@@ -36,6 +37,11 @@ int main( int argc, char **argv )
 
     rset.saveInstanceSum("instsum.csv");
     rset.saveAlgSummary("algsum.csv");
+
+    MIPSelAlg msalg(&rset);
+    msalg.optimize(1500);
+    msalg.saveFilteredResults("results-msa.csv");
+
     exit(0);
 
     Greedy grd(&iset, &rset);

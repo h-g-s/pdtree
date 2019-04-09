@@ -1,4 +1,4 @@
-/*
+    /*
  * MIPSelAlg.cpp
  *
  *  Created on: 8 de abr de 2019
@@ -8,20 +8,26 @@
 #include "MIPSelAlg.hpp"
 #include "Parameters.hpp"
 #include "ResultsSet.hpp"
+#include "pdtdefines.hpp"
 #include <vector>
+#include <cmath>
 #include <cassert>
 #include <cstring>
 
 using namespace std;
 
-#define K 3
+// minimum number of parameter settings that should be allocated to a problem
+#define K 5
+
+#define NALGS 30
 
 static char **to_char_vec( const vector< string > names );
-
 
 MIPSelAlg::MIPSelAlg( const ResultsSet *_rset ) :
     rset_(_rset),
     iset_(&rset_->instanceSet()),
+    nSelAlg_(0),
+    selAlg_(new int[_rset->algsettings().size()]),
     y( new int[rset_->algsettings().size()] ),
     x( new int*[iset_->size()]),
     mip(lp_create())
@@ -34,19 +40,21 @@ MIPSelAlg::MIPSelAlg( const ResultsSet *_rset ) :
     createXVars();
     createConsSelK();
     createConsLNKXY();
+    createConsSelNAlgs();
 }
 
 void MIPSelAlg::createYVars()
 {
     vector< string > cnames;
+    vector< double > obj;
     for ( size_t ia=0 ; (ia<rset_->algsettings().size()) ; ++ia )
     {
         char cn[256];
         sprintf(cn, "y(%zu)", ia);
         y[ia] = lp_cols(mip)+cnames.size();
         cnames.push_back(cn);
+        obj.push_back(((double)Parameters::minElementsBranch)*rset_->avAlg(ia));
     }
-    vector< double > obj(cnames.size(), Parameters::minElementsBranch);
 
     char **cns = to_char_vec(cnames);
     lp_add_bin_cols(mip, obj.size(), &obj[0], cns);
@@ -57,6 +65,8 @@ void MIPSelAlg::createXVars()
 {
     vector< string > cnames;
     vector< double > obj;
+    vector< double > lb;
+    vector< double > ub;
     for ( size_t ip=0 ; ip<iset_->size() ; ++ip )
     {
         for ( size_t ia=0 ; (ia<rset_->algsettings().size()) ; ++ia )
@@ -66,6 +76,11 @@ void MIPSelAlg::createXVars()
             x[ip][ia] = lp_cols(mip)+cnames.size();
             cnames.push_back(cn);
             obj.push_back(rset_->res(ip,ia));
+            lb.push_back(0.0);
+            if (rset_->stdDevInst(ip)<=MIN_STD_DEV)
+                ub.push_back(0.0);
+            else
+                ub.push_back(1.0);
         }
     }
     char **cns = to_char_vec(cnames);
@@ -73,12 +88,12 @@ void MIPSelAlg::createXVars()
     free(cns);
 }
 
-
 MIPSelAlg::~MIPSelAlg ()
 {
     delete[] x[0];
     delete[] x;
     delete[] y;
+    delete[] selAlg_;
     lp_free( &mip );
 }
 
@@ -90,13 +105,10 @@ void MIPSelAlg::createConsSelK()
     for ( size_t ip=0 ; (ip<iset_->size()) ; ++ip )
     {
         for ( size_t ia=0 ; (ia<rset_->algsettings().size()) ; ++ia )
-        {
             idx[ia] = x[ip][ia];
-
-            char rName[256];
-            sprintf(rName, "selK(%zu)", ip);
-            lp_add_row(mip, rset_->algsettings().size(), &idx[0], &coef[0], rName, 'G', K);
-        }
+        char rName[256];
+        sprintf(rName, "selK(%zu)", ip);
+        lp_add_row(mip, rset_->algsettings().size(), &idx[0], &coef[0], rName, 'G', K);
     }
 }
 
@@ -111,16 +123,71 @@ void MIPSelAlg::createConsLNKXY()
             idx[ip] = x[ip][ia];
 
         *idx.rbegin() = y[ia];
-        *coef.rbegin() = -Parameters::minElementsBranch;
+        *coef.rbegin() = -((double)Parameters::minElementsBranch);
 
         char rName[256];
         sprintf(rName, "lnkYX(%zu)", ia);
         lp_add_row( mip, idx.size(), &idx[0], &coef[0], rName, 'G', 0.0);
 
         sprintf(rName, "lnkXY(%zu)", ia);
-        *coef.rbegin() = -iset_->size();
+        *coef.rbegin() = -((double)iset_->size());
         lp_add_row( mip, idx.size(), &idx[0], &coef[0], rName, 'L', 0.0);
     }
+}
+
+void MIPSelAlg::createConsSelNAlgs()
+{
+    vector< int > idx( rset_->algsettings().size(), 0 );
+
+    for ( size_t ia=0 ; (ia<rset_->algsettings().size()) ; ++ia )
+        idx[ia] = y[ia];
+
+    vector< double > coef(rset_->algsettings().size(), 1.0);
+
+    char rName[256]; sprintf(rName, "nAlgs");
+    lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'E', NALGS);
+}
+
+void MIPSelAlg::optimize(int maxSeconds)
+{
+    lp_set_max_seconds(mip, maxSeconds);
+    lp_write_lp(mip, "aaa.lp");
+    int status = lp_optimize(mip);
+    if (status!=LP_OPTIMAL && status!=LP_FEASIBLE)
+    {
+        printf("No solution found for MIPSelAlg\n");
+        return;
+    }
+
+    double *x = lp_x(mip);
+
+    for ( size_t ia=0 ; (ia<rset_->algsettings().size()) ; ++ia )
+    {
+        if (fabs(x[y[ia]])<=0.99)
+            continue;
+
+        selAlg_[nSelAlg_++] = ia;
+    }
+
+    assert(nSelAlg_ == NALGS);
+}
+
+void MIPSelAlg::saveFilteredResults(const char *fileName) const
+{
+    FILE *f = fopen(fileName, "w");
+    fprintf(f, "instance,algsetting,result\n");
+    for (size_t ip=0 ; (ip<iset_->size()) ; ++ip)
+    {
+        if (rset_->stdDevInst(ip)<=MIN_STD_DEV)
+            continue;
+
+        for (int isa=0 ; (isa<nSelAlg_) ; ++isa)
+        {
+            size_t ia = selAlg_[isa];
+            fprintf(f, "%s,%s,%.4f\n", iset_->instance(ip).name(), rset_->algsettings()[ia].c_str(), rset_->res(ip, ia));
+        }
+    }
+    fclose(f);
 }
 
 static char **to_char_vec( const vector< string > names )
