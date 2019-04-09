@@ -354,6 +354,17 @@ void InstanceSet::save(const char *fileName, bool normalized) const
     fclose(f);
 }
 
+double InstanceSet::value_by_norm_val_rank(size_t idxF, const double nv) const
+{
+    assert( nv>=0.0-1e-9 );
+    assert( nv<=1.0+1e-9 );
+
+    int rank = (int)floor( ((double)featureValRank[idxF].size())*nv + 0.5 );
+    auto it = featureValRank[idxF].find(rank);
+    assert(it!=featureValRank[idxF].end());
+    return it->second;
+}
+
 bool InstanceSet::has(const std::string &iname) const
 {
     auto it = instByName_.find(iname);

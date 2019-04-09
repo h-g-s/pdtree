@@ -344,7 +344,7 @@ void MIPPDtree::createConsSelectLeaf()
 
                 for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )
                 {
-                    double nfv = iset_->norm_feature_val( i, idxF );
+                    double nfv = iset_->norm_feature_val_rank(i, idxF);
 
                     double c = nfv*SEL_LEAF_SCAL;
 
@@ -381,9 +381,9 @@ void MIPPDtree::createConsSelectLeaf()
                 for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )
                 {
                     assert(epsj[idxF] >= 0.0-1e-10 && epsj[idxF]<=1.0+1e-10 );
-                    double nfv = iset_->norm_feature_val( i, idxF );
+                    double nfv = iset_->norm_feature_val_rank( i, idxF );
 
-                    nfv = max(iset_->norm_feature_val( i, idxF )-epsj[idxF], minDiffBranches);
+                    nfv = max((double)iset_->norm_feature_val( i, idxF )-epsj[idxF], (double)minDiffBranches);
 
                     double c = nfv*SEL_LEAF_SCAL;
 
@@ -407,7 +407,6 @@ void MIPPDtree::createConsSelectLeaf()
                 sprintf(rName, "selNRL(%zu,%s,%s)", i, leafNodes[idxL].c_str(), branchNodes[rightN].c_str() );
 #endif
 
-
                 lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'G', -2.0*SEL_LEAF_SCAL );
             } // parents at right
         } // leafs
@@ -422,7 +421,7 @@ void MIPPDtree::computeEMax()
     {
         unordered_set<double> values;
         for ( size_t i=0 ; (i<nInsts) ; ++i )
-            values.insert( iset_->norm_feature_val(i, idxF) );
+            values.insert( iset_->norm_feature_val_rank(i, idxF) );
 
         vector< double > sv(values.begin(), values.end());
         sort( sv.begin(), sv.end());
@@ -487,6 +486,7 @@ void MIPPDtree::createCVars()
 
 void MIPPDtree::createWVars()
 {
+    double foMult = pow(10.0, RES_PRECISION);
     vector< string > cnames;
     vector< double > obj;
     for ( size_t idxInst=0 ; (idxInst<nInsts) ; ++idxInst )
@@ -501,7 +501,7 @@ void MIPPDtree::createWVars()
 #endif
             w[idxInst][idxAlg] = lp_cols(mip) + cnames.size();
             cnames.push_back(cName);
-            obj.push_back( rset_->res(idxInst, idxAlg) );
+            obj.push_back( rset_->res(idxInst, idxAlg)*foMult );
         }
     }
 
@@ -603,7 +603,7 @@ Tree *MIPPDtree::build( const int maxSeconds )
             if (x[d[id]]<0.01)
                 continue;
 
-            const double branchValue = x[b[id]];
+            const double branchNormRV = x[b[id]];
             int idxF = INT_MAX;
             for ( size_t idf=0 ; (idf<nFeatures) ; ++idf )
             {
@@ -613,6 +613,8 @@ Tree *MIPPDtree::build( const int maxSeconds )
                 break;
             }
             assert(idxF != INT_MAX);
+
+            const double branchValue = iset_->value_by_norm_val_rank(idxF, branchNormRV);
 
             node->branchOn( idxF, branchValue );
 

@@ -57,6 +57,8 @@ public:
 
     double norm_feature_val_rank( size_t idxInst, size_t idxF ) const;
 
+    double value_by_norm_val_rank( size_t idxF, const double nv ) const;
+
     virtual ~InstanceSet ();
 
     void save(const char *fileName, bool normalized = true) const;
