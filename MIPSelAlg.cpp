@@ -19,7 +19,7 @@ using namespace std;
 // minimum number of parameter settings that should be allocated to a problem
 #define K 5
 
-#define NALGS 30
+#define NALGS 25
 
 static char **to_char_vec( const vector< string > names );
 
