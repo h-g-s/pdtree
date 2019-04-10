@@ -188,12 +188,17 @@ void MIPPDtree::createAVars()
     {
         for ( size_t idxN=0 ; (idxN<branchNodes.size()) ; ++idxN )
         {
-            char vname[512];
-            sprintf(vname, "a(%s,%s)",
-                    clean_str(iset_->features()[idxF].c_str()).c_str() ,
-                    branchNodes[idxN].c_str());
-            a[idxF][idxN] = lp_cols(mip) + vnames.size();
-            vnames.push_back(vname);
+            if (iset_->nValidBranchingsFeature(idxF))
+            {
+                char vname[512];
+                sprintf(vname, "a(%s,%s)",
+                        clean_str(iset_->features()[idxF].c_str()).c_str() ,
+                        branchNodes[idxN].c_str());
+                a[idxF][idxN] = lp_cols(mip) + vnames.size();
+                vnames.push_back(vname);
+            }
+            else
+                a[idxF][idxN] = -1;
         }
     }
 
@@ -214,14 +219,19 @@ void MIPPDtree::createConsLnkAD()
     {
         vector< int > idx( iset_->features().size()+1 );
         vector< double > coef( iset_->features().size()+1, 1.0 );
-        *coef.rbegin() = -1.0;
-        *idx.rbegin() = d[idxN];
+
+        int nz = 0;
         for ( size_t idxF=0 ; (idxF<iset_->features().size()) ; ++idxF )
-            idx[idxF] = a[idxF][idxN];
+            if (iset_->nValidBranchingsFeature(idxF))
+                idx[nz++] = a[idxF][idxN];
+
+        coef[nz] = -1.0;
+        idx[nz] = d[idxN];
+        ++nz;
 
         char rname[256];
         sprintf( rname, "lnkAD(%s)", branchNodes[idxN].c_str() );
-        lp_add_row(mip, iset_->features().size()+1, &idx[0], &coef[0], rname, 'E', 0.0 );
+        lp_add_row(mip, nz, &idx[0], &coef[0], rname, 'E', 0.0 );
     }
 }
 
@@ -351,8 +361,11 @@ void MIPPDtree::createConsSelectLeaf()
                     if (fabs(c)<=1e-5)
                         continue;
 
-                    idx.push_back(a[idxF][leftN]);
-                    coef.push_back(c);
+                    if (a[idxF][leftN]>=0)
+                    {
+                        idx.push_back(a[idxF][leftN]);
+                        coef.push_back(c);
+                    }
                 }
 
                 idx.push_back(b[leftN]);
@@ -381,17 +394,19 @@ void MIPPDtree::createConsSelectLeaf()
                 for ( size_t idxF=0 ; (idxF<nFeatures) ; ++idxF )
                 {
                     assert(epsj[idxF] >= 0.0-1e-10 && epsj[idxF]<=1.0+1e-10 );
-                    double nfv = iset_->norm_feature_val_rank( i, idxF );
 
-                    nfv = max((double)iset_->norm_feature_val( i, idxF )-epsj[idxF], (double)1e-10);
+                    double nfv = (double)iset_->norm_feature_val_rank( i, idxF )-epsj[idxF];
 
                     double c = nfv*SEL_LEAF_SCAL;
 
                     if (fabs(c)<=1e-5)
                         continue;
 
-                    idx.push_back(a[idxF][rightN]);
-                    coef.push_back( c );
+                    if (a[idxF][rightN]>=0)
+                    {
+                        idx.push_back(a[idxF][rightN]);
+                        coef.push_back( c );
+                    }
                 }
 
                 idx.push_back(b[rightN]);
@@ -427,7 +442,10 @@ void MIPPDtree::computeEMax()
         sort( sv.begin(), sv.end());
 
         if (sv.size()==1)
+        {
+            epsj[idxF] = 1.0;
             continue;
+        }
 
         for ( size_t p=1 ; (p<sv.size()) ; ++p )
         {
@@ -607,6 +625,9 @@ Tree *MIPPDtree::build( const int maxSeconds )
             int idxF = INT_MAX;
             for ( size_t idf=0 ; (idf<nFeatures) ; ++idf )
             {
+                if (a[idf][id]<0)
+                    continue;
+
                 if (x[a[idf][id]]<=0.99)
                     continue;
                 idxF = idf;

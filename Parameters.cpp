@@ -35,7 +35,7 @@ size_t Parameters::storeTop = 5;
 
 // minimum number of instances in a split
 // for the branching to be valid
-size_t Parameters::minElementsBranch = 3;
+int Parameters::minElementsBranch = 3;
 
 // maximum number of branches evaluated for a feature
 // at a given depth

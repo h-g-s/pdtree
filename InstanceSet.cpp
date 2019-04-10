@@ -157,6 +157,8 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int
 
     nElementsFeatRank_ = vector< vector< int > >( features_.size() );
 
+    nValidBF_ = vector< int >(features().size(), 0);
+
     for ( size_t idxF=0 ; (idxF<features().size()) ; ++idxF )
     {
         std::unordered_map< double, int > values;
@@ -172,23 +174,32 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int
 
         std::sort( svalues.begin(), svalues.end() );
 
-        double prev = svalues.begin()->first;
+        double prev = svalues.begin()->first -1;
 
-        int rank = 0;
+        int rank = -1;
         int nElLeft = 0;
         double vsplit = 0;
         double minDif = 1e-10;
+        bool undefBorder = true;
         for ( const auto v : svalues )
         {
             nElLeft += v.second;
 
-            if (v.first-prev>=minDif && nElLeft>=((int)Parameters::minElementsBranch) && (((int)size())-nElLeft)>=((int)Parameters::minElementsBranch) )
+            if ( (v.first-prev>=minDif) && (nElLeft>=Parameters::minElementsBranch) && (undefBorder||((size()-nElLeft)>=Parameters::minElementsBranch))  )
             {
-                vsplit = v.first;
                 rank++;
-            }
+                vsplit = v.first;
 
-            if (((int)nElementsFeatRank_[idxF].size())<=rank)
+                if ( ((int)size())-nElLeft >= ((int)Parameters::minElementsBranch) )
+                    nValidBF_[idxF]++;
+                else
+                    undefBorder = false;
+
+            }
+            else
+                rank = max(rank, 0);
+
+            while ( ((int)nElementsFeatRank_[idxF].size()) <= rank )
                 nElementsFeatRank_[idxF].push_back(0);
 
             nElementsFeatRank_[idxF][rank] += v.second;
@@ -225,9 +236,9 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int
     }
 }
 
-size_t InstanceSet::size() const
+int InstanceSet::size() const
 {
-    return inst_dataset_->rows();
+    return ((int)inst_dataset_->rows());
 }
 
 const Instance &InstanceSet::inst_by_name( const std::string &name ) const
@@ -356,7 +367,9 @@ double InstanceSet::norm_feature_val( size_t idxInst, size_t idxF ) const
 
 double InstanceSet::norm_feature_val_rank( size_t idxInst, size_t idxF ) const
 {
-    double rankingsF = rankingsFeature(idxF);
+    if (rankingsFeature(idxF)<=1)
+        return 0.0;
+    double rankingsF = rankingsFeature(idxF)-1.0;
 
     const double v = ((double)instFeatRank[idxInst][idxF]) / rankingsF;
     assert( v>=0.0-1e-10 );
@@ -382,6 +395,26 @@ void InstanceSet::save(const char *fileName, bool normalized) const
                 fprintf(f, ",%g", norm_feature_val(inst.idx(), i));
             else
                 fprintf(f, ",%g", inst.float_feature(i));
+        }
+        fprintf(f, "\n");
+    }
+    fclose(f);
+}
+
+void InstanceSet::saveNormRank(const char *fileName) const
+{
+    FILE *f = fopen(fileName, "w");
+    assert(f);
+    fprintf(f, "name");
+    for ( size_t i=0 ; (i<features_.size()) ; ++i )
+        fprintf(f, ",%s", features_[i].c_str());
+    fprintf( f, "\n" );
+    for ( const auto &inst : instances_ )
+    {
+        fprintf(f, "%s", inst.name() );
+        for ( size_t i=0 ; (i<features_.size()) ; ++i )
+        {
+            fprintf(f, ",%g", this->norm_feature_val_rank(inst.idx(), i) );
         }
         fprintf(f, "\n");
     }

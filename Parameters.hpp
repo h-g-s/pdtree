@@ -66,7 +66,7 @@ public:
     // display summary
     static size_t storeTop;
 
-    static size_t minElementsBranch;
+    static int minElementsBranch;
 
     static size_t maxEvalBranches[MAX_DEPTH];
 

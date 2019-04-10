@@ -33,7 +33,7 @@ MIPSelAlg::MIPSelAlg( const ResultsSet *_rset ) :
     mip(lp_create())
 {
     x[0] = new int[iset_->size()*rset_->algsettings().size()];
-    for ( size_t i=1 ; (i<iset_->size()) ; ++i )
+    for ( auto i=1 ; (i<iset_->size()) ; ++i )
         x[i] = x[i-1] + rset_->algsettings().size();
 
     createYVars();
@@ -67,12 +67,12 @@ void MIPSelAlg::createXVars()
     vector< double > obj;
     vector< double > lb;
     vector< double > ub;
-    for ( size_t ip=0 ; ip<iset_->size() ; ++ip )
+    for ( auto ip=0 ; ip<iset_->size() ; ++ip )
     {
-        for ( size_t ia=0 ; (ia<rset_->algsettings().size()) ; ++ia )
+        for ( auto ia=0 ; (ia<(int)rset_->algsettings().size()) ; ++ia )
         {
             char cn[256];
-            sprintf(cn, "x(%zu,%zu)", ip, ia);
+            sprintf(cn, "x(%d,%d)", ip, ia);
             x[ip][ia] = lp_cols(mip)+cnames.size();
             cnames.push_back(cn);
             obj.push_back(rset_->res(ip,ia));
@@ -102,12 +102,12 @@ void MIPSelAlg::createConsSelK()
     vector< int > idx(rset_->algsettings().size());
     vector< double > coef(idx.size(), 1.0);
 
-    for ( size_t ip=0 ; (ip<iset_->size()) ; ++ip )
+    for ( auto ip=0 ; (ip<iset_->size()) ; ++ip )
     {
         for ( size_t ia=0 ; (ia<rset_->algsettings().size()) ; ++ia )
             idx[ia] = x[ip][ia];
         char rName[256];
-        sprintf(rName, "selK(%zu)", ip);
+        sprintf(rName, "selK(%d)", ip);
         lp_add_row(mip, rset_->algsettings().size(), &idx[0], &coef[0], rName, 'G', K);
     }
 }
@@ -119,7 +119,7 @@ void MIPSelAlg::createConsLNKXY()
         vector< int > idx(iset_->size() + 1);
         vector< double  > coef(idx.size(), 1.0);
 
-        for (size_t ip=0 ; ip<iset_->size(); ++ip)
+        for (auto ip=0 ; ip<iset_->size(); ++ip)
             idx[ip] = x[ip][ia];
 
         *idx.rbegin() = y[ia];
@@ -176,7 +176,7 @@ void MIPSelAlg::saveFilteredResults(const char *fileName) const
 {
     FILE *f = fopen(fileName, "w");
     fprintf(f, "instance,algsetting,result\n");
-    for (size_t ip=0 ; (ip<iset_->size()) ; ++ip)
+    for (auto ip=0 ; (ip<iset_->size()) ; ++ip)
     {
         if (rset_->stdDevInst(ip)<=MIN_STD_DEV)
             continue;

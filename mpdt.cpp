@@ -28,7 +28,10 @@ int main( int argc, char **argv )
     Parameters::parse( argc, (const char **)argv );
 
     InstanceSet iset( argv[1], argv[2] );
+    iset.save("features-norm.csv", true);
+    iset.saveNormRank("features-rnorm.csv");
     ResultsSet rset( iset, argv[2] );
+    rset.save_csv("results.csv");
 
     Greedy grd(&iset, &rset);
     Tree *greedyT = grd.build();

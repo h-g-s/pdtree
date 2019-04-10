@@ -51,7 +51,7 @@ public:
     // if feature is of some integral type
     bool feature_is_float( size_t idxF ) const;
 
-    size_t size() const;
+    int size() const;
 
     double norm_feature_val( size_t idxInst, size_t idxF ) const;
 
@@ -68,9 +68,15 @@ public:
         return nElementsFeatRank_[idxFeature][rank];
     }
 
+    int nValidBranchingsFeature( size_t idxF ) const {
+        return nValidBF_[idxF];
+    }
+
     virtual ~InstanceSet ();
 
     void save(const char *fileName, bool normalized = true) const;
+
+    void saveNormRank(const char *fileName) const;
 
     // training dataset
     Dataset *inst_dataset_;
@@ -81,6 +87,9 @@ private:
     std::vector<Instance> instances_;
     std::vector<Datatype> types_;
     std::unordered_map< std::string, size_t > instByName_;
+
+    // valid branchings per feature
+    std::vector< int > nValidBF_;
 
     // normalized value feature rank
     std::vector< std::map< double, int > > featureValRank;

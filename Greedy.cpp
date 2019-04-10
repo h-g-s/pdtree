@@ -70,7 +70,7 @@ public:
         idxFeature(numeric_limits<size_t>::max()),
         bestSplit(SplitInfo(rset_->algsettings().size(), iset_->size()))
     { 
-        for ( size_t i=0 ; (i<iset_->size()) ; ++i )
+        for ( auto i=0 ; (i<iset_->size()) ; ++i )
             elv[i].el = i;
         for ( size_t i=0 ; (i<rset_->algsettings().size()) ; ++i )
             sumResR[i] = rset_->results().sum()[i];
@@ -89,9 +89,12 @@ public:
         for ( size_t ia=0 ; (ia<rset_->algsettings().size()) ; ++ia )
         {
             sumResR[ia] -= ((long double)rset_->res(idxInst, ia));
-            assert( sumResR[ia] >= -1e-5 );
             sumResL[ia] += ((long double)rset_->res(idxInst, ia));
+
+#ifdef DEBUG
+            assert( sumResR[ia] >= -1e-5 );
             assert( sumResL[ia] >= -1e-5 );
+#endif
         }
     }
 
@@ -133,14 +136,14 @@ public:
 
 goNext:
         ++nElLeft;
-        if (nElLeft>nEl-Parameters::minElementsBranch )
+        if ( ((int)nElLeft)>((int)nEl)-((int)Parameters::minElementsBranch) )
             return false;
 
         const double diff = elv[nElLeft].el - elv[nElLeft-1].el;
         assert( diff>=0.0 );
 
         if (diff>=1e-10 and nElLeft>=Parameters::minElementsBranch)
-            return true;
+                return true;
         else
         {
             moveInstanceLeft( elv[nElLeft].el );
