@@ -36,7 +36,6 @@ int main( int argc, char **argv )
     greedyT->draw("gtree.gv");
     delete greedyT;
 
-
     MIPPDtree mpdt( &iset, &rset );
 
     const Tree *tree = mpdt.build( 60 );

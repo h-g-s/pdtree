@@ -137,7 +137,6 @@ void Node::branchOn( const size_t idxF, double normValue )
     assert( normValue >= 0.0-1e-10 && normValue <= 1.0+1e+10 );
     normValue = max( 0.0, normValue );
     normValue = min( 1.0, normValue );
-    normValue += minDiffBranches / 3.0;
 
     double bestDiff = DBL_MAX;
     double bv = DBL_MAX;

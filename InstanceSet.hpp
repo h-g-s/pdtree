@@ -7,7 +7,7 @@
 
 #include <cstddef>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 #include "Dataset.hpp"
@@ -59,6 +59,15 @@ public:
 
     double value_by_norm_val_rank( size_t idxF, const double nv ) const;
 
+    // number branching possibilities for a feature
+    int rankingsFeature( size_t idxF ) const {
+        return rankingsF_[idxF];
+    }
+
+    int nElementsFeatRank( size_t idxFeature, size_t rank ) const {
+        return nElementsFeatRank_[idxFeature][rank];
+    }
+
     virtual ~InstanceSet ();
 
     void save(const char *fileName, bool normalized = true) const;
@@ -74,8 +83,13 @@ private:
     std::unordered_map< std::string, size_t > instByName_;
 
     // normalized value feature rank
-    std::vector< std::unordered_map< double, int > > featureValRank;
-    std::vector< std::unordered_map< int, double > > featureRankVal;
+    std::vector< std::map< double, int > > featureValRank;
+    std::vector< std::map< int, double > > featureRankVal;
+
+    // elements by feature and rank
+    std::vector< std::vector< int > > nElementsFeatRank_;
+
+    std::vector< int > rankingsF_;
 
     int **instFeatRank; // per instance
 

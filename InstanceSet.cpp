@@ -5,8 +5,6 @@
  *      Author: haroldo
  */
 
-#include "InstanceSet.hpp"
-#include "pdtdefines.hpp"
 #include <fstream>
 #include <cfloat>
 #include <cassert>
@@ -18,6 +16,9 @@
 #include <ctime>
 #include <unordered_set>
 #include <algorithm>
+#include "InstanceSet.hpp"
+#include "pdtdefines.hpp"
+#include "Parameters.hpp"
 
 using namespace std;
 
@@ -149,33 +150,64 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int
         }
     } // all features
 
-    featureValRank = vector< unordered_map< double, int > >( features().size(), unordered_map< double, int >() );
-    featureRankVal = vector< unordered_map< int, double > >( features().size(), unordered_map< int, double >());
+    featureValRank = vector< map< double, int > >( features().size(), map< double, int >() );
+    featureRankVal = vector< map< int, double > >( features().size(), map< int, double >());
+
+    rankingsF_ = vector< int >( features().size(), 0 );
+
+    nElementsFeatRank_ = vector< vector< int > >( features_.size() );
 
     for ( size_t idxF=0 ; (idxF<features().size()) ; ++idxF )
     {
-        std::unordered_set< double > values;
+        std::unordered_map< double, int > values;
         for ( const auto &inst : instances() )
         {
             const double v = norm_feature_val(inst.idx(), idxF);
-            values.insert(v);
+            values[v]++;
         }
 
-        std::vector< double > svalues( values.begin(), values.end() );
+        std::vector< pair<double, int> > svalues;
+        for ( const auto &v : values )
+            svalues.push_back( make_pair(v.first, v.second) );
+
         std::sort( svalues.begin(), svalues.end() );
 
-        double prev = limitsFeature[idxF].first - 10;
+        double prev = svalues.begin()->first;
 
-        int rank = -1;
+        int rank = 0;
+        int nElLeft = 0;
+        double vsplit = 0;
+        double minDif = 1e-10;
         for ( const auto v : svalues )
         {
-            if (v-prev>=minDiffBranches)
-                rank++;
+            nElLeft += v.second;
 
-            featureValRank[idxF][v] = rank;
-            featureValRank[idxF][rank] = v;
-            prev = v;
+            if (v.first-prev>=minDif && nElLeft>=((int)Parameters::minElementsBranch) && (((int)size())-nElLeft)>=((int)Parameters::minElementsBranch) )
+            {
+                vsplit = v.first;
+                rank++;
+            }
+
+            if (((int)nElementsFeatRank_[idxF].size())<=rank)
+                nElementsFeatRank_[idxF].push_back(0);
+
+            nElementsFeatRank_[idxF][rank] += v.second;
+
+            featureValRank[idxF][v.first] = rank;
+            featureRankVal[idxF][rank] = vsplit;
+            prev = vsplit;
         }
+
+        rankingsF_[idxF] = rank+1;
+
+#ifdef DEBUG
+        {
+            int sum = 0;
+            for ( int ir=0 ; (ir<(int)rankingsF_[idxF]) ; ++ir )
+                sum += nElementsFeatRank_[idxF][ir];
+            assert(sum == (int)size());
+        }
+#endif
     }
 
     instFeatRank = new int*[instances_.size()];
@@ -324,7 +356,9 @@ double InstanceSet::norm_feature_val( size_t idxInst, size_t idxF ) const
 
 double InstanceSet::norm_feature_val_rank( size_t idxInst, size_t idxF ) const
 {
-    const double v = ((double)instFeatRank[idxInst][idxF]) / ((double) featureValRank[idxF].size());
+    double rankingsF = rankingsFeature(idxF);
+
+    const double v = ((double)instFeatRank[idxInst][idxF]) / rankingsF;
     assert( v>=0.0-1e-10 );
     assert( v<=1.0+1e-10 );
 
@@ -359,9 +393,15 @@ double InstanceSet::value_by_norm_val_rank(size_t idxF, const double nv) const
     assert( nv>=0.0-1e-9 );
     assert( nv<=1.0+1e-9 );
 
-    int rank = (int)floor( ((double)featureValRank[idxF].size())*nv + 0.5 );
+    double rankingsF = rankingsFeature(idxF)-1.0;
+
+    int rank = (int)floor( rankingsF*nv + 0.5 );
     auto it = featureValRank[idxF].find(rank);
     assert(it!=featureValRank[idxF].end());
+
+    assert( it->second >= 0.0-1e-9);
+    assert( it->second <= 1.0+1e-9);
+
     return it->second;
 }
 
@@ -373,4 +413,3 @@ bool InstanceSet::has(const std::string &iname) const
 
     return true;
 }
-

@@ -139,7 +139,7 @@ goNext:
         const double diff = elv[nElLeft].el - elv[nElLeft-1].el;
         assert( diff>=0.0 );
 
-        if (diff>=minDiffBranches and nElLeft>=Parameters::minElementsBranch)
+        if (diff>=1e-10 and nElLeft>=Parameters::minElementsBranch)
             return true;
         else
         {

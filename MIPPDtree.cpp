@@ -383,7 +383,7 @@ void MIPPDtree::createConsSelectLeaf()
                     assert(epsj[idxF] >= 0.0-1e-10 && epsj[idxF]<=1.0+1e-10 );
                     double nfv = iset_->norm_feature_val_rank( i, idxF );
 
-                    nfv = max((double)iset_->norm_feature_val( i, idxF )-epsj[idxF], (double)minDiffBranches);
+                    nfv = max((double)iset_->norm_feature_val( i, idxF )-epsj[idxF], (double)1e-10);
 
                     double c = nfv*SEL_LEAF_SCAL;
 
@@ -432,7 +432,7 @@ void MIPPDtree::computeEMax()
         for ( size_t p=1 ; (p<sv.size()) ; ++p )
         {
             const double diff = sv[p]-sv[p-1];
-            if ( diff < minDiffBranches )
+            if ( diff < 1e-10 )
                 continue;
             epsj[idxF] = min(epsj[idxF], diff );
         }
