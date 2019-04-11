@@ -788,6 +788,61 @@ void MIPPDtree::createConsSelAlgLeaf()
     }
 }
 
+void MIPPDtree::setInitialSolution( const Tree *tree )
+{
+    assert( tree != nullptr );
+    
+    // which binary variables will be fixed to one
+    vector< string > cnames;
+    setBinVarsNode(tree->root(), cnames);
+    vector< double > ones( cnames.size(), 1.0 );
+    char **cns = to_char_vec(cnames);
+    lp_load_mip_start(mip, (int)cnames.size(), (const char **)cns, &ones[0]);
+    free(cns);
+}
+
+void MIPPDtree::setBinVarsNode( const Node *node, std::vector< std::string > &cnames )
+{
+    if (node == nullptr)
+        return;
+
+    if (node->branchFeature()!=numeric_limits<size_t>::max())
+    {
+        // branch node, setting branching feature
+        assert(node->branchFeature()<iset_->features().size());
+
+        char cname[256] = "";
+        int idxBN = ((int)(pow(2.0, node->depth())+1e-10))-1 + ((int)node->idx());
+        assert( idxBN >=0 && idxBN < (int)branchNodes.size() );
+        assert(a[node->branchFeature()][idxBN]>=0 && a[node->branchFeature()][idxBN]<lp_cols(mip));
+        lp_col_name(mip, a[node->branchFeature()][idxBN], cname);
+        cnames.push_back(cname);
+        setBinVarsNode(node->ichild(0), cnames);
+        setBinVarsNode(node->ichild(1), cnames);
+    }
+    else
+    {
+        // leaf node, setting best algorithm
+        int idxLN = ((int)(pow(2.0, node->depth())+1e-10))-1 + ((int)node->idx()) -1;
+        assert( idxLN >=0 && idxLN < (int)leafNodes.size() );
+        int idxBestA = (int)node->bestAlg();
+        int idxC = c[idxLN][idxBestA];
+        assert(idxC>=0 && idxC<lp_cols(mip));
+        char cname[256] = "";
+        lp_col_name(mip, idxC, cname);
+        cnames.push_back(cname);
+
+        // setting instances in this node
+        for ( int i=0 ; (i<(int)node->n_elements()) ; ++i )
+        {
+            int idxInst = (int)node->elements()[i];
+            char cname[256] = "";
+            lp_col_name(mip, z[idxInst][idxLN], cname);
+            cnames.push_back(cname);
+        }
+    }
+}
+
 MIPPDtree::~MIPPDtree ()
 {
     lp_free( &mip );

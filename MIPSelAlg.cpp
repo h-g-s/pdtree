@@ -9,7 +9,10 @@
 #include "Parameters.hpp"
 #include "ResultsSet.hpp"
 #include "pdtdefines.hpp"
+#include "Tree.hpp"
+#include "Node.hpp"
 #include <vector>
+#include <limits>
 #include <cmath>
 #include <cassert>
 #include <cstring>

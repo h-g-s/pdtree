@@ -429,8 +429,8 @@ double InstanceSet::value_by_norm_val_rank(size_t idxF, const double nv) const
     double rankingsF = rankingsFeature(idxF)-1.0;
 
     int rank = (int)floor( rankingsF*nv + 0.5 );
-    auto it = featureValRank[idxF].find(rank);
-    assert(it!=featureValRank[idxF].end());
+    auto it = featureRankVal[idxF].find(rank);
+    assert(it!=featureRankVal[idxF].end());
 
     assert( it->second >= 0.0-1e-9);
     assert( it->second <= 1.0+1e-9);

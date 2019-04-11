@@ -16,7 +16,6 @@
 #include "Greedy.hpp"
 #include "MIPSelAlg.hpp"
 
-
 int main( int argc, char **argv )
 {
     if (argc<3)
@@ -26,6 +25,7 @@ int main( int argc, char **argv )
     }
 
     Parameters::parse( argc, (const char **)argv );
+    Parameters::print();
 
     InstanceSet iset( argv[1], argv[2] );
     iset.save("features-norm.csv", true);
@@ -37,9 +37,10 @@ int main( int argc, char **argv )
     Tree *greedyT = grd.build();
     greedyT->save("gtree.xml");
     greedyT->draw("gtree.gv");
-    delete greedyT;
 
     MIPPDtree mpdt( &iset, &rset );
+    //mpdt.setInitialSolution( greedyT );
+    delete greedyT;
 
     const Tree *tree = mpdt.build( 60 );
     if (tree)

@@ -9,6 +9,7 @@
 #define NODE_HPP_
 
 #include <stddef.h>
+#include <cassert>
 
 #include "tinyxml2.h"
 
@@ -29,6 +30,11 @@ public:
 
     Node **child() {
         return &(child_[0]);
+    }
+
+    const Node *ichild(int iChild) const {
+        assert(iChild>=0 && iChild<=1);
+        return child_[iChild];
     }
 
     const Node *parent() const {

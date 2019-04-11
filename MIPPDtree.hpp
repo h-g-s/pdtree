@@ -21,10 +21,15 @@ class Tree;
 #include <cfloat>
 #include <climits>
 
+class Tree;
+class Node;
+
 class MIPPDtree
 {
 public:
     MIPPDtree( const InstanceSet *_iset, const ResultsSet *_rset );
+
+    void setInitialSolution( const Tree *tree );
 
     Tree *build( const int maxSeconds = INT_MAX );
 
@@ -49,6 +54,8 @@ private:
     // max eps_j value
     std::vector< double > epsj;
     double emax;
+
+    void setBinVarsNode( const Node *node, std::vector< std::string > &cnames );
 
     void computeEMax();
 

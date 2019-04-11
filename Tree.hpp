@@ -38,6 +38,10 @@ public:
         return resultLeafs;
     }
 
+    const Node *root() const {
+        return root_;
+    }
+
     virtual ~Tree ();
 private:
     char nLabel[8192];
