@@ -19,7 +19,7 @@ class ResultsSet;
 class Tree
 {
 public:
-    Tree( const InstanceSet *_iset, const ResultsSet *_rset, const ResTestSet *_rtest = nullptr );
+    Tree(const InstanceSet* _iset, const ResultsSet* _rset, const ResTestSet* _rtest = nullptr);
 
     void addNode( Node *_node );
 
@@ -31,12 +31,11 @@ public:
     // saves tree in XML
     void save( const char *fileName ) const;
 
-    // evaluate in a set of training instances
+    // evaluate in a set of test instances
     double evaluate( const Dataset *testData ) const;
-
-    double leafResults() const {
-        return resultLeafs;
-    }
+    
+    // compute cost considering training data
+    void computeCost();
 
     const Node *root() const {
         return root_;
@@ -52,17 +51,21 @@ private:
 
     Node *root_;
 
-    double resultLeafs;
+    double avCostRoot;
+    double avCostLeafs;
+    double avRankRoot;
+    double avRankLeafs;
 
-    double improvement;
+    double costImprovement;
+    double rankImprovement;
 
     std::vector< Node * > nodes_;
 
     std::vector< Node * > leafs_;
 
-    size_t maxDepth;
+    int maxDepth;
 
-    size_t minInstancesNode;
+    int minInstancesNode;
 
     const ResTestSet *rtest_;
 };

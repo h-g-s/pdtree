@@ -655,6 +655,8 @@ Tree *MIPPDtree::build( const int maxSeconds )
         }
     }
     
+    tree->computeCost();
+    
     return tree;
 }
 

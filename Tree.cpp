@@ -35,10 +35,14 @@ Tree::Tree( const InstanceSet *_iset, const ResultsSet *_rset, const ResTestSet 
     iset_(_iset),
     rset_(_rset),
     root_(nullptr),
-    resultLeafs(0.0),
-    improvement(0.0),
-    maxDepth(0.0),
-    minInstancesNode(numeric_limits<size_t>::max()),
+    avCostRoot(DBL_MAX),
+    avCostLeafs(DBL_MAX),
+    avRankRoot(DBL_MAX),
+    avRankLeafs(DBL_MAX),
+    costImprovement(DBL_MAX),
+    rankImprovement(DBL_MAX),
+    maxDepth(0),
+    minInstancesNode(INT_MAX),
     rtest_(_rtest)
 {
 
@@ -193,13 +197,19 @@ void Tree::save( const char *fileName ) const
     XMLElement *tree = doc.NewElement("tree");
     doc.InsertFirstChild(tree);
 
-    addElement(&doc, tree, "improvement", this->improvement );
     addElement(&doc, tree, "maxDepth", (int)this->maxDepth );
     addElement(&doc, tree, "minInstancesNode", (int)this->minInstancesNode );
     addElement(&doc, tree, "instancesFile", Parameters::instancesFile.c_str() );
     addElement(&doc, tree, "experimentsFile", Parameters::resultsFile.c_str() );
     addElement(&doc, tree, "nInstances", (int)iset_->instances().size() );
     addElement(&doc, tree, "nAlgorithms", (int)rset_->algsettings().size() );
+    addElement(&doc, tree, "bestAlgRoot", rset_->algsettings()[root_->bestAlg()].c_str() );
+    addElement(&doc, tree, "avCostRoot", this->avCostRoot );
+    addElement(&doc, tree, "avCostLeafs", this->avCostLeafs );
+    addElement(&doc, tree, "costImprovement", this->costImprovement );
+    addElement(&doc, tree, "avRankRoot", this->avRankRoot );
+    addElement(&doc, tree, "avRankLeafs", this->avRankLeafs );
+    addElement(&doc, tree, "rankImprovement", this->rankImprovement );
 
     XMLElement *params = doc.NewElement("PDTreeParameters");
     tree->InsertEndChild(params);
@@ -221,13 +231,40 @@ void Tree::save( const char *fileName ) const
 void Tree::addNode( Node *_node )
 {
     this->nodes_.push_back(_node);
+    this->minInstancesNode = min(this->minInstancesNode, (int)_node->n_elements());
+    this->maxDepth = max(this->maxDepth, _node->depth());
 }
 
 double Tree::evaluate( const Dataset *testData ) const
 {
-    return DBL_MAX;
+    double res = 0.0;
+    
+    return res;
 }
 
+void Tree::computeCost()
+{
+    root_->setCostRoot();
+    
+    this->avCostRoot = root_->nodeCost_;
+    this->avRankRoot = root_->avRank;
+    
+    long double avCostLeafs = 0.0;
+    long double avRankLeafs = 0.0;
+    
+    for ( auto &n : nodes_ )
+    {
+        if (!n->isLeaf())
+            continue;
+        
+        n->computeCost();
+        avCostLeafs += (long double)n->nodeCost_ / (long double) n->n_elements() ;
+        avRankLeafs += (long double)n->avRank / (long double) n->n_elements() ;
+    }
+    
+    this->costImprovement = avCostRoot / avCostLeafs;
+    this->rankImprovement = avRankRoot / avRankLeafs;
+}
 
 Tree::~Tree ()
 {

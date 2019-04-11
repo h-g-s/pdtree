@@ -20,6 +20,7 @@
 #include "ResultsSet.hpp"
 #include "tinyxml2.h"
 #include "InstanceSet.hpp"
+#include "SubSetResults.hpp"
 
 
 using namespace std;
@@ -251,6 +252,54 @@ void Node::branchOnVal( const size_t idxF, const double val )
     child_[1] = new Node( (const Node *)this, elb[1].size(), &elb[1][0], this->idx_*2+1 );
 }
 
+void Node::setCostRoot()
+{
+    this->idxBestAlg = rset_->results().bestAlg();
+    
+    long double sumBestC = 0.0;
+    long double sumBestR = 0.0;
+    for ( int i=0 ; (i<iset_->size()) ; ++i )
+    {
+        sumBestC += rset_->origRes(i, idxBestAlg);
+        sumBestR += rset_->rank(i, idxBestAlg);
+    }
+
+    this->nodeCost_ = sumBestC / (long double)iset_->size();
+    this->avRank = sumBestR / (long double)iset_->size();
+}
+
+void Node::computeCost()
+{
+    this->idxBestAlg = numeric_limits<size_t>::max();
+    this->nodeCost_ = DBL_MAX;
+    
+    for ( int idxAlg=0 ; (idxAlg<(int)rset_->algsettings().size()) ; ++idxAlg )
+    {
+        long double sumC = 0.0;
+        long double sumR = 0.0;
+        for ( int i=0 ; (i<n_elements()) ; ++i )
+        {
+            int idxInst = elements()[i];
+            sumC += rset_->origRes(idxInst, idxAlg);
+            sumR += rset_->rank(idxInst, idxAlg);
+        }
+        sumC /= (long double)iset_->size();
+        sumR /= (long double)iset_->size();
+        
+        if ( (double)sumC < nodeCost_)
+        {
+            this->idxBestAlg = idxAlg;
+            this->nodeCost_ = (double)sumC;
+            this->avRank = (double)sumR;
+        }
+    }
+}
+
+bool Node::isLeaf() const
+{
+    return child_[0] == nullptr;
+}
+
 Node::~Node ()
 {
     delete[] el_;
@@ -261,4 +310,3 @@ Node::~Node ()
         delete child_[1];
     }
 }
-

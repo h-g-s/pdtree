@@ -255,6 +255,8 @@ Tree *Greedy::build()
             res->addNode(node->child()[1]);
         }
     }
+    
+    res->computeCost();
 
     return res;
 }

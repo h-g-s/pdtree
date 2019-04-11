@@ -85,6 +85,14 @@ public:
     }
 
     void writeXML(tinyxml2::XMLDocument *doc, tinyxml2::XMLElement *parent ) const;
+    
+    // updates the cost of this node considering that it is
+    // the root node
+    void setCostRoot();
+    
+    void computeCost();
+    
+    bool isLeaf() const;
 
     virtual ~Node ();
 private:
