@@ -42,6 +42,9 @@ public:
     // depending on param settings
     double res(size_t iIdx, size_t iAlg) const;
 
+    // returns the original result per algorithm and instance
+    double origRes(size_t iIdx, size_t iAlg) const;
+
     const std::vector<std::string> &algsettings() const {
         return this->algsettings_;
     }
@@ -90,6 +93,7 @@ private:
     std::vector< std::string > algsettings_;
     std::unordered_map< std::string, size_t > algsByName_;
     TResult **res_;
+    TResult **origRes_;
     int **ranks_;
     const enum FMRStrategy fmrs_;
 

@@ -23,7 +23,6 @@
 
 #include "InstanceSet.hpp"
 #include "ResultsSet.hpp"
-#include "Branching.hpp"
 #include "Instance.hpp"
 #include "Node.hpp"
 #include "SubSetResults.hpp"

@@ -39,10 +39,10 @@ int main( int argc, char **argv )
     greedyT->draw("gtree.gv");
 
     MIPPDtree mpdt( &iset, &rset );
-    //mpdt.setInitialSolution( greedyT );
+    mpdt.setInitialSolution( greedyT );
     delete greedyT;
 
-    const Tree *tree = mpdt.build( 60 );
+    const Tree *tree = mpdt.build( 36000 );
     if (tree)
     {
         tree->draw("tree.gv");

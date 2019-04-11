@@ -10,12 +10,12 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cmath>
 #include <string>
 #include <limits>
 #include <cfloat>
 
 #include "Dataset.hpp"
-#include "FeatureBranching.hpp"
 #include "Parameters.hpp"
 #include "ResultsSet.hpp"
 #include "tinyxml2.h"
@@ -168,8 +168,8 @@ void Node::branchOn( const size_t idxF, double normValue )
             elb[1].push_back(el_[i]);
     }
 
-    assert( elb[0].size() >= Parameters::minElementsBranch );
-    assert( elb[1].size() >= Parameters::minElementsBranch );
+    assert( (int)elb[0].size() >= Parameters::minElementsBranch );
+    assert( (int)elb[1].size() >= Parameters::minElementsBranch );
 
     child_[0] = new Node( (const Node *)this, elb[0].size(), &elb[0][0], this->idx_*2 );
     child_[1] = new Node( (const Node *)this, elb[1].size(), &elb[1][0], this->idx_*2+1 );
@@ -177,9 +177,9 @@ void Node::branchOn( const size_t idxF, double normValue )
 
 void Node::computeResultsNode()
 {
-    if (nEl_<Parameters::minElementsBranch)
+    if ((int)nEl_<Parameters::minElementsBranch)
     {
-        fprintf( stderr, "Node has only %zu elements, less than the minimum %zu.\n", nEl_, Parameters::minElementsBranch );
+        fprintf( stderr, "Node has only %zu elements, less than the minimum %d.\n", nEl_, Parameters::minElementsBranch );
         abort();
     }
 
@@ -244,8 +244,8 @@ void Node::branchOnVal( const size_t idxF, const double val )
             elb[1].push_back(el_[i]);
     }
 
-    assert( elb[0].size() >= Parameters::minElementsBranch );
-    assert( elb[1].size() >= Parameters::minElementsBranch );
+    assert( (int)elb[0].size() >= Parameters::minElementsBranch );
+    assert( (int)elb[1].size() >= Parameters::minElementsBranch );
 
     child_[0] = new Node( (const Node *)this, elb[0].size(), &elb[0][0], this->idx_*2 );
     child_[1] = new Node( (const Node *)this, elb[1].size(), &elb[1][0], this->idx_*2+1 );

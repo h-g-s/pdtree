@@ -38,7 +38,7 @@ using namespace std;
 
 static char **to_char_vec( const vector< string > names );
 
-double MIPPDtree::alpha = 0.001;
+double MIPPDtree::alpha = 0.0001;
 
 static string clean_str( const char *str )
 {
@@ -164,7 +164,9 @@ void MIPPDtree::createDVars()
     d = vector< int >( branchNodes.size() );
     vector< double > lb( branchNodes.size(), 0.0 );
     vector< double > ub( branchNodes.size(), 1.0 );
-    vector< double > obj( branchNodes.size(), MIPPDtree::alpha );
+    double foMult = pow(10.0, RES_PRECISION);
+    vector< double > obj( branchNodes.size(), MIPPDtree::alpha*foMult );
+    obj[0] = 0.0;
     vector< char > isint( branchNodes.size(), 1 );
     vector< string > cnames(branchNodes.size());
     lb[0] = 1.0;
@@ -519,7 +521,7 @@ void MIPPDtree::createWVars()
 #endif
             w[idxInst][idxAlg] = lp_cols(mip) + cnames.size();
             cnames.push_back(cName);
-            obj.push_back( rset_->res(idxInst, idxAlg)*foMult );
+            obj.push_back( (rset_->res(idxInst, idxAlg)*foMult) );
         }
     }
 

@@ -52,7 +52,7 @@ public:
     ElVal *elv;
     long double splitCost;
     size_t idxFeature;
-    size_t nElLeft;
+    int nElLeft;
 };
 
 class GNodeData {
@@ -99,6 +99,7 @@ public:
     }
 
     void updateBestAlg() {
+        assert( nElLeft >= Parameters::minElementsBranch && (nEl-nElLeft)>=Parameters::minElementsBranch );
         long double costBestAlgL = DBL_MAX;
 
         for ( size_t ia=0 ; (ia<rset_->algsettings().size()) ; ++ia )
@@ -139,7 +140,7 @@ goNext:
         if ( ((int)nElLeft)>((int)nEl)-((int)Parameters::minElementsBranch) )
             return false;
 
-        const double diff = elv[nElLeft].el - elv[nElLeft-1].el;
+        const double diff = elv[nElLeft].val - elv[nElLeft-1].val;
         assert( diff>=0.0 );
 
         if (diff>=1e-10 and nElLeft>=Parameters::minElementsBranch)
@@ -160,9 +161,9 @@ goNext:
     long double *sumResR;
     long double *sumResL;
     ElVal *elv;
-    size_t nEl;
+    int nEl;
 
-    size_t nElLeft;
+    int nElLeft;
 
     long double splitCost;
 
@@ -237,12 +238,12 @@ Tree *Greedy::build()
             // update child node elements
             auto *gndLeft = ndata[idxLeft];
             gndLeft->nEl = gnd->nElLeft;
-            for ( size_t ie=0 ; (ie<gnd->nElLeft) ; ++ie )
+            for ( int ie=0 ; (ie<gnd->nElLeft) ; ++ie )
                 gndLeft->elv[ie].el = gnd->elv[ie].el;
             auto *gndRight = ndata[idxRight];
             gndRight->nEl = gnd->nEl-gnd->nElLeft;
             size_t ii = 0;
-            for ( size_t ie=gnd->nElLeft ; (ie<gnd->nEl) ; ++ie,++ii )
+            for ( int ie=gnd->nElLeft ; (ie<gnd->nEl) ; ++ie,++ii )
                 gndRight->elv[ii].el = gnd->elv[ie].el;
 
             node->branchOnVal( gnd->idxFeature, gnd->cutValue() );
@@ -286,7 +287,7 @@ void Greedy::prepareBranch( size_t n, size_t f )
             gnd->sumResL[i] = 0.0;
     }
 
-    for ( size_t i=0 ; (i<gnd->nEl) ; ++i )
+    for ( int i=0 ; (i<gnd->nEl) ; ++i )
         gnd->elv[i].val = iset_->instance(gnd->elv[i].el).float_feature(f);
     
     std::sort( gnd->elv, gnd->elv+gnd->nEl, compElVal );
@@ -295,9 +296,9 @@ void Greedy::prepareBranch( size_t n, size_t f )
 #ifdef DEBUG
     {
         set< size_t > sEl;
-        for ( size_t i=0 ; (i<gnd->nEl) ; ++i )
+        for ( int i=0 ; (i<gnd->nEl) ; ++i )
             sEl.insert(gnd->elv[i].el);
-        assert( sEl.size() == gnd->nEl );
+        assert( (int)sEl.size() == gnd->nEl );
     }
 #endif
 }

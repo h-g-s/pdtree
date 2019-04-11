@@ -33,6 +33,7 @@ using namespace std;
 ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const enum FMRStrategy _fmrs ) :
     iset_(_iset),
     res_(nullptr),
+    origRes_(nullptr),
     ranks_(nullptr),
     fmrs_(_fmrs),
     avInst(nullptr),
@@ -122,13 +123,18 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
 
     res_ = new TResult*[iset_.size()];
     res_[0] = new TResult[iset_.size()*algsettings_.size()];
-    for ( size_t i=1 ; (i<iset_.size()) ; ++i )
+    for ( int i=1 ; (i<iset_.size()) ; ++i )
         res_[i] = res_[i-1] + algsettings_.size();
     std::fill( res_[0], res_[0]+(iset_.size()*algsettings_.size()), std::numeric_limits<TResult>::max() );
+    origRes_ = new TResult*[iset_.size()];
+    origRes_[0] = new TResult[iset_.size()*algsettings_.size()];
+    for ( int i=1 ; (i<iset_.size()) ; ++i )
+        origRes_[i] = origRes_[i-1] + algsettings_.size();
+    std::fill( origRes_[0], origRes_[0]+(iset_.size()*algsettings_.size()), std::numeric_limits<TResult>::max() );
 
     ranks_ = new int*[iset_.size()];
     ranks_[0] = new int[iset_.size()*algsettings_.size()];
-    for ( size_t i=1 ; (i<iset_.size()) ; ++i )
+    for ( int i=1 ; (i<iset_.size()) ; ++i )
         ranks_[i] = ranks_[i-1] + algsettings_.size();
     std::fill( ranks_[0], ranks_[0]+(iset_.size()*algsettings_.size()), std::numeric_limits<int>::max() );
 
@@ -145,13 +151,13 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     sumRes[0] = new long double[iset_.size()*algsettings_.size()];
     for (size_t i=0 ; (i<iset_.size()*algsettings_.size()) ; ++i )
         sumRes[0][i] = 0.0;
-    for (size_t i=1 ; (i<iset_.size()) ; ++i )
+    for (int i=1 ; (i<iset_.size()) ; ++i )
         sumRes[i] = sumRes[i-1] + algsettings_.size();
     int **nRes = new int *[iset_.size()];
     nRes[0] = new int[iset_.size()*algsettings_.size()];
-    for (size_t i=0 ; (i<iset_.size()*algsettings_.size()) ; ++i )
+    for (int i=0 ; (i<iset_.size()*(int)algsettings_.size()) ; ++i )
         nRes[0][i] = 0;
-    for (size_t i=1 ; (i<iset_.size()) ; ++i )
+    for (int i=1 ; (i<iset_.size()) ; ++i )
         nRes[i] = nRes[i-1] + algsettings_.size();
 
     size_t ir = 0;
@@ -182,7 +188,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     this->timeOut = worse;
 
     // if there are more results per instance and algorithm
-    for ( size_t i=0 ; i<iset_.size() ; ++i )
+    for ( int i=0 ; i<iset_.size() ; ++i )
         for ( size_t j=0 ; j<algsettings_.size()  ; ++j )
             if (nRes[i][j]>=2)
                 res_[i][j] = (TResult)(((long double)sumRes[i][j]) / ((long double)nRes[i][j]));
@@ -197,14 +203,14 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
 
     // computing average per instance
     std::vector< TResult > avgInst = vector<TResult>(iset_.size());
-    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    for ( int i=0 ; (i<iset_.size()) ; ++i )
         if (nResInst[i])
             avgInst[i] = (TResult)(((long double)sumInst[i])/((long double)nResInst[i]));
         else
             avgInst[i] = worse;
 
     size_t nMissing = 0;
-    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    for ( int i=0 ; (i<iset_.size()) ; ++i )
     {
         for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
         {
@@ -237,6 +243,9 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         }
     }
 
+    // storing original result before additional changes
+    memcpy(origRes_[0], res_[0], sizeof(TResult)*(iset_.size()*algsettings_.size()));
+
     // second pass, checking number of timeouts per instance
 
     nTimeOutsInst = new int[iset_.size()];
@@ -244,18 +253,18 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
 
     fill(worseInst, worseInst+iset_.size(), -DBL_MIN);
 
-    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    for ( int i=0 ; (i<iset_.size()) ; ++i )
         for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
             if (res_[i][j] == timeOut)
                 ++nTimeOutsInst[i];
 
     // storing difference from best result per instance
     vector< double > bestResInst( iset_.size(), DBL_MAX );
-    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    for ( int i=0 ; (i<iset_.size()) ; ++i )
         for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
             bestResInst[i] = min(bestResInst[i], (double)res_[i][j]);
 
-    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    for ( int i=0 ; (i<iset_.size()) ; ++i )
     {
         for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
         {
@@ -267,7 +276,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     
     // normalizing
     TResult multPrec = pow(10.0, RES_PRECISION);
-    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    for ( int i=0 ; (i<iset_.size()) ; ++i )
     {
         for (size_t ia=0 ; (ia<algsettings_.size()) ; ++ia )
         {
@@ -321,7 +330,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
             break;
     }
  
-    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    for ( int i=0 ; (i<iset_.size()) ; ++i )
     {
         long double sum = 0.0;
         for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
@@ -329,7 +338,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
         avInst[i] = sum / ((long double)algsettings_.size());
     }
 
-    for ( size_t i=0 ; (i<iset_.size()) ; ++i )
+    for ( int i=0 ; (i<iset_.size()) ; ++i )
     {
         long double ds = 0.0;
         for ( size_t ia=0 ; (ia<algsettings_.size()) ; ++ia )
@@ -347,7 +356,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
     fill(nRankOne, nRankOne+algsettings_.size(), 0);
     fill(nLastRank, nLastRank+algsettings_.size(), 0);
     fill(sumAlg, sumAlg+algsettings_.size(), 0.0);
-    for ( size_t i=0 ; i<iset_.size(); ++i )
+    for ( int i=0 ; i<iset_.size(); ++i )
     {
         int lastRank = -1;
         for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
@@ -384,7 +393,7 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
 
 TResult ResultsSet::get(size_t iIdx, size_t aIdx) const
 {
-    assert( iIdx<iset_.size() );
+    assert( (int)iIdx<(int)iset_.size() );
     assert( aIdx<algsettings_.size() );
     return res_[iIdx][aIdx];
 }
@@ -401,6 +410,8 @@ ResultsSet::~ResultsSet ()
     delete[] ranks_;
     delete[] res_[0];
     delete[] res_;
+    delete[] origRes_[0];
+    delete[] origRes_;
     delete[] avInst;
     delete[] stdDevInst_;
     delete[] worseInst;
@@ -441,7 +452,7 @@ void ResultsSet::compute_rankings( size_t nAlgs, size_t nInsts, const TResult **
 
 int ResultsSet::rank(size_t iIdx, size_t iAlg) const
 {
-    assert(iIdx<iset_.size());
+    assert((int)iIdx<(int)iset_.size());
     assert(iAlg<algsettings_.size());
 
     int r = ranks_[iIdx][iAlg];
@@ -561,7 +572,7 @@ void ResultsSet::saveFilteredDataSets(const char *featuresFile, const char *resu
         fprintf(f, ",%s", feat.c_str());
     fprintf(f, "\n");
     std::unordered_set< size_t > inclInstances;
-    for ( size_t ip=0 ; ip<iset_.size(); ++ip )
+    for ( int ip=0 ; ip<iset_.size(); ++ip )
     {
         if (this->stdDevInst_[ip]<=MIN_STD_DEV)
             continue;
@@ -599,6 +610,11 @@ void ResultsSet::saveFilteredDataSets(const char *featuresFile, const char *resu
 
     fclose(f);
 
+}
+
+double ResultsSet::origRes(size_t iIdx, size_t iAlg) const
+{
+    return origRes_[iIdx][iAlg];
 }
 
 double ResultsSet::res(size_t iIdx, size_t iAlg) const
