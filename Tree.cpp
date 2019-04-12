@@ -254,7 +254,7 @@ void Tree::computeCost()
     
     for ( auto &n : nodes_ )
     {
-        if (!n->isLeaf())
+        if ( (!n->isLeaf()) || (n->n_elements()<=0))
             continue;
         
         n->computeCost();
