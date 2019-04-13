@@ -249,8 +249,8 @@ void Tree::computeCost()
     this->avCostRoot = root_->nodeCost_;
     this->avRankRoot = root_->avRank;
     
-    long double avCostLeafs = 0.0;
-    long double avRankLeafs = 0.0;
+    avCostLeafs = 0.0;
+    avRankLeafs = 0.0;
     
     for ( auto &n : nodes_ )
     {

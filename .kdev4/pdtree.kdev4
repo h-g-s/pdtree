@@ -1209,5 +1209,26 @@ inclusive=0
 pattern=/installcheck
 targets=1
 
+[Launch]
+Launch Configurations=Launch Configuration 0
+
+[Launch][Launch Configuration 0]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=mpdt test mip
+Type=Native Application
+
+[Launch][Launch Configuration 0][Data]
+Arguments=/home/haroldo/git/pdtree/test/mip-features.csv /home/haroldo/git/pdtree/test/mip-results.csv -eval=Average -maxDepth=3
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
+Dependency Action=Build
+EnvironmentGroup=
+Executable=file:///home/haroldo/git/pdtree/mpdt
+External Terminal=konsole --noclose --workdir %workdir -e %exe
+Project Target=
+Use External Terminal=false
+Working Directory=file:///home/haroldo/git/pdtree/test/
+isExecutable=true
+
 [Project]
 VersionControlSupport=kdevgit
