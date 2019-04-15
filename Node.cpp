@@ -100,7 +100,7 @@ void Node::writeXML(tinyxml2::XMLDocument *doc, tinyxml2::XMLElement *parent ) c
 
     node->SetAttribute("id", this->id_ );
 
-    addElement( doc, node, "depth", (int) this->depth_);
+    addElement( doc, node, "depth", (int) this->depth_+1);
     addElement( doc, node, "bestAlg", rset_->algsettings()[idxBestAlg].c_str() );
     addElement( doc, node, "bestAlgCost", this->nodeCost_ );
 
@@ -283,8 +283,8 @@ void Node::computeCost()
             sumC += rset_->origRes(idxInst, idxAlg);
             sumR += rset_->rank(idxInst, idxAlg);
         }
-        sumC /= (long double)iset_->size();
-        sumR /= (long double)iset_->size();
+        sumC /= (long double)n_elements();
+        sumR /= (long double)n_elements();
         
         if ( (double)sumC < nodeCost_)
         {

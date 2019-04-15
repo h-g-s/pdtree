@@ -1210,16 +1210,16 @@ pattern=/installcheck
 targets=1
 
 [Launch]
-Launch Configurations=Launch Configuration 0
+Launch Configurations=Launch Configuration 0,Launch Configuration 1
 
 [Launch][Launch Configuration 0]
 Configured Launch Modes=execute
 Configured Launchers=nativeAppLauncher
-Name=mpdt test mip
+Name=mpdt cbcrelax 10 alg settings
 Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
-Arguments=/home/haroldo/git/pdtree/test/mip-features.csv /home/haroldo/git/pdtree/test/mip-results.csv -eval=Average -maxDepth=3
+Arguments=/home/haroldo/inst/algsel/cbcrelax/features-pp.csv /home/haroldo/inst/algsel/cbcrelax/results-10.csv -maxDepth=3 -eval=Average -minElementsBranch=75
 Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 Dependency Action=Build
 EnvironmentGroup=
@@ -1229,6 +1229,28 @@ Project Target=
 Use External Terminal=false
 Working Directory=file:///home/haroldo/git/pdtree/test/
 isExecutable=true
+
+[Launch][Launch Configuration 1]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=mpdt rcpst ge100
+Type=Native Application
+
+[Launch][Launch Configuration 1][Data]
+Arguments=/home/haroldo/inst/algsel/rcpsp/ge100/features.csv  /home/haroldo/inst/algsel/rcpsp/ge100/results.csv -eval=Average -maxDepth=3 -minElementsBranch=60
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
+Dependency Action=Nothing
+EnvironmentGroup=
+Executable=file:///home/haroldo/git/pdtree/mpdt
+External Terminal=konsole --noclose --workdir %workdir -e %exe
+Project Target=
+Use External Terminal=false
+Working Directory=file:///home/haroldo/git/pdtree/
+isExecutable=true
+
+[MakeBuilder]
+Number Of Jobs=3
+Override Number Of Jobs=true
 
 [Project]
 VersionControlSupport=kdevgit

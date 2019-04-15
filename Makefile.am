@@ -1,7 +1,12 @@
 bin_PROGRAMS = mpdt
-mpdt_CPPFLAGS=-DGRB
-mpdt_CXXFLAGS=-I/opt/gurobi810/linux64/include/
-mpdt_LDFLAGS=-L/opt/gurobi810/linux64/lib/ -lgurobi81 -lm
+mpdt_CPPFLAGS=-DCPX
+mpdt_CXXFLAGS=-I/opt/ibm/ILOG/CPLEX_Studio129/cplex/include/ilcplex/ -fPIC -m64 -fno-strict-aliasing
+mpdt_LDADD=-L/opt/ibm/ILOG/CPLEX_Studio129/cplex/lib/x86-64_linux/static_pic -lcplex -lm -lpthread -ldl
+
+#mpdt_CPPFLAGS=-DGRB
+#mpdt_CXXFLAGS=-I/opt/gurobi810/linux64/include/
+#mpdt_LDFLAGS=-L/opt/gurobi810/linux64/lib/ -lgurobi81 -lm
+
 
 #pdtree_SOURCES = pdtree.cpp \
 #		 Dataset.cpp \

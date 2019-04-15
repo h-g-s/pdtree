@@ -46,6 +46,9 @@ size_t Parameters::maxDepth = 3;
 // minimum percentage performance improvement
 double Parameters::minPerfImprov = 0.01;
 
+// maximum optimization time
+double Parameters::maxSeconds = 300;
+
 // minimum absolute performance improvement
 double Parameters::minAbsPerfImprov = 1e-5;
 
@@ -161,6 +164,11 @@ void Parameters::parse( int argc, const char **argv )
         if (strcmp(pName, "-minperfimprov")==0)
         {
             Parameters::minPerfImprov = stod(string(pValue));
+            continue;
+        }
+        if (strcmp(pName, "-maxseconds")==0)
+        {
+            Parameters::maxSeconds = stod(string(pValue));
             continue;
         }
         if (strcmp(pName, "-minabsperfimprov")==0)

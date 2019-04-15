@@ -197,7 +197,7 @@ void Tree::save( const char *fileName ) const
     XMLElement *tree = doc.NewElement("tree");
     doc.InsertFirstChild(tree);
 
-    addElement(&doc, tree, "maxDepth", (int)this->maxDepth );
+    addElement(&doc, tree, "maxDepth", (int)this->maxDepth+1 );
     addElement(&doc, tree, "minInstancesNode", (int)this->minInstancesNode );
     addElement(&doc, tree, "instancesFile", Parameters::instancesFile.c_str() );
     addElement(&doc, tree, "experimentsFile", Parameters::resultsFile.c_str() );
@@ -254,12 +254,12 @@ void Tree::computeCost()
     
     for ( auto &n : nodes_ )
     {
-        if ( (!n->isLeaf()) || (n->n_elements()<=0))
+        if ( n->n_elements()==0 )
             continue;
         
         n->computeCost();
-        avCostLeafs += (long double)n->nodeCost_ / (long double) n->n_elements() ;
-        avRankLeafs += (long double)n->avRank / (long double) n->n_elements() ;
+        avCostLeafs += (long double)n->nodeCost_ * ((long double) n->n_elements()/(long double)iset_->size()) ;
+        avRankLeafs += (long double)n->avRank * ((long double) n->n_elements()/(long double)iset_->size());
     }
     
     this->costImprovement = avCostRoot / avCostLeafs;

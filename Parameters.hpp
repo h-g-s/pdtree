@@ -81,6 +81,8 @@ public:
     static std::string instancesFile;
 
     static std::string resultsFile;
+    
+    static double maxSeconds;
 
     static double fillMissingValue;
 };
