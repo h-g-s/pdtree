@@ -1255,7 +1255,7 @@ Name=mista challenge
 Type=Native Application
 
 [Launch][Launch Configuration 2][Data]
-Arguments=/home/haroldo/inst/algsel/rcpsp/challenge/features-chalenge.csv /home/haroldo/inst/algsel/rcpsp/challenge/results-challenge.csv -maxDepth=2 -eval=Average -minElementsBranch=5 -isetCSVNormR=features-challenge-norm.csv -rsetCSV=results-norm-challenge.csv -treeFile=challengeTree.xml -gtreeFile=challengeGTree.xml -treeFileGV=challengeTree.gv -gtreeFile=challengeGTree.gv
+Arguments=/home/haroldo/inst/algsel/rcpsp/challenge/features-chalenge.csv /home/haroldo/inst/algsel/rcpsp/challenge/results-challenge.csv -maxDepth=2 -eval=Average -minElementsBranch=5 -isetCSVNormR=features-challenge-norm.csv -rsetCSV=results-norm-challenge.csv -treeFile=challengeTree.xml -gtreeFile=challengeGTree.xml -treeFileGV=challengeTree.gv -gtreeFileGV=challengeGTree.gv
 Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 Dependency Action=Nothing
 EnvironmentGroup=
@@ -1263,7 +1263,7 @@ Executable=file:///home/haroldo/git/pdtree/mpdt
 External Terminal=konsole --noclose --workdir %workdir -e %exe
 Project Target=
 Use External Terminal=false
-Working Directory=file:///home/haroldo/git/pdtree/test/tmp/
+Working Directory=file:///home/haroldo/git/pdtree/tmp/
 isExecutable=true
 
 [MakeBuilder]
