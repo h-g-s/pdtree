@@ -1219,7 +1219,7 @@ Name=mpdt mip 20 4
 Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
-Arguments=/home/haroldo/git/pdtree/test/mip-features-20.csv /home/haroldo/git/pdtree/test/mip-results-20-4.csv -maxDepth=4 -eval=Average -minElementsBranch=3
+Arguments=/home/haroldo/git/pdtree/test/mip-features-20.csv /home/haroldo/git/pdtree/test/mip-results-20-4.csv -maxDepth=3 -eval=Average -minElementsBranch=3 -isetCSVNormR=features-mip-norm.csv -rsetCSV=results-mip-norm.csv -treeFile=mipTree.xml -gtreeFile=mipGTree.xml -treeFileGV=mipTree.gv -gtreeFileGV=mipGTree.gv
 Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 Dependency Action=Build
 EnvironmentGroup=
@@ -1227,7 +1227,7 @@ Executable=file:///home/haroldo/git/pdtree/mpdt
 External Terminal=konsole --noclose --workdir %workdir -e %exe
 Project Target=
 Use External Terminal=false
-Working Directory=file:///home/haroldo/git/pdtree/test/
+Working Directory=file:///home/haroldo/git/pdtree/tmp/
 isExecutable=true
 
 [Launch][Launch Configuration 1]

@@ -54,7 +54,7 @@ int main( int argc, char **argv )
         if (Parameters::treeFile.size())
             tree->save(Parameters::treeFile.c_str());
         if (Parameters::treeFileGV.size())
-            tree->save(Parameters::treeFileGV.c_str());
+            tree->draw(Parameters::treeFileGV.c_str());
     }
 
     exit(0);
