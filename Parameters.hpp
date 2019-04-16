@@ -82,6 +82,25 @@ public:
 
     static std::string resultsFile;
     
+    // files to save info
+    static std::string mipPDTFile;
+    
+    static std::string gtreeFile;
+
+    static std::string treeFile;
+    
+    static std::string gtreeFileGV;
+
+    static std::string treeFileGV;
+    
+    static std::string summFile;
+
+    static std::string isetCSVNorm;
+
+    static std::string isetCSVNormR;
+    
+    static std::string rsetCSV;
+    
     static double maxSeconds;
 
     static double fillMissingValue;

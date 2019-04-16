@@ -136,7 +136,7 @@ MIPPDtree::MIPPDtree( const InstanceSet *_iset, const ResultsSet *_rset ) :
     createConsLnkParent();
     createConsSelCLeaf();
 */
-    lp_write_lp(mip, "mm.lp");
+    //lp_write_lp(mip, "mm.lp");
 }
 
 void MIPPDtree::createBVars()

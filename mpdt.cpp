@@ -28,15 +28,21 @@ int main( int argc, char **argv )
     Parameters::print();
 
     InstanceSet iset( argv[1], argv[2] );
-    iset.save("features-norm.csv", true);
-    iset.saveNormRank("features-rnorm.csv");
+    if (Parameters::isetCSVNorm.size())
+        iset.save(Parameters::isetCSVNorm.c_str(), true);
+    if (Parameters::isetCSVNormR.size())
+        iset.save(Parameters::isetCSVNormR.c_str());
+
     ResultsSet rset( iset, argv[2] );
-    rset.save_csv("results.csv");
+    if (Parameters::rsetCSV.size())
+        rset.save_csv(Parameters::rsetCSV.c_str());
 
     Greedy grd(&iset, &rset);
     Tree *greedyT = grd.build();
-    greedyT->save("gtree.xml");
-    greedyT->draw("gtree.gv");
+    if (Parameters::gtreeFile.size())
+        greedyT->save(Parameters::gtreeFile.c_str());
+    if (Parameters::gtreeFileGV.size())
+        greedyT->draw(Parameters::gtreeFileGV.c_str());
 
     MIPPDtree mpdt( &iset, &rset );
     mpdt.setInitialSolution( greedyT );
@@ -45,8 +51,10 @@ int main( int argc, char **argv )
     const Tree *tree = mpdt.build( Parameters::maxSeconds );
     if (tree)
     {
-        tree->draw("tree.gv");
-        tree->save("tree.xml");
+        if (Parameters::treeFile.size())
+            tree->save(Parameters::treeFile.c_str());
+        if (Parameters::treeFileGV.size())
+            tree->save(Parameters::treeFileGV.c_str());
     }
 
     exit(0);

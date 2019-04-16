@@ -19,7 +19,25 @@ using namespace std;
 
 string Parameters::instancesFile = "";
 
+string Parameters::mipPDTFile = "";
+    
+string Parameters::gtreeFile = "";
+
+string Parameters::treeFile = "";
+
+string Parameters::gtreeFileGV = "";
+
+string Parameters::treeFileGV = "";
+    
+string Parameters::summFile = "";
+
 string Parameters::resultsFile = "";
+
+string Parameters::isetCSVNorm = "";
+
+string Parameters::isetCSVNormR = "";
+
+string Parameters::rsetCSV = "";
 
 enum FMRStrategy Parameters::fmrStrategy = WorseInst;
 
@@ -51,7 +69,6 @@ double Parameters::maxSeconds = 300;
 
 // minimum absolute performance improvement
 double Parameters::minAbsPerfImprov = 1e-5;
-
 
 static char FMRStrategyStr[6][16] = {
     "Worse",
@@ -121,6 +138,51 @@ void Parameters::parse( int argc, const char **argv )
 
         size_t pNameLen = strlen(pName);
 
+        if (strcasecmp(pName, "-mipPDTFile")==0)
+        {
+            Parameters::mipPDTFile = string(pValue);
+            continue;
+        }
+        if (strcasecmp(pName, "-gtreeFile")==0)
+        {
+            Parameters::gtreeFile = string(pValue);
+            continue;
+        }
+        if (strcasecmp(pName, "-treeFile")==0)
+        {
+            Parameters::treeFile = string(pValue);
+            continue;
+        }
+        if (strcasecmp(pName, "-gtreeFileGV")==0)
+        {
+            Parameters::gtreeFileGV = string(pValue);
+            continue;
+        }
+        if (strcasecmp(pName, "-treeFileGV")==0)
+        {
+            Parameters::treeFileGV = string(pValue);
+            continue;
+        }
+        if (strcasecmp(pName, "-summFile")==0)
+        {
+            Parameters::summFile = string(pValue);
+            continue;
+        }
+        if (strcasecmp(pName, "-isetCSVNorm")==0)
+        {
+            Parameters::isetCSVNorm = string(pValue);
+            continue;
+        }
+        if (strcasecmp(pName, "-isetCSVNormR")==0)
+        {
+            Parameters::isetCSVNormR = string(pValue);
+            continue;
+        }
+        if (strcasecmp(pName, "-rsetCSV")==0)
+        {
+            Parameters::rsetCSV = string(pValue);
+            continue;
+        }
         if (strcasecmp(pName, "-fmrs")==0)
         {
             Parameters::fmrStrategy = to_fmrs(pValue);

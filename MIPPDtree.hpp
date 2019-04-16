@@ -109,9 +109,7 @@ private:
     std::vector< int > l;
 
     void createConsLnkParent();
-
-
-
+    
     // parents at leaf (0) and right (1)  for each leaf node
     // parents[l][0] has a list of all nodes which the left side branch has been followed to arrive at l
     // parents[l][1] has a list of all nodes which the right side branch has been followed to arrive at l
@@ -119,4 +117,3 @@ private:
 };
 
 #endif /* MIPPDTREE_HPP_ */
-
