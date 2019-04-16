@@ -1210,16 +1210,16 @@ pattern=/installcheck
 targets=1
 
 [Launch]
-Launch Configurations=Launch Configuration 0,Launch Configuration 1
+Launch Configurations=Launch Configuration 0,Launch Configuration 1,Launch Configuration 2
 
 [Launch][Launch Configuration 0]
 Configured Launch Modes=execute
 Configured Launchers=nativeAppLauncher
-Name=mpdt cbcrelax 10 alg settings
+Name=mpdt mip 20 4
 Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
-Arguments=/home/haroldo/inst/algsel/cbcrelax/features-pp.csv /home/haroldo/inst/algsel/cbcrelax/results-10.csv -maxDepth=3 -eval=Average -minElementsBranch=75
+Arguments=/home/haroldo/git/pdtree/test/mip-features-20.csv /home/haroldo/git/pdtree/test/mip-results-20-4.csv -maxDepth=4 -eval=Average -minElementsBranch=3
 Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 Dependency Action=Build
 EnvironmentGroup=
@@ -1237,7 +1237,7 @@ Name=mpdt rcpst ge100
 Type=Native Application
 
 [Launch][Launch Configuration 1][Data]
-Arguments=/home/haroldo/inst/algsel/rcpsp/ge100/features.csv  /home/haroldo/inst/algsel/rcpsp/ge100/results.csv -eval=Average -maxDepth=3 -minElementsBranch=60
+Arguments=/home/haroldo/inst/algsel/rcpsp/ge100/features.csv  /home/haroldo/inst/algsel/rcpsp/ge100/results.csv -eval=Average -maxDepth=4 -minElementsBranch=60
 Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
 Dependency Action=Nothing
 EnvironmentGroup=
@@ -1246,6 +1246,24 @@ External Terminal=konsole --noclose --workdir %workdir -e %exe
 Project Target=
 Use External Terminal=false
 Working Directory=file:///home/haroldo/git/pdtree/
+isExecutable=true
+
+[Launch][Launch Configuration 2]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=mista challenge
+Type=Native Application
+
+[Launch][Launch Configuration 2][Data]
+Arguments=/home/haroldo/inst/algsel/rcpsp/challenge/features-chalenge.csv /home/haroldo/inst/algsel/rcpsp/challenge/results-challenge.csv -maxDepth=4 -eval=Average -minElementsBranch=5
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
+Dependency Action=Nothing
+EnvironmentGroup=
+Executable=file:///home/haroldo/git/pdtree/mpdt
+External Terminal=konsole --noclose --workdir %workdir -e %exe
+Project Target=
+Use External Terminal=false
+Working Directory=file:///home/haroldo/git/pdtree/test/
 isExecutable=true
 
 [MakeBuilder]

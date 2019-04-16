@@ -155,6 +155,7 @@ void MIPSelAlg::optimize(int maxSeconds)
 {
     lp_set_max_seconds(mip, maxSeconds);
     lp_write_lp(mip, "aaa.lp");
+    lp_set_mip_emphasis(mip, LP_ME_FEASIBILITY);
     int status = lp_optimize(mip);
     if (status!=LP_OPTIMAL && status!=LP_FEASIBLE)
     {

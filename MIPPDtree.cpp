@@ -584,6 +584,7 @@ Tree *MIPPDtree::build( const int maxSeconds )
     if (maxSeconds!=INT_MAX)
         lp_set_max_seconds( mip, maxSeconds );
     
+    lp_set_mip_emphasis(mip, LP_ME_FEASIBILITY);
     int st = lp_optimize( mip );
     assert( st != LP_UNBOUNDED && st != LP_INFEASIBLE && st != LP_INTINFEASIBLE );
     

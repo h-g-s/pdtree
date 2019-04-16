@@ -114,7 +114,7 @@ void Tree::draw( const char *fileName ) const
         of << "  subgraph clusterdepth" << level << " {" << endl;
         of << "    style=filled;" << endl;
         of << "    color=\"PaleGreen\";" << endl;
-        of << "    label=< <b>Depth " << level << " cost: " << perfLevel[level] << "</b> >;" << endl;
+        of << "    label=< <b>Depth " << level+1 << " cost: " << perfLevel[level] << "</b> >;" << endl;
 
         for ( auto ni=nodes.rbegin() ; (ni!=nodes.rend()) ; ++ni )
         {
@@ -258,8 +258,12 @@ void Tree::computeCost()
             continue;
         
         n->computeCost();
-        avCostLeafs += (long double)n->nodeCost_ * ((long double) n->n_elements()/(long double)iset_->size()) ;
-        avRankLeafs += (long double)n->avRank * ((long double) n->n_elements()/(long double)iset_->size());
+        
+        if (n->isLeaf())
+        {
+            avCostLeafs += (long double)n->nodeCost_ * ((long double) n->n_elements()/(long double)iset_->size()) ;
+            avRankLeafs += (long double)n->avRank * ((long double) n->n_elements()/(long double)iset_->size());            
+        }
     }
     
     this->costImprovement = avCostRoot / avCostLeafs;

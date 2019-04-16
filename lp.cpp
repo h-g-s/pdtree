@@ -616,7 +616,7 @@ void lp_write_lp(LinearProgram *lp, const char *fileName)
     char format[64] = "LP";
     if (getFileType(fileName)=='M')
         strcpy( format, "MPS" );
-    cpxError = CPXwriteprob(LPcpxDefaultEnv, lp->cpxLP, fName, "MPS");
+    cpxError = CPXwriteprob(LPcpxDefaultEnv, lp->cpxLP, fName, format);
     lp_check_for_cpx_error(LPcpxDefaultEnv, cpxError, __FILE__, __LINE__);
 
     return;
@@ -4029,7 +4029,8 @@ void lp_config_cpx_params(LinearProgram *lp)
                 }
             case LP_ME_FEASIBILITY:
                 {
-                    CPXsetintparam(LPcpxDefaultEnv, CPX_PARAM_MIPEMPHASIS, CPX_MIPEMPHASIS_FEASIBILITY );
+                    CPXsetintparam(LPcpxDefaultEnv, CPX_PARAM_MIPEMPHASIS, CPX_MIPEMPHASIS_HIDDENFEAS );
+                    //CPXsetintparam(LPcpxDefaultEnv, CPX_PARAM_POLISHAFTERINTSOL, 1 );
                     break;
                 }
         }

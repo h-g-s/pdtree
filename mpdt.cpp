@@ -42,7 +42,7 @@ int main( int argc, char **argv )
     mpdt.setInitialSolution( greedyT );
     delete greedyT;
 
-    const Tree *tree = mpdt.build( 36000 );
+    const Tree *tree = mpdt.build( Parameters::maxSeconds );
     if (tree)
     {
         tree->draw("tree.gv");
