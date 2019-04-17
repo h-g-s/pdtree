@@ -22,7 +22,7 @@
 
 using namespace std;
 
-static std::unordered_set< std::string > check_instances_with_results( const char *resFN );
+static std::unordered_set< std::string > check_instances_with_different_results( const char *resFN );
 
 InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int ifold, int kfold ) :
     inst_dataset_(new Dataset(fileName)),
@@ -38,7 +38,7 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int
         }
     }
     clock_t start = clock();
-    auto ires = check_instances_with_results(resultsFileName);
+    auto ires = check_instances_with_different_results(resultsFileName);
     {
         vector< bool > included;
         vector< bool > inclTest;
@@ -179,7 +179,7 @@ InstanceSet::InstanceSet (const char *fileName, const char *resultsFileName, int
         int rank = -1;
         int nElLeft = 0;
         double vsplit = 0;
-        double minDif = 1e-10;
+        double minDif = 1e-13;
         bool undefBorder = true;
         for ( const auto v : svalues )
         {
@@ -289,15 +289,20 @@ static string trim(const std::string &s)
 }
 
 
-static std::unordered_set< std::string > check_instances_with_results( const char *resFN )
+#include <set>
+
+unordered_set<string> check_instances_with_different_results(const char* resFN)
 {
     unordered_set< string > res;
+    unordered_map< string, unordered_map<string, double> > resInst;
+    unordered_map< string, set<double> > diffResInst;
 
     if (resFN==nullptr)
         return res;
 
     ifstream f(resFN);
     string line;
+    assert(getline(f, line)); // header line
     while (getline(f, line))
     {
         line = trim(line);
@@ -311,7 +316,28 @@ static std::unordered_set< std::string > check_instances_with_results( const cha
         if (iname.size()==0)
             throw "Empty instance name";
         res.insert(iname);
+        
+        string remaining = line.substr(it+1, line.size()-it);
+        auto itr = remaining.find(',');
+        assert(itr<remaining.size());
+        string strategy = remaining.substr(0, itr);
+        string sres = remaining.substr(itr+1, remaining.size()-(itr+1));
+        
+        double fres = atof(sres.c_str());
+        
+        resInst[iname][strategy] = fres;
+        diffResInst[iname].insert(fres);
     }
+    
+    for ( const auto &di : diffResInst)
+    {
+        if (di.second.size()<=1)
+        {
+            cout << "instance " << di.first << " removed because all results are equal (" << *di.second.begin() << ")." << endl;
+            res.erase(di.first);
+        }
+    }
+    
     f.close();
 
     return res;

@@ -277,7 +277,7 @@ void Node::computeCost()
     {
         long double sumC = 0.0;
         long double sumR = 0.0;
-        for ( int i=0 ; (i<n_elements()) ; ++i )
+        for ( int i=0 ; (i<(int)n_elements()) ; ++i )
         {
             int idxInst = elements()[i];
             sumC += rset_->origRes(idxInst, idxAlg);

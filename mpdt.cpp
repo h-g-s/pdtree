@@ -31,7 +31,7 @@ int main( int argc, char **argv )
     if (Parameters::isetCSVNorm.size())
         iset.save(Parameters::isetCSVNorm.c_str(), true);
     if (Parameters::isetCSVNormR.size())
-        iset.save(Parameters::isetCSVNormR.c_str());
+        iset.saveNormRank(Parameters::isetCSVNormR.c_str());
 
     ResultsSet rset( iset, argv[2] );
     if (Parameters::rsetCSV.size())
