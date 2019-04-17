@@ -802,7 +802,7 @@ void MIPPDtree::setInitialSolution( const Tree *tree )
     setBinVarsNode(tree->root(), cnames);
     vector< double > ones( cnames.size(), 1.0 );
     char **cns = to_char_vec(cnames);
-    //lp_load_mip_start(mip, (int)cnames.size(), (const char **)cns, &ones[0]);
+    lp_load_mip_start(mip, (int)cnames.size(), (const char **)cns, &ones[0]);
     //lp_fix_mipstart(mip);
     //lp_write_lp(mip, "msf.lp");
     free(cns);
