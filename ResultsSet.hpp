@@ -100,6 +100,7 @@ private:
     TResult *avInst;
     TResult *stdDevInst_;
     TResult *worseInst;
+    TResult lowerBound;
     int *nTimeOutsInst;
 
     // per algorithm

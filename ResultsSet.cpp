@@ -258,40 +258,58 @@ ResultsSet::ResultsSet( const InstanceSet &_iset, const char *fileName, const en
             if (res_[i][j] == timeOut)
                 ++nTimeOutsInst[i];
 
-    // storing difference from best result per instance
-    vector< double > bestResInst( iset_.size(), DBL_MAX );
-    for ( int i=0 ; (i<iset_.size()) ; ++i )
-        for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
-            bestResInst[i] = min(bestResInst[i], (double)res_[i][j]);
-
-    for ( int i=0 ; (i<iset_.size()) ; ++i )
+    if (Parameters::bestIsZero)
     {
-        for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+        // storing difference from best result per instance
+        vector< double > bestResInst( iset_.size(), DBL_MAX );
+        for ( int i=0 ; (i<iset_.size()) ; ++i )
+            for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+                bestResInst[i] = min(bestResInst[i], (double)res_[i][j]);
+
+        for ( int i=0 ; (i<iset_.size()) ; ++i )
         {
-            res_[i][j] = res_[i][j]-bestResInst[i];
-            worseInst[i] = max(worseInst[i], res_[i][j]);
-            assert(res_[i][j] >= 0.0-1e-9);
+            for ( size_t j=0 ; (j<algsettings_.size()) ; ++j )
+            {
+                res_[i][j] = res_[i][j]-bestResInst[i];
+                worseInst[i] = max(worseInst[i], res_[i][j]);
+                assert(res_[i][j] >= 0.0-1e-9);
+            }
         }
     }
     
-    // normalizing
-    TResult multPrec = pow(10.0, RES_PRECISION);
-    for ( int i=0 ; (i<iset_.size()) ; ++i )
+    if (Parameters::normalizeResults)
     {
-        for (size_t ia=0 ; (ia<algsettings_.size()) ; ++ia )
+        // normalizing
+        TResult multPrec = pow(10.0, RES_PRECISION);
+        for ( int i=0 ; (i<iset_.size()) ; ++i )
         {
-            if (worse==0.0)
-                res_[i][ia] = 0.0;
-            else
-                res_[i][ia] = (res_[i][ia]/worse);
+            for (size_t ia=0 ; (ia<algsettings_.size()) ; ++ia )
+            {
+                if (worse==0.0)
+                    res_[i][ia] = 0.0;
+                else
+                    res_[i][ia] = (res_[i][ia]/worse);
 
-            res_[i][ia] = floor((res_[i][ia] * multPrec) + 0.5) / multPrec;
+                res_[i][ia] = floor((res_[i][ia] * multPrec) + 0.5) / multPrec;
 
-            assert( res_[i][ia]>=0.0-1e-10 );
-            assert( res_[i][ia]<=1.0+1e-10 );
-        }
+                assert( res_[i][ia]>=0.0-1e-10 );
+                assert( res_[i][ia]<=1.0+1e-10 );
+            }
+        }        
     }
-
+    
+    lowerBound = 0.0;
+    
+    for ( int i=0 ; (i<(int)iset_.size()) ; ++i )
+    {
+        auto bestI = numeric_limits<TResult>::max();
+        
+        for ( int ia=0 ; (ia<(int)algsettings_.size()) ; ++ia )
+            bestI = min( (TResult)res_[i][ia], bestI );
+        
+        lowerBound += bestI;
+    }
+    
     if (nMissing)
     {
         const double percm = ( (((double)nMissing))/(((double)iset_.size()*algsettings_.size())) )*100.0;

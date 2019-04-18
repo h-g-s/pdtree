@@ -7,6 +7,10 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
+#include <iomanip>
+#include <cmath>
+#include <algorithm>
 
 #include "InstanceSet.hpp"
 #include "MIPPDtree.hpp"
@@ -15,6 +19,8 @@
 #include "Tree.hpp"
 #include "Greedy.hpp"
 #include "MIPSelAlg.hpp"
+
+using namespace std;
 
 int main( int argc, char **argv )
 {
@@ -36,6 +42,14 @@ int main( int argc, char **argv )
     ResultsSet rset( iset, argv[2] );
     if (Parameters::rsetCSV.size())
         rset.save_csv(Parameters::rsetCSV.c_str());
+    
+    int newMEB = (int) ceil(((double)iset.size())*((double)Parameters::minPercElementsBranch));
+    if (newMEB>Parameters::minElementsBranch)
+    {
+        cout << "minElementsBranch increased to " << newMEB << 
+            setprecision(3) << Parameters::minPercElementsBranch*100.0 << "\% of instance set size" << endl;
+        Parameters::minElementsBranch = newMEB;
+    }    
 
     Greedy grd(&iset, &rset);
     Tree *greedyT = grd.build();

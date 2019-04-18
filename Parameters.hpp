@@ -53,6 +53,15 @@ public:
 
     // based on average or rank
     static enum Evaluation eval;
+    
+    // if results for each instances should be
+    // shifted so that the best result for this
+    // instance is zero
+    static bool bestIsZero;
+    
+    // turns worse of all results to 1
+    // and best to zero
+    static bool normalizeResults;
 
     // minimum absolute difference
     // between two results to change ranking
@@ -67,8 +76,8 @@ public:
     static size_t storeTop;
 
     static int minElementsBranch;
-
-    static size_t maxEvalBranches[MAX_DEPTH];
+    
+    static double minPercElementsBranch;
 
     static size_t maxDepth;
 
