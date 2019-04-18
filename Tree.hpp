@@ -36,6 +36,10 @@ public:
     
     // compute cost considering training data
     void computeCost();
+    
+    double cost() {
+        return avCostLeafs;
+    }
 
     const Node *root() const {
         return root_;

@@ -32,22 +32,27 @@ int main( int argc, char **argv )
 
     Parameters::parse( argc, (const char **)argv );
     Parameters::print();
+    cout << endl;
 
+    cout << "reading instances ... " << endl;
     InstanceSet iset( argv[1], argv[2] );
     if (Parameters::isetCSVNorm.size())
         iset.save(Parameters::isetCSVNorm.c_str(), true);
     if (Parameters::isetCSVNormR.size())
         iset.saveNormRank(Parameters::isetCSVNormR.c_str());
+    cout << endl;
 
+    cout << "reading results ... " << endl;
     ResultsSet rset( iset, argv[2] );
     if (Parameters::rsetCSV.size())
         rset.save_csv(Parameters::rsetCSV.c_str());
+    cout << endl;
     
     int newMEB = (int) ceil(((double)iset.size())*((double)Parameters::minPercElementsBranch));
     if (newMEB>Parameters::minElementsBranch)
     {
-        cout << "minElementsBranch increased to " << newMEB << 
-            setprecision(3) << Parameters::minPercElementsBranch*100.0 << "\% of instance set size" << endl;
+        cout << "minElementsBranch increased to " << newMEB << defaultfloat <<
+            setprecision(3) << ", " << Parameters::minPercElementsBranch*100.0 << "\% of instance set size" << endl;
         Parameters::minElementsBranch = newMEB;
     }    
 

@@ -10,6 +10,8 @@
 #include <set>
 #include <cfloat>
 #include <algorithm>
+#include <iostream>
+#include <iomanip>
 #include <utility>
 #include <cmath>
 #include <cstring>
@@ -193,6 +195,8 @@ Greedy::Greedy (const InstanceSet *_iset, const ResultsSet *_rset) :
 
 Tree *Greedy::build()
 {
+    clock_t start = clock();
+    cout << "running greedy constructive ... " << endl;
     vector< pair< size_t, Node *> > nqueue;
 
     Tree *res = new Tree(iset_, rset_);
@@ -257,6 +261,9 @@ Tree *Greedy::build()
     }
     
     res->computeCost();
+    
+    const double secs = ((double)clock()-(double)start) / ((double)CLOCKS_PER_SEC);
+    cout << "solution of cost " << res->cost() << " generated in " << secs << " seconds" << endl << endl;
 
     return res;
 }

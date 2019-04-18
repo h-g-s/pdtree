@@ -4057,7 +4057,7 @@ void lp_config_cpx_params(LinearProgram *lp)
     if ( lp->msVars )
     {
         assert( lp->msVal != NULL && lp->msIdx != NULL );
-        printf("setting cpx mips start\n");
+        //printf("setting cpx mips start\n");
 
         int beg[] = { 0 };
         const int effort[] = { CPX_MIPSTART_SOLVEMIP  };

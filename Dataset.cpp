@@ -234,7 +234,7 @@ Dataset::Dataset(const char *fileName, bool deleteFeatures_) :
         hSize /= 1024;
         unity = "Gb";
     }
-    cout << "dataset will occupy " << setprecision(2) << fixed << hSize << " " << unity << endl;
+    //cout << "dataset will occupy " << setprecision(2) << fixed << hSize << " " << unity << endl;
 
     this->data = (char *)malloc(dataSize);
     if (this->data==nullptr)
@@ -268,7 +268,7 @@ Dataset::Dataset(const char *fileName, bool deleteFeatures_) :
     ifile.close();
     chrono::high_resolution_clock::time_point t2 = chrono::high_resolution_clock::now();
     chrono::duration<double> time_span = chrono::duration_cast<chrono::duration<double>>(t2 - t1);
-    cout << "dataset was read in " << setprecision(3) << time_span.count() << " seconds." << endl;
+    //cout << "dataset was read in " << setprecision(3) << time_span.count() << " seconds." << endl;
 }
 
 void Dataset::cell_set(size_t row, size_t col, const std::string &str)

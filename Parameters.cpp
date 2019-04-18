@@ -324,16 +324,17 @@ void Parameters::help()
 void Parameters::print()
 {
     cout << "Parameter settings: " << endl;
-    cout << "             fmrs=" << FMRStrategyStr[Parameters::fmrStrategy] << endl;
-    cout << "         fmrValue=" << defaultfloat << setprecision(4) << Parameters::fillMissingValue << endl;
-    cout << "             eval=" << EvaluationStr[Parameters::eval] << endl;
-    cout << "       bestIsZero=" << Parameters::bestIsZero << endl;
-    cout << " normalizeResults=" << Parameters::normalizeResults << endl;
-    cout << "         maxDepth=" << Parameters::maxDepth << endl;
-    cout << "          rankEps=" << scientific << rankEps << endl;
-    cout << "         rankPerc=" << fixed << setprecision(4) << rankPerc << endl;
-    cout << "minElementsBranch=" << fixed << setprecision(0) << minElementsBranch << endl;
-    cout << "    minPerfImprov=" << fixed << setprecision(4) << minPerfImprov << endl;
-    cout << " minAbsPerfImprov=" << defaultfloat << minAbsPerfImprov << endl;
+    cout << "                 fmrs=" << FMRStrategyStr[Parameters::fmrStrategy] << endl;
+    cout << "             fmrValue=" << defaultfloat << setprecision(4) << Parameters::fillMissingValue << endl;
+    cout << "                 eval=" << EvaluationStr[Parameters::eval] << endl;
+    cout << "           bestIsZero=" << Parameters::bestIsZero << endl;
+    cout << "     normalizeResults=" << Parameters::normalizeResults << endl;
+    cout << "             maxDepth=" << Parameters::maxDepth << endl;
+    cout << "              rankEps=" << scientific << rankEps << endl;
+    cout << "             rankPerc=" << fixed << setprecision(4) << rankPerc << endl;
+    cout << "    minElementsBranch=" << fixed << setprecision(0) << minElementsBranch << endl;
+    cout << "minPercElementsBranch=" << fixed << setprecision(3) << minPercElementsBranch << endl;
+    cout << "        minPerfImprov=" << fixed << setprecision(4) << minPerfImprov << endl;
+    cout << "     minAbsPerfImprov=" << defaultfloat << minAbsPerfImprov << endl;
 }
 
