@@ -43,6 +43,12 @@ enum FMRStrategy Parameters::fmrStrategy = WorseInst;
 
 double Parameters::fillMissingValue = 999999999;
 
+int Parameters::maxAlgs = 100;
+
+int Parameters::afMinAlgsInst = 5;
+
+bool Parameters::onlyGreedy = false;
+
 enum Evaluation Parameters::eval = Rank;
 
 bool Parameters::bestIsZero = false;
@@ -53,7 +59,7 @@ double Parameters::rankEps = 1e-8;
 
 double Parameters::rankPerc = 0.01;
 
-size_t Parameters::storeTop = 5;
+size_t Parameters::storeTop = 60;
 
 // minimum number of instances in a split
 // for the branching to be valid
@@ -198,6 +204,17 @@ void Parameters::parse( int argc, const char **argv )
             Parameters::fillMissingValue = stod(string(pValue));
             continue;
         }
+        if (strcasecmp(pName, "-maxAlgs")==0)
+        {
+            Parameters::maxAlgs = stoi(string(pValue));
+            continue;
+        }
+        if (strcasecmp(pName, "-afMinAlgsInst")==0)
+        {
+            Parameters::afMinAlgsInst = stoi(string(pValue));
+            continue;
+        }
+
         if (strcasecmp(pName, "-eval")==0)
         {
             Parameters::eval = to_eval(pValue);
@@ -208,6 +225,12 @@ void Parameters::parse( int argc, const char **argv )
             Parameters::bestIsZero = (bool)atoi(pValue);
             continue;
         }
+        if (strcasecmp(pName, "-onlyGreedy")==0)
+        {
+            Parameters::onlyGreedy = (bool)atoi(pValue);
+            continue;
+        }
+ 
         if (strcasecmp(pName, "-normalizeResults")==0)
         {
             Parameters::normalizeResults = (bool)atoi(pValue);
@@ -328,6 +351,7 @@ void Parameters::print()
     cout << "             fmrValue=" << defaultfloat << setprecision(4) << Parameters::fillMissingValue << endl;
     cout << "                 eval=" << EvaluationStr[Parameters::eval] << endl;
     cout << "           bestIsZero=" << Parameters::bestIsZero << endl;
+    cout << "           onlyGreedy=" << Parameters::onlyGreedy << endl;
     cout << "     normalizeResults=" << Parameters::normalizeResults << endl;
     cout << "             maxDepth=" << Parameters::maxDepth << endl;
     cout << "              rankEps=" << scientific << rankEps << endl;

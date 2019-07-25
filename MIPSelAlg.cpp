@@ -20,9 +20,6 @@
 using namespace std;
 
 // minimum number of parameter settings that should be allocated to a problem
-#define K 5
-
-#define NALGS 25
 
 static char **to_char_vec( const vector< string > names );
 
@@ -44,6 +41,7 @@ MIPSelAlg::MIPSelAlg( const ResultsSet *_rset ) :
     createConsSelK();
     createConsLNKXY();
     createConsSelNAlgs();
+    createConsSelMinProbAlg();
 }
 
 void MIPSelAlg::createYVars()
@@ -111,7 +109,7 @@ void MIPSelAlg::createConsSelK()
             idx[ia] = x[ip][ia];
         char rName[256];
         sprintf(rName, "selK(%d)", ip);
-        lp_add_row(mip, rset_->algsettings().size(), &idx[0], &coef[0], rName, 'G', K);
+        lp_add_row(mip, rset_->algsettings().size(), &idx[0], &coef[0], rName, 'G', Parameters::afMinAlgsInst);
     }
 }
 
@@ -148,7 +146,7 @@ void MIPSelAlg::createConsSelNAlgs()
     vector< double > coef(rset_->algsettings().size(), 1.0);
 
     char rName[256]; sprintf(rName, "nAlgs");
-    lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'E', NALGS);
+    lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'E', Parameters::maxAlgs);
 }
 
 void MIPSelAlg::optimize(int maxSeconds)
@@ -173,7 +171,26 @@ void MIPSelAlg::optimize(int maxSeconds)
         selAlg_[nSelAlg_++] = ia;
     }
 
-    assert(nSelAlg_ == NALGS);
+    assert(nSelAlg_ == Parameters::maxAlgs);
+}
+
+void MIPSelAlg::createConsSelMinProbAlg()
+{
+    vector< int > idx(iset_->size()+1);
+    vector< double > coef(idx.size(), 1.0);
+    (*coef.rbegin()) = -Parameters::minElementsBranch;
+
+    for ( auto ia=0 ; (ia<(int)rset_->algsettings().size()) ; ++ia )
+    {
+        for ( auto ip=0 ; (ip<iset_->size()) ; ++ip )
+            idx[ip] = x[ip][ia];
+
+        (*idx.rbegin()) = y[ia];
+        char rName[256];
+        sprintf(rName, "minInstAlg(%d)", ia);
+        lp_add_row(mip, idx.size(), &idx[0], &coef[0], rName, 'G', 0.0);
+    }
+
 }
 
 void MIPSelAlg::saveFilteredResults(const char *fileName) const

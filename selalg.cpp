@@ -26,7 +26,7 @@ int main( int argc, char **argv )
 {
     if (argc<3)
     {
-        fprintf(stderr, "usage: mpdt instanceSet resultsSet [options]");
+        fprintf(stderr, "usage: selalg instanceSet resultsSet [options]");
         exit(1);
     }
 
@@ -56,31 +56,14 @@ int main( int argc, char **argv )
         Parameters::minElementsBranch = newMEB;
     }    
 
-    rset.print_summarized_results();
+    MIPSelAlg msa(&rset);
 
+    msa.optimize(Parameters::maxSeconds);
 
-    Greedy grd(&iset, &rset);
-    Tree *greedyT = grd.build();
-    if (Parameters::gtreeFile.size())
-        greedyT->save(Parameters::gtreeFile.c_str());
-    if (Parameters::gtreeFileGV.size())
-        greedyT->draw(Parameters::gtreeFileGV.c_str());
-
-    if (Parameters::onlyGreedy)
-        return 0;
-
-    MIPPDtree mpdt( &iset, &rset );
-    mpdt.setInitialSolution( greedyT );
-    delete greedyT;
-
-    const Tree *tree = mpdt.build( Parameters::maxSeconds );
-    if (tree)
-    {
-        if (Parameters::treeFile.size())
-            tree->save(Parameters::treeFile.c_str());
-        if (Parameters::treeFileGV.size())
-            tree->draw(Parameters::treeFileGV.c_str());
-    }
+    string fileName = "res-" + to_string(rset.algsettings().size()) + 
+            "-" + to_string(Parameters::maxAlgs)  + ".csv";
+    
+    msa.saveFilteredResults(fileName.c_str());
 
     exit(0);
 }

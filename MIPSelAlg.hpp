@@ -47,6 +47,7 @@ private:
     void createConsSelK();
     void createConsLNKXY();
     void createConsSelNAlgs();
+    void createConsSelMinProbAlg();
 
     // y var indexes
     int *y;

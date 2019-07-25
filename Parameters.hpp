@@ -113,6 +113,19 @@ public:
     static double maxSeconds;
 
     static double fillMissingValue;
+
+    // when running algorithm filtering,
+    // how many select
+    static int maxAlgs;
+
+    // in the algorithm filter, minimum number 
+    // of algorithm configurations for
+    // covering each problem instance
+    static int afMinAlgsInst;
+
+    // if only the greedy algorithm will be executed
+    static bool onlyGreedy;
 };
 
 #endif /* PARAMETERS_HPP_ */
+
