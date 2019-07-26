@@ -272,9 +272,12 @@ void Node::computeCost()
 {
     this->idxBestAlg = numeric_limits<size_t>::max();
     this->nodeCost_ = DBL_MAX;
+
+    //printf("computing cost of node %s with %zu elements is leaf %d\n", this->id(), n_elements(), isLeaf());
     
     for ( int idxAlg=0 ; (idxAlg<(int)rset_->algsettings().size()) ; ++idxAlg )
     {
+        //printf("  > alg setting %d - %s\n", idxAlg, rset_->algsettings()[idxAlg].c_str());
         long double sumC = 0.0;
         long double sumR = 0.0;
         for ( int i=0 ; (i<(int)n_elements()) ; ++i )
@@ -282,6 +285,8 @@ void Node::computeCost()
             int idxInst = elements()[i];
             sumC += rset_->origRes(idxInst, idxAlg);
             sumR += rset_->rank(idxInst, idxAlg);
+            //printf("    ] instance %d -  %s cost: %g rank: %d, sumc %Lg sumR %Lg\n", idxInst, iset_->instances()[idxInst].name(),
+            //    rset_->origRes(idxInst, idxAlg), rset_->rank(idxInst, idxAlg), sumC, sumR );
         }
         sumC /= (long double)n_elements();
         sumR /= (long double)n_elements();

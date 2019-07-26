@@ -6,7 +6,6 @@ e40400,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,0.15
 enlight14,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,0.01
 long04_j,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,2.65
 eil33-2,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,0.04
-gen_ip_066,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,0
 core4872-1529,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,37.11
 gen_ip_027,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,0
 stdnc2018,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,0.25
@@ -17,7 +16,6 @@ p0201,crash-off-dual-pesteep-psi--0.69-pertv--4900-duals,0
 gen_ip_027,dual-pesteep-psi--0.43-pertv-17-duals,0.01
 eil33-2,dual-pesteep-psi--0.43-pertv-17-duals,0.05
 System02_Example001,dual-pesteep-psi--0.43-pertv-17-duals,179.61
-gen_ip_066,dual-pesteep-psi--0.43-pertv-17-duals,0
 enlight14,dual-pesteep-psi--0.43-pertv-17-duals,0
 e40400,dual-pesteep-psi--0.43-pertv-17-duals,0.24
 stdnc2018,dual-pesteep-psi--0.43-pertv-17-duals,0.15
@@ -31,7 +29,6 @@ robot_sch_syn_plain_4_100_1605_0.05#0,crash-idiot5-dualp-pesteep-pertv-55-duals,
 stdnc2018,crash-idiot5-dualp-pesteep-pertv-55-duals,0.23
 e40400,crash-idiot5-dualp-pesteep-pertv-55-duals,0.16
 br2,crash-idiot5-dualp-pesteep-pertv-55-duals,0.85
-gen_ip_066,crash-idiot5-dualp-pesteep-pertv-55-duals,0
 scpk1_core,crash-idiot5-dualp-pesteep-pertv-55-duals,1.93
 p0201,crash-idiot5-dualp-pesteep-pertv-55-duals,0
 gen_ip_027,crash-idiot5-dualp-pesteep-pertv-55-duals,0
@@ -41,7 +38,6 @@ long04_j,crash-idiot5-dualp-pesteep-pertv-81-duals,2.23
 System02_Example001,crash-idiot5-dualp-pesteep-pertv-81-duals,7.86
 core4872-1529,crash-idiot5-dualp-pesteep-pertv-81-duals,34.1
 iis-bupa-cov,crash-idiot5-dualp-pesteep-pertv-81-duals,0.22
-gen_ip_066,crash-idiot5-dualp-pesteep-pertv-81-duals,0
 enlight14,crash-idiot5-dualp-pesteep-pertv-81-duals,0
 DWS012_02,crash-idiot5-dualp-pesteep-pertv-81-duals,0.26
 stdnc2018,crash-idiot5-dualp-pesteep-pertv-81-duals,0.24

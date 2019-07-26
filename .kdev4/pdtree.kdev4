@@ -2,7 +2,7 @@
 BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00\x0c\x00p\x00d\x00t\x00r\x00e\x00e)
 
 [Filters]
-size=241
+size=255
 
 [Filters][0]
 inclusive=0
@@ -799,10 +799,80 @@ inclusive=0
 pattern=/test
 targets=2
 
+[Filters][241]
+inclusive=0
+pattern=/aaa.lp
+targets=1
+
+[Filters][242]
+inclusive=0
+pattern=/tmp
+targets=2
+
+[Filters][243]
+inclusive=0
+pattern=/COPYING
+targets=1
+
+[Filters][244]
+inclusive=0
+pattern=/cplex.log
+targets=1
+
+[Filters][245]
+inclusive=0
+pattern=/divingfeatures-normr.csv
+targets=1
+
+[Filters][246]
+inclusive=0
+pattern=/divingfeaturesnorm.csv
+targets=1
+
+[Filters][247]
+inclusive=0
+pattern=/divingfeaturesorig.csv
+targets=1
+
+[Filters][248]
+inclusive=0
+pattern=/depcomp
+targets=1
+
+[Filters][249]
+inclusive=0
+pattern=/errorfix.lp
+targets=1
+
 [Filters][25]
 inclusive=0
 pattern=qrc_*.cpp
 targets=1
+
+[Filters][250]
+inclusive=0
+pattern=*.xml
+targets=3
+
+[Filters][251]
+inclusive=0
+pattern=*.gv
+targets=3
+
+[Filters][252]
+inclusive=0
+pattern=*.txt
+targets=3
+
+[Filters][253]
+inclusive=0
+pattern=*.csv
+targets=3
+
+[Filters][254]
+inclusive=0
+pattern=*.pdf
+targets=3
 
 [Filters][26]
 inclusive=0
@@ -1210,7 +1280,7 @@ pattern=/installcheck
 targets=1
 
 [Launch]
-Launch Configurations=Launch Configuration 0,Launch Configuration 1,Launch Configuration 2,Launch Configuration 3
+Launch Configurations=Launch Configuration 0,Launch Configuration 1,Launch Configuration 2,Launch Configuration 3,Launch Configuration 4
 
 [Launch][Launch Configuration 0]
 Configured Launch Modes=execute
@@ -1282,6 +1352,24 @@ External Terminal=konsole --noclose --workdir %workdir -e %exe
 Project Target=
 Use External Terminal=false
 Working Directory=
+isExecutable=true
+
+[Launch][Launch Configuration 4]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=mpdt test mip
+Type=Native Application
+
+[Launch][Launch Configuration 4][Data]
+Arguments=./test/mip-features.csv ./test/mip-results.csv -eval=average -gtreeFile=mipgTree.xml -gtreeFileGV=mipgTree.gv -onlyGreedy=1
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
+Dependency Action=Nothing
+EnvironmentGroup=
+Executable=file:///home/haroldo/git/pdtree/mpdt
+External Terminal=konsole --noclose --workdir %workdir -e %exe
+Project Target=
+Use External Terminal=false
+Working Directory=file:///home/haroldo/git/pdtree
 isExecutable=true
 
 [MakeBuilder]

@@ -290,14 +290,8 @@ static enum FMRStrategy to_fmrs( const char *s )
     for ( size_t i=0 ; i<5 ; ++i )
     {
         strcpy(slc, FMRStrategyStr[i]);
-        char *st = slc;
-        while (*st != '\0')
-        {
-            *st = tolower(*st);
-            ++st;
-        }
 
-        if (strcmp(slc, s)==0)
+        if (strcasecmp(slc, s)==0)
             return (FMRStrategy)i;
     }
 
@@ -313,14 +307,8 @@ static enum Evaluation to_eval( const char *s)
     for ( size_t i=0 ; i<2 ; ++i )
     {
         strcpy(slc, EvaluationStr[i]);
-        char *st = slc;
-        while (*st != '\0')
-        {
-            *st = tolower(*st);
-            ++st;
-        }
 
-        if (strcmp(slc, s)==0)
+        if (strcasecmp(slc, s)==0)
             return (Evaluation)i;
     }
 
