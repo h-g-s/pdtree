@@ -58,7 +58,6 @@ int main( int argc, char **argv )
 
     rset.print_summarized_results();
 
-
     Greedy grd(&iset, &rset);
     Tree *greedyT = grd.build();
     if (Parameters::gtreeFile.size())

@@ -11,6 +11,7 @@ extern "C"
 }
 class InstanceSet;
 class ResultsSet;
+class Tree;
 #include <vector>
 
 #ifndef MIPMULTIVARIATE_HPP
@@ -19,7 +20,11 @@ class ResultsSet;
 class MIPMultiVariate
 {
     public:
-        MIPMultiVariate( const InstanceSet *_iset, const ResultsSet *_rset );
+        // an initial feasible tree can be informed to extract useful
+        // features for an initial solution
+        MIPMultiVariate( const InstanceSet *_iset, const ResultsSet *_rset, const Tree *_tree = NULL );
+
+        void optimize();
 
         virtual ~MIPMultiVariate();
     private:
@@ -36,6 +41,8 @@ class MIPMultiVariate
         void createConsSelAlgProblem();
         void createConsLNKWYZ();
 
+        void fillInitialSolution();
+
         int nAlgs;
         int nFeat;
         
@@ -44,6 +51,8 @@ class MIPMultiVariate
         std::vector<int> a;
         int b;
         std::vector< std::vector< int > > w;
+
+        const Tree *tree;
 
         LinearProgram *mip;
 };

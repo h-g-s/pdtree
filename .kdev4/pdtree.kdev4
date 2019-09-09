@@ -2,7 +2,7 @@
 BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00\x0c\x00p\x00d\x00t\x00r\x00e\x00e)
 
 [Filters]
-size=255
+size=257
 
 [Filters][0]
 inclusive=0
@@ -873,6 +873,16 @@ targets=3
 inclusive=0
 pattern=*.pdf
 targets=3
+
+[Filters][255]
+inclusive=0
+pattern=/selalg
+targets=1
+
+[Filters][256]
+inclusive=0
+pattern=/mvpdt
+targets=1
 
 [Filters][26]
 inclusive=0

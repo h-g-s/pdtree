@@ -10,11 +10,12 @@ using namespace std;
 
 static char **to_char_vec( const vector< string > names );
 
-MIPMultiVariate::MIPMultiVariate( const InstanceSet *_iset, const ResultsSet *_rset ) :
+MIPMultiVariate::MIPMultiVariate( const InstanceSet *_iset, const ResultsSet *_rset, const Tree *_tree ) :
     iset_( _iset ),
     rset_( _rset ),
     nAlgs(rset_->algsettings().size()),
     nFeat(iset_->features().size()),
+    tree(_tree),
     mip(lp_create())
 {
     createYvars();
@@ -227,4 +228,19 @@ static char **to_char_vec( const vector< string > names )
     return r;
 }
 
+void MIPMultiVariate::optimize()
+{
+    int st = lp_optimize(mip);
+    if (st != LP_OPTIMAL and st !=LP_FEASIBLE)
+    {
+        fprintf(stderr, "No solution found for multivariate\n");
+        exit(1);
+    }
+}
+
+void MIPMultiVariate::fillInitialSolution()
+{
+    if (!tree)
+        return;
+}
 
